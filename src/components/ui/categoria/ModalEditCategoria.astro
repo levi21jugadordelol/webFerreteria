@@ -1,0 +1,136 @@
+---
+const { id = "modal-editar-categoria" } = Astro.props;
+---
+
+<div id={id} class="modal-overlay">
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <h3>Editar Categoría</h3>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <form id="form-editar-categoria" class="form-editar">
+
+        <input type="hidden" id="cat-id" />
+
+        <label>Nombre de categoría</label>
+        <input type="text" id="cat-nombre" required />
+
+        <label>Descripción</label>
+        <textarea id="cat-descripcion"></textarea>
+
+        <label>Imagen actual</label>
+        <img id="cat-img-preview" class="img-preview" />
+
+        <label>Nueva imagen (opcional)</label>
+        <input type="file" id="cat-img" accept="image/*" />
+
+        <button type="submit" class="btn-guardar">
+          Guardar cambios
+        </button>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<style >
+/* Igual que el modal de productos */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: .2s ease;
+  z-index: 5000;
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  width: 95%;
+  max-width: 450px;
+  background: white !important;
+  border-radius: 12px;
+  padding: 20px;
+  animation: pop .25s ease;
+  backdrop-filter: none !important;
+}
+
+
+@keyframes pop {
+  0% { transform: scale(.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-close {
+  border: none;
+  background: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.form-editar {
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+}
+
+.img-preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+
+.btn-guardar {
+  background: #0d6efd;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-guardar:hover {
+  background: #0b5ed7;
+}
+</style>
+
+<script is:client>
+  const closeBtn = document.querySelector("[data-close]");
+  const modal = closeBtn.closest(".modal-overlay");
+
+  function closeModal() { modal.classList.remove("visible"); }
+
+  closeBtn.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", e => {
+    if (e.target === modal) closeModal();
+  });
+
+  document.addEventListener("keyup", e => {
+    if (e.key === "Escape") closeModal();
+  });
+
+  document.addEventListener("cerrar-modal-categoria", closeModal);
+</script>

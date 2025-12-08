@@ -1,0 +1,29 @@
+---
+//import Carrusel from "../ui/carrusel.astro";
+import Carrusel from "../ui/Carrusel.astro";
+---
+
+<header class="site-header mt-5">
+
+  <!-- Hero con carrusel -->
+  <Carrusel />
+</header>
+
+<style>
+  .site-header {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .site-header nav {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+  }
+</style>

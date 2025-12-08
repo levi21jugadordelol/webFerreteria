@@ -1,0 +1,69 @@
+---
+import ProductoCard from "../../components/ui/tarjetaProducto.astro";
+
+// 🧩 Definir el tipo de producto (interfaz)
+interface Producto {
+  id_producto: number;
+  nombre_producto: string;
+  descripcion: string;
+  precio: number;
+  url_imagen: string | null;
+}
+
+const apiUrl = "http://localhost:3000"; // Backend
+
+// Inicializamos el arreglo tipado
+let productos: Producto[] = [];
+
+try {
+  const res = await fetch(`${apiUrl}/productos`, { cache: "no-store" });
+  if (res.ok) {
+    productos = await res.json();
+  } else {
+    console.error("Error al cargar productos:", res.statusText);
+  }
+} catch (err) {
+  console.error("❌ Error de conexión con el backend:", err);
+}
+---
+
+<section class="productos-section container my-5">
+  <h2 class="text-center mb-4 fw-bold text-primary">Nuestros Productos</h2>
+
+  {productos.length === 0 ? (
+    <p class="text-center text-muted">
+      No hay productos disponibles por el momento.
+    </p>
+  ) : (
+    <div class="productos-grid">
+      {productos.map((p) => {
+        const imagen = p.url_imagen
+          ? `${apiUrl}/uploads/${p.url_imagen}`
+          : "https://via.placeholder.com/300x300?text=Sin+imagen";
+
+        return (
+          <ProductoCard
+            titulo={p.nombre_producto}
+            precio={`S/ ${p.precio}`}
+            descripcion={p.descripcion}
+            imagen={{ src: imagen }}
+          />
+        );
+      })}
+    </div>
+  )}
+</section>
+
+<style>
+.productos-section {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+</style>
+

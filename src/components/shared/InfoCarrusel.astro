@@ -1,0 +1,71 @@
+---
+import Title from "./Title.astro"
+import Button from "../ui/Button.astro";
+const{titulo1="Simplifica tu facturacion electronica en minutos",parrafo="TU SISTEMAS, hace todo el trabajo pesado y tedioso que tu negocio necesita para salir adelante. Nuestro sistema va ser tu gran herramienta, para que tu negocio crezca como siempre lo quisistes",titulo2="Descubre lo que tenemos para ti y tu negocio" } = Astro.props;
+---
+
+<div class="container_info_carrusel d-flex">
+  <div>
+ <h1 class="titulo-carrusel">
+  Simplifica tu <br />
+  facturación electrónica <br />
+  en minutos
+</h1>
+    <p class="parrafo-carrusel">{parrafo}</p>
+  </div>
+  <div class="container_info2">
+    <Title >{titulo2}</Title>
+    <div class="container_button" >
+      <Button label={"agendar cita"} />
+      <Button label={"ver demo"} />
+    </div>
+  </div>
+</div>
+
+<style>
+  .container_info_carrusel {
+    height: 100%;
+     width: 100%;
+    display: flex;
+    justify-content: space-between; /* separa título/parrafo del bloque derecho */
+    align-items: center;
+    gap: 2rem; /* espacio entre bloques */
+    padding: 2rem;
+  }
+  
+
+.titulo-carrusel {
+  text-align: left;   /* ahora sí se aplica */
+  font-size: 2.5rem;
+  font-weight: bold;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+}
+
+  .parrafo-carrusel {
+    text-align: left;    /* 👈 igual que el título */
+    font-size: 1.3rem;   /* 👈 más grande */
+    line-height: 1.6;    /* mejor legibilidad */
+    max-width: 600px;    /* 👈 mantiene mismo ancho visual */
+    color: #444;         /* gris suave para contraste */
+  }
+
+  .container_info2 {
+  background: rgba(110, 110, 110, 0.55); /* 👈 Fondo blanco translúcido */
+  padding: 2rem;                         /* 👈 Espaciado interno */
+  margin-top: 2rem;                      /* 👈 Separación respecto al bloque superior */
+  border-radius: 12px;                   /* 👈 Bordes redondeados */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* 👈 Suave sombra */
+  max-width: 600px;                      /* 👈 No se expanda demasiado */
+  text-align: center;                    /* 👈 Centra el contenido */
+}
+
+/* Botones dentro del contenedor */
+.container_info2 .container_button {
+  display: flex;
+  justify-content: center;
+  gap: 1rem; /* 👈 espacio entre botones */
+  margin-top: 1.5rem;
+}
+
+</style>

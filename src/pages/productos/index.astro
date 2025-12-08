@@ -1,0 +1,120 @@
+---
+import LayoutToProductos from "../../layouts/index/LayoutToProductos.astro";
+import BarraPrecio from "../../components/ui/BarraPrecio.astro";
+import FiltroCategoria from "../../components/ui/FiltroCategoria.astro";
+import FiltroMarcas from "../../components/ui/FiltroMarcas.astro";
+import ProductosCatalogoLayout from "../../layouts/productos/ProductosCatalogoLayout.astro";
+import ProductoCardSimpleBtn from "../../components/ui/productos/tarjetaProductoToProductos.astro";
+
+interface Producto {
+  id_producto: number;
+  nombre_producto: string;
+  descripcion: string;
+  precio: number;
+  url_imagen: string | null;
+}
+
+const apiUrl = "http://localhost:3000";
+
+// Parámetros reales de la URL
+const urlParams = Astro.url.searchParams;
+
+const marca = urlParams.get("marca");
+const categoria = urlParams.get("categoria");
+const maxPrecio = urlParams.get("max");
+
+// -------------------------
+//   Construcción del FETCH
+// -------------------------
+let backendURL;
+
+if (maxPrecio && !isNaN(Number(maxPrecio))) {
+  backendURL = new URL(apiUrl + "/productos/precio");
+  backendURL.searchParams.set("max", maxPrecio);
+} 
+else {
+  backendURL = new URL(apiUrl + "/productos");
+
+  if (marca) backendURL.searchParams.set("marca", marca);
+  if (categoria) backendURL.searchParams.set("categoria", categoria);
+}
+
+console.log("🟢 URL FINAL USADA PARA FETCH:", backendURL.toString());
+
+// -------------------------
+//   Fetch productos
+// -------------------------
+const res = await fetch(backendURL);
+const data = await res.json();
+const productos: Producto[] = Array.isArray(data) ? data : [];
+---
+
+<div style="background:red;color:white;padding:10px;font-weight:bold;">
+  TEST QUERY → Marca: {marca} | Categoria: {categoria} | Max: {maxPrecio}
+</div>
+
+<LayoutToProductos marca={marca} categoria={categoria}>
+  <div slot="aside">
+    <BarraPrecio 
+      marcaActual={marca}
+      categoriaActual={categoria}
+      maxActual={maxPrecio}
+    />
+
+    <FiltroCategoria marcaActual={marca} categoriaActual={categoria} />
+    <FiltroMarcas marcaActual={marca} categoriaActual={categoria} />
+  </div>
+
+  <ProductosCatalogoLayout marca={marca} categoria={categoria}>
+    <div class="row g-3">
+
+      {productos.length === 0 && (
+        <p class="text-center text-muted">No se encontraron productos.</p>
+      )}
+
+      {productos.length > 0 && productos.map((p) => (
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <ProductoCardSimpleBtn
+            id={p.id_producto}        
+            titulo={p.nombre_producto}
+            precio={p.precio}
+            imagen={{
+              src: p.url_imagen
+                ? `${apiUrl}/uploads/${p.url_imagen}`
+                : "/img/no-image.png"
+            }}
+          />
+        </div>
+      ))}
+
+    </div>
+  </ProductosCatalogoLayout>
+
+</LayoutToProductos>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

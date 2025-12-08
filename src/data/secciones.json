@@ -1,0 +1,17 @@
+[
+  {
+    "titulo": "Productos por categoría",
+    "categorias": [
+      "Herramientas manuales",
+      "Electricidad",
+      "Fontanería",
+      "Pinturas",
+      "Jardinería",
+      "Fijaciones y tornillería"
+    ]
+  },
+  {
+    "titulo": "Marcas",
+    "marcas": ["Stanley", "Bosch", "DeWalt", "Makita", "Truper", "Black+Decker"]
+  }
+]

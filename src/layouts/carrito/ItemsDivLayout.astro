@@ -1,0 +1,46 @@
+---
+/* Puedes agregar props si luego necesitas algo */
+---
+
+<div class="checkout-grid">
+
+  <!-- 🛒 LISTA DE ITEMS (lado izquierdo) -->
+  <div class="col-items">
+    <slot name="items" />
+  </div>
+
+  <!-- 📦 RESUMEN DE COMPRA (lado derecho) -->
+  <div class="col-resumen">
+    <slot name="resumen" />
+  </div>
+
+</div>
+
+<style>
+/* GRID PRINCIPAL */
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr 350px; /* columna izquierda flexible + columna derecha fija */
+  gap: 2rem;
+  padding: 1rem;
+  align-items: start;
+}
+
+/* Evita colapso cuando no hay items */
+.col-items {
+  min-height: 50px;
+}
+
+/* Asegura que el resumen NO se estire verticalmente */
+.col-resumen {
+  align-self: start;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+

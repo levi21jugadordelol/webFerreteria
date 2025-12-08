@@ -1,0 +1,35 @@
+---
+const { variant = "primary" } = Astro.props;
+---
+
+<button class="my-btn">
+  <slot>Comprar ahora</slot>
+</button>
+
+<style>
+  .my-btn {
+    background-color: #5b0c22; /* tu color vino corporativo */
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 10px rgba(91, 12, 34, 0.25);
+  }
+
+  .my-btn:hover {
+    background-color: #78112b;
+    box-shadow: 0 6px 16px rgba(91, 12, 34, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .my-btn:active {
+    transform: scale(0.97);
+  }
+</style>
+
+

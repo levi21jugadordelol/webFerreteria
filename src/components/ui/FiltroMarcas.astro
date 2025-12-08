@@ -1,0 +1,42 @@
+---
+interface Marca {
+  id_marca: number;
+  nombre_marca: string;
+}
+
+const apiUrl = "http://localhost:3000";
+let marcas: Marca[] = [];
+
+const categoriaActual = Astro.url.searchParams.get("categoria") || "";
+
+try {
+  const res = await fetch(apiUrl + "/marcas");
+  if (res.ok) marcas = await res.json();
+} catch (e) {
+  console.error("Error cargando marcas", e);
+}
+---
+
+<ul>
+  {marcas.map((m) => (
+    <li>
+ <a 
+  href={`/productos/?marca=${m.id_marca}${categoriaActual ? `&categoria=${categoriaActual}` : ""}`}
+  style="color: blue; font-weight: bold; font-size: 20px; display: inline-block; padding: 10px;"
+  onclick="console.log('CLICK DETECTADO: navegando a', this.href)"
+>
+  {m.nombre_marca}
+</a>
+
+
+      <small style="color: red">
+        LINK: /productos?marca={m.id_marca}{categoriaActual && `&categoria=${categoriaActual}`}
+      </small>
+    </li>
+  ))}
+</ul>
+
+
+
+
+

@@ -1,0 +1,34 @@
+---
+interface Categoria {
+  id_categoria: number;
+  nombre_categoria: string;
+  descripcion: string;
+  url_imagen: string | null;
+}
+
+const apiUrl = "http://localhost:3000";
+let categorias: Categoria[] = [];
+
+const marcaActual = Astro.url.searchParams.get("marca") || "";
+
+try {
+  const res = await fetch(apiUrl + "/categorias");
+  if (res.ok) categorias = await res.json() as Categoria[];
+} catch (e) {
+  console.error("Error cargando categorías", e);
+}
+---
+
+<ul>
+  {categorias.map((c: Categoria) => (
+    <li>
+      <a href={`/productos/?categoria=${c.id_categoria}${marcaActual ? `&marca=${marcaActual}` : ""}`}
+   onclick={`console.log('🟣 CATEGORIA CLICK:', '${c.id_categoria}')`}>
+
+
+        {c.nombre_categoria}
+      </a>
+    </li>
+  ))}
+</ul>
+

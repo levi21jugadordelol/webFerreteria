@@ -1,0 +1,187 @@
+---
+import Hero from "../ui/Hero.astro"
+import Title from "../shared/Title.astro"
+import { Image } from "astro:assets"
+import Button from "../ui/Button.astro"
+
+import testimonio1 from "../../assets/testimonio1.jpg"
+import testimonio2 from "../../assets/testimonio2.jpg"
+import testimonio3 from "../../assets/testimonio3.jpg"
+
+import pintura_1 from "../../assets/pintura_1.jpg"
+
+
+
+const clientes = [
+  {
+    titulo1: "Diseño y confort para tu hogar",
+    titulo2: "Encuentra muebles modernos y funcionales para cada ambiente de tu casa",
+    imagen: pintura_1,
+    refImg: "muebles del hogar"
+  },
+  {
+    titulo1: "Estilo que inspira cada espacio",
+    titulo2: "Salas, dormitorios y comedores con el equilibrio perfecto entre elegancia y comodidad",
+    imagen: testimonio2,
+    refImg: "muebles del hogar"
+  },
+  {
+    titulo1: "Calidad artesanal para tu bienestar",
+    titulo2: "Más de 10 años creando muebles duraderos que combinan diseño y practicidad",
+    imagen: testimonio3,
+    refImg: "muebles del hogar"
+  }
+];
+
+---
+
+<Hero bg="#e5e7eb" height="500px">
+  <div class="testimonio-carousel">
+    <div class="slides-wrapper">
+      {clientes.map(({ imagen, titulo1, titulo2, refImg }) => (
+        <div class="slide row h-100 w-100">
+          <div class="container col-6 d-flex align-items-center justify-content-center img-col">
+            <Image
+              src={imagen}
+              alt={`Foto de ${refImg}`}
+              class="hero-img"
+              format="webp"
+              widths={[400, 800, 1200]}
+              sizes="100vw"
+            />
+          </div>
+
+          <div class="col-6 d-flex flex-column align-items-center justify-content-center text-center">
+            <div class="div_texto px-3">
+              <h1 class="titulo1 mb-2">{titulo1}</h1>
+              <h2 class="titulo2 fw-bold">{titulo2}</h2>
+            </div>
+            <div class="mt-5">
+              <a href="/productos">
+                <Button label="comprar ahora" />
+              </a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- 🔘 Indicadores circulares -->
+    <div class="indicators">
+      {clientes.map((_, index) => (
+        <span class="dot" data-index={index}></span>
+      ))}
+    </div>
+  </div>
+</Hero>
+
+<style>
+  .testimonio-carousel {
+    position: relative; /* necesario para ubicar los indicadores dentro */
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .slides-wrapper {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 1s ease-in-out;
+  }
+
+  .slide {
+    flex: 0 0 100%;
+  }
+
+  .img-col {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .hero-img {
+    width: 80%;
+    height: 70%;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+
+  /* --- Texto sin fondo --- */
+  .div_texto {
+    max-width: 600px;
+    color: #1f2937; /* gris oscuro legible */
+  }
+
+  .titulo1 {
+    font-size: 1.1rem;
+    opacity: 0.9;
+  }
+
+  .titulo2 {
+    font-size: 2rem;
+    line-height: 1.3;
+  }
+
+  /* 🔘 Indicadores circulares */
+  .indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    background-color: #cbd5e1;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .dot.active {
+    background-color: #5b0c22; /* color vino */
+    transform: scale(1.25);
+  }
+
+  .dot:hover {
+    background-color: #7a1a36;
+  }
+</style>
+
+<script is:inline>
+  const carousel = document.querySelector(".testimonio-carousel");
+  const wrapper = carousel.querySelector(".slides-wrapper");
+  const slides = carousel.querySelectorAll(".slide");
+  const dots = carousel.querySelectorAll(".indicators .dot");
+
+  let current = 0;
+
+  // Mover al slide indicado
+  function goToSlide(index) {
+    current = index;
+    wrapper.style.transform = `translateX(-${index * 100}%)`;
+    dots.forEach(dot => dot.classList.remove("active"));
+    dots[index].classList.add("active");
+  }
+
+  // Clic en cada punto
+  dots.forEach((dot, i) => {
+    dot.addEventListener("click", () => {
+      goToSlide(i);
+    });
+  });
+
+  // Inicia en la primera slide
+  goToSlide(0);
+</script>
+
+
+
+
+

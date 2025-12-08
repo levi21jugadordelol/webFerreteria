@@ -1,0 +1,79 @@
+---
+// src/components/shared/Footer.astro
+const {
+  titulo = "Enlaces de interés",
+  titulo2 = "Acerca de",
+  titulo3 = "Conversemos",
+  enlace1 = "Beneficios",
+  enlace2 = "Contáctanos",
+  enlace3 = "Rubros",
+  parrafo = "Desarrollamos productos que resuelven tus retos y optimizan el rendimiento de tu empresa",
+} = Astro.props;
+---
+
+<footer class="footer bg-dark text-light pt-5 pb-3 mt-5">
+  <div class="container">
+    <div class="row">
+      
+      <!-- Columna 1: Enlaces -->
+      <div class="col-md-4 mb-4">
+        <h5 class="fw-bold">{titulo}</h5>
+        <ul class="list-unstyled">
+          <li><a href="/planes" class="footer-link">{enlace1}</a></li>
+          <li><a href="/contacto" class="footer-link">{enlace2}</a></li>
+          <li><a href="/rubro" class="footer-link">{enlace3}</a></li>
+        </ul>
+      </div>
+
+      <!-- Columna 2: Acerca de -->
+      <div class="col-md-4 mb-4">
+        <h5 class="fw-bold">{titulo2}</h5>
+        <p>{parrafo}</p>
+      </div>
+
+      <!-- Columna 3: Redes sociales -->
+      <div class="col-md-4 mb-4">
+        <h5 class="fw-bold">{titulo3}</h5>
+        <div class="social-icons d-flex gap-3">
+          <a href="https://facebook.com" target="_blank" class="social-link">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="https://instagram.com" target="_blank" class="social-link">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://linkedin.com" target="_blank" class="social-link">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+          <a href="https://twitter.com" target="_blank" class="social-link">
+            <i class="fab fa-x-twitter"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Línea final -->
+    <div class="text-center mt-4 small text-secondary">
+      © {new Date().getFullYear()} - Todos los derechos reservados
+    </div>
+  </div>
+</footer>
+
+<style>
+.footer-link {
+  color: #bbb;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+.footer-link:hover {
+  color: #fff;
+}
+.social-link {
+  font-size: 20px;
+  color: #bbb;
+  transition: color 0.2s ease-in-out, transform 0.2s;
+}
+.social-link:hover {
+  color: #fff;
+  transform: scale(1.1);
+}
+</style>

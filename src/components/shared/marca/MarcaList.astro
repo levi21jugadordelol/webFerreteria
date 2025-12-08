@@ -1,0 +1,172 @@
+---
+import ModalEditMarca from "../../ui/marca/ModalEditMarca.astro";
+const apiUrl = "http://localhost:3000";
+---
+<div class="container my-4">
+  <h3 class="fw-bold mb-3">Lista de Marcas</h3>
+  <p id="contador" class="text-muted">Cargando marcas...</p>
+
+  <div id="lista-marcas" class="d-flex flex-column gap-3 mt-3">
+    <p class="text-center text-muted">Cargando marcas...</p>
+  </div>
+</div>
+
+<!-- MODAL DE EDICIÓN -->
+<ModalEditMarca id="modal-editar-marca" />
+
+<!-- Script del lado del cliente -->
+<!-- @ts-ignore -->
+<script is:client>
+  const apiUrl = "http://localhost:3000";
+
+  async function cargarMarcas() {
+    const contenedor = document.getElementById("lista-marcas");
+    const contador = document.getElementById("contador");
+
+    try {
+      const res = await fetch(`${apiUrl}/marcas`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        contenedor.innerHTML = `<p class="text-danger">❌ Error ${res.status}: ${res.statusText}</p>`;
+        contador.textContent = "Error al cargar marcas";
+        return;
+      }
+
+      const marcas = await res.json();
+      contador.textContent = `Total marcas: ${marcas.length}`;
+
+      if (marcas.length === 0) {
+        contenedor.innerHTML =
+          "<p class='text-center text-muted'>No hay marcas aún.</p>";
+        return;
+      }
+
+      contenedor.innerHTML = marcas
+        .map((m) => {
+          const imagenUrl = m.url_logo
+            ? `${apiUrl}/uploads/${m.url_logo}`
+            : "https://via.placeholder.com/120";
+
+          return `
+            <div class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3" data-id="${m.id_marca}">
+              <img src="${imagenUrl}" width="120" height="120" class="rounded" />
+
+              <div class="flex-grow-1">
+                <h5 class="mb-1">${m.nombre_marca}</h5>
+                <p class="text-muted mb-1">${m.descripcion || "Sin descripción"}</p>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-warning btn-sm btn-editar">✏️ Editar</button>
+                <button class="btn btn-danger btn-sm btn-eliminar">🗑️ Eliminar</button>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      // 🗑️ Evento ELIMINAR marca
+      contenedor.querySelectorAll(".btn-eliminar").forEach((btn) =>
+        btn.addEventListener("click", async (e) => {
+          const card = e.target.closest(".card");
+          const id = card.dataset.id;
+          if (!confirm("¿Seguro que deseas eliminar esta marca?")) return;
+
+          try {
+            const res = await fetch(`${apiUrl}/marcas/${id}`, {
+              method: "DELETE",
+              credentials: "include",
+            });
+
+            if (!res.ok) throw new Error("Error al eliminar marca");
+
+            alert("✅ Marca eliminada correctamente");
+            card.remove();
+          } catch (err) {
+            alert("❌ " + (err.message || err));
+          }
+        })
+      );
+
+      // ✏️ Evento EDITAR marca (ABRIR MODAL)
+      contenedor.querySelectorAll(".btn-editar").forEach((btn) =>
+        btn.addEventListener("click", async (e) => {
+          const card = e.target.closest(".card");
+          const id = card.dataset.id;
+
+          const res = await fetch(`${apiUrl}/marcas/${id}`, { credentials: "include" });
+          const marca = await res.json();
+
+          // Llenar campos del modal
+          document.getElementById("marca-id").value = marca.id_marca;
+          document.getElementById("marca-nombre").value = marca.nombre_marca;
+          document.getElementById("marca-descripcion").value = marca.descripcion || "";
+
+          // Vista previa del logo
+          const preview = document.getElementById("marca-img-preview");
+          preview.src = marca.url_logo
+            ? `${apiUrl}/uploads/${marca.url_logo}`
+            : "https://via.placeholder.com/120";
+
+          // Mostrar modal
+          document.getElementById("modal-editar-marca").classList.add("visible");
+        })
+      );
+
+    } catch (err) {
+      contenedor.innerHTML = `<p class="text-danger">❌ Error: ${err.message}</p>`;
+      contador.textContent = "Error de conexión";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", cargarMarcas);
+
+  // 🟦 Guardar cambios del modal
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("form-editar-marca");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("marca-id").value;
+      const nombre = document.getElementById("marca-nombre").value;
+      const descripcion = document.getElementById("marca-descripcion").value;
+      const nuevoLogo = document.getElementById("marca-img").files[0];
+
+      // 1️⃣ Actualizar texto
+      await fetch(`${apiUrl}/marcas/${id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre_marca: nombre, descripcion }),
+      });
+
+      // 2️⃣ Subir nuevo logo
+      if (nuevoLogo) {
+        const data = new FormData();
+        data.append("file", nuevoLogo);
+
+        await fetch(`${apiUrl}/marcas/subir-logo/${id}`, {
+          method: "POST",
+          credentials: "include",
+          body: data,
+        });
+      }
+
+      alert("✅ Marca actualizada");
+
+      // Cerrar modal y recargar lista
+      document.dispatchEvent(new Event("cerrar-modal-marca"));
+      cargarMarcas();
+    });
+  });
+</script>
+
+<style>
+.card img {
+  object-fit: cover;
+}
+</style>
+

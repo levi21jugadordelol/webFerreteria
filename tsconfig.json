@@ -1,0 +1,15 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.astro",
+    ".astro/types.d.ts",
+    "**/*.astro"
+  ],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "allowJs": true
+  }
+}

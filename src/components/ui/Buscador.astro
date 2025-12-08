@@ -1,0 +1,95 @@
+<div class="search-container">
+  <input
+    type="text"
+    placeholder="Buscar productos..."
+    class="search-input"
+  />
+  <button class="search-button" aria-label="Buscar">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+</div>
+
+<style>
+  .search-container {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.6rem 2.4rem 0.4rem 1.2rem; /* espacio a la derecha para el botón */
+    border-radius: 9999px;
+    border: 1.5px solid #d1d5db;
+    outline: none;
+    font-size: 0.95rem;
+    color: #1f2937;
+    background-color: #fff;
+    transition: all 0.25s ease;
+  }
+
+  .search-input::placeholder {
+    color: #9ca3af;
+    font-size: 0.95rem;
+  }
+
+  .search-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 6px rgba(37, 99, 235, 0.3);
+  }
+.search-button {
+  position: absolute;
+  top: 0.45rem; /* 👈 fija posición vertical exacta */
+  right: 0.55rem;
+  background: #2563eb;
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 1.8rem;
+  height: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.25s ease; /* solo color */
+}
+
+
+ .search-button:hover {
+  background: #1e40af; /* 👈 solo cambio de color */
+}
+
+  .search-button i {
+    font-size: 0.9rem;
+  }
+
+  @media (min-width: 768px) {
+    .search-container {
+      max-width: 400px;
+    }
+  }
+</style>
+
+
+<script is:client>
+  const input = document.querySelector(".search-input");
+  const button = document.querySelector(".search-button");
+
+  button.addEventListener("click", () => {
+    const q = input.value.trim();
+    if (!q) return alert("Escribe algo para buscar");
+
+    window.location.href = `/buscador/buscar?q=${encodeURIComponent(q)}`;
+  });
+
+  input.addEventListener("keyup", (e) => {
+    if (e.key === "Enter") button.click();
+  });
+</script>
+
+
+
+
+
+
+

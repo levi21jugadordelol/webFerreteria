@@ -1,0 +1,177 @@
+---
+import ProductoCard from "../../components/shared/ProductoCard.astro";
+import ModalEditProducto from "../ui/productos/ModalEditProducto.astro";
+---
+
+<div class="container my-4">
+  <p>✅ ProductoLista cargada correctamente</p>
+  <p id="contador" class="text-muted">Cargando productos...</p>
+
+  <div id="lista-productos" class="d-flex flex-column gap-3 mt-3">
+    <p class="text-center text-muted">Cargando productos...</p>
+  </div>
+</div>
+
+<!-- 🔥 MODAL DE EDICIÓN -->
+<ModalEditProducto id="modal-editar" />
+
+<script is:client>
+  const apiUrl = "http://localhost:3000";
+
+  async function cargarProductos() {
+    const contenedor = document.getElementById("lista-productos");
+    const contador = document.getElementById("contador");
+
+    try {
+      const res = await fetch(`${apiUrl}/productos`, { credentials: "include" });
+
+      if (!res.ok) {
+        contenedor.innerHTML = `<p class="text-danger">❌ Error ${res.status}: ${res.statusText}</p>`;
+        contador.textContent = "Error al cargar productos";
+        return;
+      }
+
+      const productos = await res.json();
+      contador.textContent = `Total productos: ${productos.length}`;
+
+      if (productos.length === 0) {
+        contenedor.innerHTML = "<p class='text-center text-muted'>No hay productos aún.</p>";
+        return;
+      }
+
+      contenedor.innerHTML = productos.map((p) => {
+        const imagenUrl = p.url_imagen
+          ? `${apiUrl}/uploads/${p.url_imagen}`
+          : "https://via.placeholder.com/100";
+
+        return `
+          <div class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3" data-id="${p.id_producto}">
+            <img src="${imagenUrl}" width="100" height="100" class="rounded" />
+            <div class="flex-grow-1">
+              <h5 class="mb-1">${p.nombre_producto}</h5>
+              <p class="text-muted mb-1">Precio: S/ ${p.precio}</p>
+              <small>Stock: ${p.stock}</small>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-warning btn-sm btn-editar">✏️ Editar</button>
+              <button class="btn btn-danger btn-sm btn-eliminar">🗑️ Eliminar</button>
+            </div>
+          </div>`;
+      }).join("");
+
+      /* ────────────────────────────────
+         🗑️ BOTÓN ELIMINAR
+      ────────────────────────────────*/
+      contenedor.querySelectorAll(".btn-eliminar").forEach((btn) =>
+        btn.addEventListener("click", async (e) => {
+          const card = e.target.closest(".card");
+          const id = card.dataset.id;
+
+          if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
+
+          const res = await fetch(`${apiUrl}/productos/${id}`, {
+            method: "DELETE",
+            credentials: "include",
+          });
+
+          if (!res.ok) return alert("❌ Error al eliminar producto");
+
+          alert("✅ Producto eliminado correctamente");
+          card.remove();
+        })
+      );
+
+      /* ────────────────────────────────
+         ✏️ BOTÓN EDITAR
+      ────────────────────────────────*/
+      const modal = document.getElementById("modal-editar");
+
+      contenedor.querySelectorAll(".btn-editar").forEach((btn) =>
+        btn.addEventListener("click", async (e) => {
+          const card = e.target.closest(".card");
+          const id = card.dataset.id;
+
+          const res = await fetch(`${apiUrl}/productos/${id}`, { credentials: "include" });
+          const producto = await res.json();
+
+          // 📌 Llenar datos en el modal
+          document.getElementById("edit-id").value = producto.id_producto;
+          document.getElementById("edit-nombre").value = producto.nombre_producto;
+          document.getElementById("edit-descripcion").value = producto.descripcion;
+          document.getElementById("edit-precio").value = producto.precio;
+          document.getElementById("edit-stock").value = producto.stock;
+
+          // 📌 Imagen previa
+          document.getElementById("edit-img-preview").src = producto.url_imagen
+            ? `${apiUrl}/uploads/${producto.url_imagen}`
+            : "https://via.placeholder.com/120";
+
+          modal.classList.add("visible");
+        })
+      );
+
+      /* ────────────────────────────────
+         💾 GUARDAR CAMBIOS DEL MODAL
+      ────────────────────────────────*/
+      document.getElementById("form-editar").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const id = document.getElementById("edit-id").value;
+
+        // 🟢 Actualizar datos generales
+        const data = {
+          nombre_producto: document.getElementById("edit-nombre").value,
+          descripcion: document.getElementById("edit-descripcion").value,
+          precio: document.getElementById("edit-precio").value,
+          stock: document.getElementById("edit-stock").value
+        };
+
+        const resUpdate = await fetch(`${apiUrl}/productos/${id}`, {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        if (!resUpdate.ok) {
+          alert("❌ Error al actualizar producto");
+          return;
+        }
+
+        // 🟢 Actualizar imagen SOLO si se seleccionó una nueva
+        const fileInput = document.getElementById("edit-img");
+        if (fileInput.files.length > 0) {
+          const formData = new FormData();
+          formData.append("file", fileInput.files[0]);
+
+          const resImg = await fetch(`${apiUrl}/productos/${id}/imagen`, {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+          });
+
+          if (!resImg.ok) {
+            alert("⚠️ Producto actualizado, pero hubo problema al subir la imagen.");
+          }
+        }
+
+        alert("✅ Producto actualizado correctamente");
+
+        // Cerrar modal
+        document.dispatchEvent(new CustomEvent("cerrar-editar"));
+
+        // Recargar productos
+        cargarProductos();
+      });
+
+    } catch (err) {
+      contenedor.innerHTML = `<p class="text-danger">❌ Error: ${err.message}</p>`;
+      contador.textContent = "Error de conexión";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", cargarProductos);
+</script>
+
+
+

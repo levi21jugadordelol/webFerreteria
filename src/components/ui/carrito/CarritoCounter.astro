@@ -1,0 +1,43 @@
+
+
+<a href="/carrito/checkout" class="icon-link position-relative">
+  <i class="fa-solid fa-cart-shopping"></i>
+  <span id="cart-count" class="cart-count-badge">0</span>
+</a>
+
+<style>
+.cart-count-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  background: #ff3b3b;
+  color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  display: none;
+}
+</style>
+<script is:client type="module">
+  import carritoStore from "/src/store/carritoStore.js";
+
+  console.log("CarritoCounter cargado");
+
+  window.carritoStore = carritoStore;
+  console.log("Store asignado a window:", window.carritoStore);
+
+  const badge = document.getElementById("cart-count");
+
+  function actualizar() {
+    const total = carritoStore.count();
+    badge.textContent = total;
+    badge.style.display = total > 0 ? "inline-block" : "none";
+  }
+
+  actualizar();
+  document.addEventListener("carrito-actualizado", actualizar);
+</script>
+
+
+
+

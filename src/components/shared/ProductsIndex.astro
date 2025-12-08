@@ -1,0 +1,90 @@
+---
+import Title from "./Title.astro";
+import Subtitulo from "./Subtitulo.astro";
+import TarjetaProducto from "../ui/tarjetaProducto.astro";
+import Button from "../ui/Button.astro";
+import pintura from "../../assets/rubro1.jpg"
+import clavos from "../../assets/rubro2.jpg"
+import arena from "../../assets/rubro3.jpg"
+// Lista de productos
+const productos = [
+  {
+    titulo: "Taladro Inalámbrico",
+    precio: "S/ 320.00",
+    descripcion: "Potente y ligero para todo tipo de trabajos",
+    imagen: pintura
+  },
+  {
+    titulo: "Sierra Circular",
+    precio: "S/ 280.00",
+    descripcion: "Ideal para cortes precisos y potentes",
+    imagen: clavos
+  },
+  {
+    titulo: "Amoladora Angular",
+    precio: "S/ 190.00",
+    descripcion: "Compacta y resistente para uso intensivo",
+    imagen: arena
+  },
+    {
+    titulo: "Taladro Inalámbrico",
+    precio: "S/ 320.00",
+    descripcion: "Potente y ligero para todo tipo de trabajos",
+    imagen: pintura
+  },
+  {
+    titulo: "Sierra Circular",
+    precio: "S/ 280.00",
+    descripcion: "Ideal para cortes precisos y potentes",
+    imagen: clavos
+  },
+  {
+    titulo: "Amoladora Angular",
+    precio: "S/ 190.00",
+    descripcion: "Compacta y resistente para uso intensivo",
+    imagen: arena
+  },  {
+    titulo: "Taladro Inalámbrico",
+    precio: "S/ 320.00",
+    descripcion: "Potente y ligero para todo tipo de trabajos",
+    imagen: pintura
+  },
+  {
+    titulo: "Sierra Circular",
+    precio: "S/ 280.00",
+    descripcion: "Ideal para cortes precisos y potentes",
+    imagen: clavos
+  },
+
+
+];
+---
+
+<div class="mt-5">
+  <Title>Productos destacados</Title>
+  <Subtitulo>Explora nuestros mejores productos</Subtitulo>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      {productos.map((p) => (
+        <div class="col-md-3 mb-4">
+          <TarjetaProducto
+            titulo={p.titulo}
+            precio={p.precio}
+            descripcion={p.descripcion}
+            imagen={p.imagen}
+          />
+        </div>
+      ))}
+    </div>
+
+    <div class="text-center">
+      <Button>+ Ver todos nuestros productos</Button>
+    </div>
+  </div>
+</div>
+
+
+
+
+

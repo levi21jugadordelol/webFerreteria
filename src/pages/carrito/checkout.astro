@@ -1,0 +1,39 @@
+---
+import CarritoIndexLayout from "../../layouts/carrito/CarritoIndexLayout.astro";
+import ProductsList from "../../components/ui/carrito/ProductList.astro";
+import ResumenCompra from "../../components/ui/carrito/ResumenCompra.astro";
+import Modal from "../../components/ui/carrito/Modal.astro";
+import FormularioCompra from "../../components/ui/carrito/FormularioCompra.astro";
+---
+
+<CarritoIndexLayout title="Carrito de compras">
+  
+  <div class="checkout-wrapper">
+    <ProductsList />
+    <ResumenCompra />
+  </div>
+
+  <!-- 🔥 AQUÍ VA EL MODAL (fuera de ResumenCompra, dentro del layout) -->
+  <Modal id="modal-compra" title="Confirmar compra">
+    <FormularioCompra />
+  </Modal>
+
+  <style>
+    .checkout-wrapper {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .checkout-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+</CarritoIndexLayout>
+
+
+
+

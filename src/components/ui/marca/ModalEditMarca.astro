@@ -1,0 +1,115 @@
+---
+const { id = "modal-editar-marca" } = Astro.props;
+---
+
+<div id={id} class="modal-overlay">
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <h3>Editar marca</h3>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <div class="modal-body">
+      <form id="form-editar-marca" class="form-editar">
+
+        <input type="hidden" id="marca-id" />
+
+        <label>Nombre de marca</label>
+        <input type="text" id="marca-nombre" required />
+
+        <label>Descripción</label>
+        <textarea id="marca-descripcion"></textarea>
+
+        <label>Logo actual</label>
+        <img id="marca-img-preview" class="img-preview" />
+
+        <label>Nuevo logo (opcional)</label>
+        <input type="file" id="marca-img" accept="image/*" />
+
+        <button type="submit" class="btn-guardar">Guardar cambios</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: .2s ease;
+  z-index: 5000;
+}
+.modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+.modal-content {
+  width: 95%;
+  max-width: 450px;
+  background: white !important;
+  border-radius: 12px;
+  padding: 20px;
+  animation: pop .25s ease;
+}
+@keyframes pop {
+  0% { transform: scale(.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-close {
+  border: none;
+  background: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+.form-editar {
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+}
+.img-preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+.btn-guardar {
+  background: #0d6efd;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn-guardar:hover {
+  background: #0b5ed7;
+}
+</style>
+
+<script is:client>
+  const closeBtn = document.querySelector("[data-close]");
+  const modal = closeBtn.closest(".modal-overlay");
+
+  function closeModal() {
+    modal.classList.remove("visible");
+  }
+
+  closeBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+  document.addEventListener("keyup", e => { if (e.key === "Escape") closeModal(); });
+
+  document.addEventListener("cerrar-modal-marca", closeModal);
+</script>

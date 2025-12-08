@@ -1,0 +1,277 @@
+---
+import Buscador from "../ui/Buscador.astro";
+import CarritoCounter from "../ui/carrito/CarritoCounter.astro";
+
+const links = [
+  { href: '/', text: 'inicio' },
+  { href: '/categoria', text: 'categorias', isMega: true },
+  { href: '/marcas', text: 'marcas', isMega: true },
+  { href: '/productos', text: 'productos' },
+  { href: '/ofertas', text: 'ofertas' },
+  { href: '/contactanos', text: 'contactanos' },
+];
+---
+
+<nav class="nav-container">
+  <div class="nav-inner">
+
+    <!-- LOGO -->
+    <a href="/" class="logo"></a>
+
+    <!-- LINKS -->
+    <div class="nav-links">
+      {links.map(({ href, text }) => (
+        <div class="nav-item">
+          <a 
+            href={href}
+            class={`nav-link 
+              ${text === "categorias" ? "nav-link-categorias" : ""} 
+              ${text === "marcas" ? "nav-link-marcas" : ""}`}
+          >
+            {text}
+          </a>
+
+          {text === "categorias" && <div id="mega-categorias" class="mega-menu"><p>Cargando...</p></div>}
+          {text === "marcas" && <div id="mega-marcas" class="mega-menu"><p>Cargando...</p></div>}
+        </div>
+      ))}
+    </div>
+
+    <!-- BUSCADOR -->
+    <div class="buscador-wrapper">
+      <Buscador />
+    </div>
+
+    <!-- ICONOS -->
+    <div class="icons">
+      <CarritoCounter />
+      <i id="theme-icon" class="fa-solid fa-moon theme-toggle"></i>
+    </div>
+
+  </div>
+</nav>
+
+
+
+
+<style>
+/* ------ NAVBAR ------ */
+.nav-container {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: #fff;
+  z-index: 3000;
+  border-bottom: 1px solid #eee;
+}
+
+.nav-inner {
+  max-width: 1400px;
+  margin: auto;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 25px;
+}
+
+.icons {
+  display: flex;
+  align-items: center;
+  gap: 18px; /* Ajusta este valor a tu gusto */
+}
+
+.icons i {
+  font-size: 22px; /* tamaño general para íconos */
+}
+
+
+
+/* LOGO */
+.logo {
+  width: 90px;
+  height: 40px;
+  background: url('/img/logo.png') no-repeat center;
+  background-size: contain;
+}
+
+/* LINKS */
+.nav-links {
+  display: flex;
+  gap: 25px;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  color: #333;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.nav-link:hover {
+  background: #f3f3f3;
+}
+
+/* MEGA MENU */
+.mega-menu {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  width: 230px;
+  background: white;
+  padding: 10px 0;
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: .18s ease;
+
+  border-radius: 8px;
+  border: 1px solid #e5e5eb;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.mega-menu.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+:global(.categoria-item) {
+  display: block;
+  padding: 10px 18px;
+  color: #222;
+  text-decoration: none;
+}
+
+:global(.categoria-item:hover) {
+  background: #f7f7f7;
+}
+
+/* CARRITO BADGE */
+.cart-count-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  background: #ff3b3b;
+  color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  display: none;
+}
+
+/* WHATSAPP BUTTON */
+.whatsapp-wrapper .whatsapp-float {
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  width: 62px;
+  height: 62px;
+  background: #25D366;
+  border-radius: 50%;
+  color: white !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+}
+
+
+</style>
+
+<!-- ========== JS MEGA MENÚ ========== -->
+<script is:client>
+document.addEventListener("DOMContentLoaded", () => {
+  const apiUrl = "http://localhost:3000";
+
+  /* --------------------
+     CATEGORÍAS
+  ---------------------*/
+  const catLink = document.querySelector(".nav-link-categorias");
+  const megaCat = document.getElementById("mega-categorias");
+  let catLoaded = false;
+
+  async function cargarCategorias() {
+    const res = await fetch(apiUrl + "/categorias");
+    const cats = await res.json();
+    megaCat.innerHTML = cats
+      .map(c => `<a href="/productos?categoria=${c.id_categoria}" class="categoria-item">${c.nombre_categoria}</a>`)
+      .join("");
+    catLoaded = true;
+  }
+
+  if (catLink && megaCat) {
+    catLink.addEventListener("mouseenter", () => {
+      megaCat.classList.add("visible");
+      if (!catLoaded) cargarCategorias();
+    });
+
+    megaCat.addEventListener("mouseenter", () => megaCat.classList.add("visible"));
+    catLink.addEventListener("mouseleave", () => {
+      setTimeout(() => {
+        if (!megaCat.matches(":hover")) megaCat.classList.remove("visible");
+      }, 150);
+    });
+    megaCat.addEventListener("mouseleave", () => megaCat.classList.remove("visible"));
+  }
+
+  /* --------------------
+     MARCAS
+  ---------------------*/
+  const marLink = document.querySelector(".nav-link-marcas");
+  const megaMar = document.getElementById("mega-marcas");
+  let marLoaded = false;
+
+  async function cargarMarcas() {
+    const res = await fetch(apiUrl + "/marcas");
+    const marcas = await res.json();
+    megaMar.innerHTML = marcas
+      .map(m => `<a href="/productos?marca=${m.id_marca}" class="categoria-item">${m.nombre_marca}</a>`)
+      .join("");
+    marLoaded = true;
+  }
+
+  if (marLink && megaMar) {
+    marLink.addEventListener("mouseenter", () => {
+      megaMar.classList.add("visible");
+      if (!marLoaded) cargarMarcas();
+    });
+
+    megaMar.addEventListener("mouseenter", () => megaMar.classList.add("visible"));
+    marLink.addEventListener("mouseleave", () => {
+      setTimeout(() => {
+        if (!megaMar.matches(":hover")) megaMar.classList.remove("visible");
+      }, 150);
+    });
+    megaMar.addEventListener("mouseleave", () => megaMar.classList.remove("visible"));
+  }
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

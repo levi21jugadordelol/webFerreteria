@@ -1,0 +1,101 @@
+---
+const { titulo, precio, descripcion, imagen } = Astro.props;
+---
+
+<div class="card-plan">
+  <!-- Imagen dentro del card -->
+  <div class="card-img">
+    <img src={imagen.src} alt={titulo} />
+    <button class="btn-add">Agregar al carrito</button>
+  </div>
+
+  <!-- Texto debajo de la imagen -->
+  <div class="card-info">
+    <h3>{titulo}</h3>
+    <p class="precio">{precio}</p>
+    <p class="descripcion">{descripcion}</p>
+  </div>
+
+  
+</div>
+
+<style>
+.card-plan {
+  background: #fff;
+  border-radius: 8px;
+  height: 500px;
+  width: 280px;
+  overflow: hidden;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* 🔹 La imagen ahora es el contenedor relativo */
+.card-img {
+  position: relative;
+  border: 2px solid #e0e0e0;
+  height: 300px;
+  overflow: hidden;
+}
+
+.card-plan:hover {
+  border-color: #007bff;
+}
+
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-info {
+  padding: 1rem;
+}
+
+.card-info h3 {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #222;
+  margin-bottom: 0.5rem;
+}
+
+.precio {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #007bff;
+  margin: 0.25rem 0;
+}
+
+.descripcion {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Botón oculto (desde abajo hacia arriba) */
+.btn-add {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  transition: all 0.4s ease;
+}
+
+.card-plan:hover .btn-add {
+  bottom: 1rem;
+  opacity: 1;
+}
+</style>
+
+
+
+
+

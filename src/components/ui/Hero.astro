@@ -1,0 +1,10 @@
+---
+const { bg="#e5e7eb", height="500px" } = Astro.props;
+---
+
+<div 
+  class="container w-100 mt-5 d-flex align-items-center justify-content-center"
+  style={`height: ${height}; background-color: ${bg};`}
+>
+  <slot />
+</div>

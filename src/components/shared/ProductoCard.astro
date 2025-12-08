@@ -1,0 +1,51 @@
+---
+const { producto } = Astro.props;
+const apiUrl = "http://localhost:3000";
+const imagenUrl = producto.url_imagen
+  ? `${apiUrl}/uploads/${producto.url_imagen}`
+  : "https://via.placeholder.com/150?text=Sin+imagen";
+---
+
+<div class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3" data-id={producto.id_producto}>
+  <img src={imagenUrl} alt="Imagen del producto" width="100" height="100" class="rounded" />
+
+  <div class="flex-grow-1">
+    <h5 class="mb-1">{producto.nombre_producto}</h5>
+    <p class="text-muted mb-1">Precio: S/ {producto.precio}</p>
+    <small>Stock: {producto.stock}</small>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-sm btn-warning btn-editar">✏️ Editar</button>
+    <button class="btn btn-sm btn-danger btn-eliminar">🗑️ Eliminar</button>
+  </div>
+</div>
+
+<script type="module">
+  document.addEventListener("DOMContentLoaded", () => {
+    const card = document.currentScript.closest(".card");
+    const id = card.dataset.id;
+
+    card.querySelector(".btn-editar").addEventListener("click", () => {
+      window.location.href = `/admin/editar-producto/${id}`;
+    });
+
+    card.querySelector(".btn-eliminar").addEventListener("click", async () => {
+      if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
+      try {
+        const res = await fetch(`http://localhost:3000/productos/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Error al eliminar producto");
+        alert("✅ Producto eliminado correctamente");
+        location.reload();
+      } catch (err) {
+        alert("❌ " + (err.message || err));
+      }
+    });
+  });
+</script>
+
+
+
+
+
+

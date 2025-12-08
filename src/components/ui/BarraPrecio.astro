@@ -1,0 +1,92 @@
+---
+type Props = {
+  min?: number;
+  max?: number;
+  step?: number;
+  marcaActual?: string | null;
+  categoriaActual?: string | null;
+  maxActual?: string | null;
+};
+
+const {
+  min = 0,
+  max = 2000,
+  step = 50,
+  marcaActual = null,
+  categoriaActual = null,
+  maxActual = null
+} = Astro.props;
+---
+
+<div class="filtro-box">
+  <label class="fw-semibold d-block mb-2">Precio máximo</label>
+
+  <input
+    id="priceRange"
+    type="range"
+    class="form-range"
+    min={min}
+    max={max}
+    step={step}
+    value={maxActual ?? max}
+  />
+
+  <div class="d-flex justify-content-between mt-1">
+    <span class="text-muted">S/ {min}</span>
+    <span id="priceValue" class="fw-bold text-primary">
+      S/ {maxActual ?? max}
+    </span>
+  </div>
+
+  <button id="applyPrice" class="btn btn-primary w-100 mt-3 d-none">
+    Aplicar filtro
+  </button>
+</div>
+
+<script>
+  const rangeEl = document.getElementById("priceRange") as HTMLInputElement | null;
+  const valueEl = document.getElementById("priceValue") as HTMLElement | null;
+  const btnApply = document.getElementById("applyPrice") as HTMLButtonElement | null;
+
+  if (rangeEl && valueEl && btnApply) {
+    const initialValue = Number(rangeEl.value);
+
+    rangeEl.addEventListener("input", () => {
+      valueEl.textContent = `S/ ${rangeEl.value}`;
+
+      if (Number(rangeEl.value) !== initialValue) {
+        btnApply.classList.remove("d-none");
+      } else {
+        btnApply.classList.add("d-none");
+      }
+    });
+
+    btnApply.addEventListener("click", () => {
+      const newMax = rangeEl.value;
+
+      const query = new URLSearchParams(window.location.search);
+      query.set("max", newMax);
+
+      window.location.href = `/productos/?${query.toString()}`;
+    });
+  }
+</script>
+
+
+<style>
+.filtro-box {
+  margin-bottom: 25px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+}
+</style>
+
+
+
+
+
+
+
+

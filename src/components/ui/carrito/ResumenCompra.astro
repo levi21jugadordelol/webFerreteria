@@ -1,0 +1,142 @@
+---
+import carritoStore from "../../../store/carritoStore.js";
+---
+
+<div class="resumen-container">
+  <h2 class="titulo">Resumen de compra</h2>
+
+  <div id="lista-items" class="items"></div>
+
+  <div class="total-box">
+    <span>Total:</span>
+    <strong id="total-precio">S/ 0.00</strong>
+  </div>
+
+  <button id="btn-realizar-compra" class="btn-realizar-compra">
+    Realizar compra
+  </button>
+</div>
+
+<style is:global>
+.resumen-container {
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  max-width: 420px;
+}
+
+.items {
+  display: block;
+}
+
+.items .item {
+  margin-bottom: 12px;
+}
+
+/* fila horizontal */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+/* imagen fija 60x60 */
+.item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.item-detail {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.item-subtotal {
+  font-weight: 700;
+  color: #0d6efd;
+  white-space: nowrap;
+}
+
+.btn-realizar-compra {
+  width: 100%;
+  padding: 14px 0;
+  background: #0d6efd;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 18px;
+  transition: background .2s, transform .15s ease;
+}
+
+.btn-realizar-compra:hover {
+  background: #0b5ed7;
+}
+</style>
+
+<script is:client type="module">
+  const contenedor = document.getElementById("lista-items");
+  const totalElemento = document.getElementById("total-precio");
+
+  function renderItem(p) {
+    return `
+      <div class="item">
+        <img src="${p.imagen}" alt="${p.nombre}">
+        <div class="item-info">
+          <div class="item-name">${p.nombre}</div>
+          <div class="item-detail">${p.cantidad} × S/ ${p.precio}</div>
+        </div>
+        <div class="item-subtotal">S/ ${(p.precio * p.cantidad).toFixed(2)}</div>
+      </div>`;
+  }
+
+  function actualizarResumen() {
+    const carrito = carritoStore.get();
+
+    if (!carrito.length) {
+      contenedor.innerHTML = "<p>Tu carrito está vacío.</p>";
+      totalElemento.textContent = "S/ 0.00";
+      return;
+    }
+
+    contenedor.innerHTML = carrito.map(renderItem).join("");
+
+    const total = carrito.reduce((sum, p) => sum + p.precio * p.cantidad, 0).toFixed(2);
+    totalElemento.textContent = "S/ " + total;
+  }
+
+  actualizarResumen();
+  document.addEventListener("carrito-actualizado", actualizarResumen);
+
+  /* ============================
+        ABRIR EL MODAL DE COMPRA  
+     ============================ */
+  const btn = document.getElementById("btn-realizar-compra");
+
+  btn?.addEventListener("click", () => {
+    const modal = document.getElementById("modal-compra");
+    if (modal) modal.classList.add("visible");
+  });
+</script>
+
+
+
+
+
+

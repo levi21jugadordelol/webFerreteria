@@ -1,0 +1,153 @@
+---
+const { id = "modal-editar" } = Astro.props;
+---
+
+<div id={id} class="modal-overlay">
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <h3>Editar producto</h3>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Formulario de edición -->
+      <form id="form-editar" class="form-editar">
+
+        <input type="hidden" id="edit-id" />
+
+        <label>Nombre</label>
+        <input type="text" id="edit-nombre" required />
+
+        <label>Descripción</label>
+        <textarea id="edit-descripcion" required></textarea>
+
+        <label>Precio</label>
+        <input type="number" id="edit-precio" required min="0" step="0.01"/>
+
+        <label>Stock</label>
+        <input type="number" id="edit-stock" required min="0"/>
+
+        <label>Imagen actual</label>
+<img id="edit-img-preview" class="img-preview" />
+
+<label>Nueva imagen (opcional)</label>
+<input type="file" id="edit-img" accept="image/*" />
+
+
+        <button type="submit" class="btn-guardar">Guardar cambios</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: .2s ease;
+  z-index: 5000;
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  width: 95%;
+  max-width: 450px;
+  background: white !important; /* ← ARREGLA EL FONDO */
+  border-radius: 12px;
+  padding: 20px;
+  animation: pop .25s ease;
+}
+
+@keyframes pop {
+  0% { transform: scale(.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.form-editar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.form-editar input,
+.form-editar textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.btn-guardar {
+  background: #0d6efd;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.btn-guardar:hover {
+  background: #0b5ed7;
+}
+
+.img-preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+}
+</style>
+
+<script is:client>
+  // Detectar el modal automáticamente usando el botón de cierre
+  const closeBtn = document.querySelector("[data-close]");
+  const modal = closeBtn.closest(".modal-overlay");
+
+  function closeModal() {
+    modal.classList.remove("visible");
+  }
+
+  // Cerrar con el botón X
+  closeBtn.addEventListener("click", closeModal);
+
+  // Cerrar si se hace clic fuera del contenido
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Cerrar con tecla ESC
+  document.addEventListener("keyup", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+
+  // Cerrar desde eventos externos
+  document.addEventListener("cerrar-editar", closeModal);
+</script>
+

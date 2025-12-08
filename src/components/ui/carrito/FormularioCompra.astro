@@ -1,0 +1,232 @@
+---
+import qrImage from "../../../assets/qrlenin.jpeg";
+---
+
+<div class="form-container">
+  <form id="form-compra" class="form-compra">
+
+    <h3 class="sec-title">Datos de facturación</h3>
+
+    <div class="grid-2">
+      <div>
+        <label>Nombre *</label>
+        <input type="text" required>
+      </div>
+
+      <div>
+        <label>Apellidos *</label>
+        <input type="text" required>
+      </div>
+    </div>
+
+    <div>
+      <label>Teléfono *</label>
+      <input type="tel" required>
+    </div>
+
+    <div>
+      <label>Dirección *</label>
+      <input type="text" required placeholder="Calle, número, referencia">
+    </div>
+
+    <h3 class="sec-title">Método de pago</h3>
+
+    <div class="pago-opcion">
+      <label><input type="radio" name="pago" value="transferencia" checked> Transferencia bancaria</label>
+    </div>
+
+    <div class="pago-opcion">
+      <label><input type="radio" name="pago" value="contra"> Contra entrega</label>
+    </div>
+
+    <div class="pago-opcion">
+      <label><input type="radio" name="pago" value="yape" id="pago-yape"> Yape</label>
+    </div>
+
+    <div id="yape-box" class="yape-box hidden">
+      <img src={qrImage.src} class="yape-img" />
+
+
+      <p>Monto: <strong id="yape-monto"></strong></p>
+    </div>
+
+    <div class="condiciones">
+      <label><input type="checkbox" required> Acepto términos y condiciones</label>
+    </div>
+
+    <button type="submit" class="btn-pedido">Realizar pedido</button>
+
+  </form>
+</div>
+
+<style is:global>
+.form-container {
+  padding: 0.5rem;
+}
+
+/* CONTENEDOR GENERAL DEL FORMULARIO */
+.form-compra {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* TITULOS */
+.sec-title {
+  margin-top: 0.5rem;
+  margin-bottom: -0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* GRID DE DOS COLUMNAS */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* LABELS */
+.form-compra label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: inline-block;
+}
+
+/* INPUTS */
+.form-compra input[type="text"],
+.form-compra input[type="tel"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cfcfcf;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: #fafafa;
+  transition: border .2s ease;
+}
+
+.form-compra input:focus {
+  outline: none;
+  border-color: #0d6efd;
+  background: #fff;
+}
+
+/* OPCIONES DE PAGO */
+.pago-opcion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+/* CAJA YAPE */
+.yape-box {
+  margin-top: 0.4rem;
+  background: #f2f2f2;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.yape-img {
+  width: 140px;
+  border-radius: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* CHECKBOX */
+.condiciones {
+  margin-top: -0.5rem;
+  font-size: 0.9rem;
+}
+
+/* BOTÓN DE PEDIDO */
+.btn-pedido {
+  width: 100%;
+  padding: 14px;
+  background: #0d6efd;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s ease, transform .1s ease;
+}
+
+.btn-pedido:hover {
+  background: #0b5ed7;
+}
+
+.btn-pedido:active {
+  transform: scale(0.97);
+}
+
+</style>
+
+<script is:client>
+  const form = document.getElementById("form-compra");
+  const radios = document.querySelectorAll("input[name='pago']");
+  const yapeBox = document.getElementById("yape-box");
+  const yapeMonto = document.getElementById("yape-monto");
+
+  function setYapeMonto() {
+    const totalEl = document.getElementById("total-precio");
+    if (totalEl) yapeMonto.textContent = totalEl.textContent.replace("S/ ", "");
+  }
+
+  // Mostrar/ocultar Yape
+  radios.forEach(r => {
+    r.addEventListener("change", () => {
+      if (r.value === "yape") {
+        yapeBox.classList.remove("hidden");
+        setYapeMonto();
+      } else {
+        yapeBox.classList.add("hidden");
+      }
+    });
+  });
+
+  // VALIDACIÓN DEL FORMULARIO
+  form.addEventListener("submit", (e) => {
+    e.preventDefault(); // Evita enviar si hay errores
+
+    const nombre = form.querySelector("input[type='text']:nth-child(1)").value.trim();
+    const apellidos = form.querySelector("input[type='text']:nth-child(2)").value.trim();
+    const telefono = form.querySelector("input[type='tel']").value.trim();
+    const direccion = form.querySelector("input[placeholder='Calle, número, referencia']").value.trim();
+    const pagoSeleccionado = form.querySelector("input[name='pago']:checked").value;
+    const terminos = form.querySelector("input[type='checkbox']").checked;
+
+    let errores = [];
+
+    if (nombre === "") errores.push("El nombre es obligatorio.");
+    if (apellidos === "") errores.push("Los apellidos son obligatorios.");
+    if (telefono.length < 6) errores.push("El teléfono no es válido.");
+    if (direccion === "") errores.push("La dirección es obligatoria.");
+
+    if (!terminos) errores.push("Debe aceptar los términos y condiciones.");
+
+    if (pagoSeleccionado === "yape" && yapeMonto.textContent === "") {
+      errores.push("Debe verificar el monto de Yape.");
+    }
+
+    if (errores.length > 0) {
+      alert(errores.join("\n"));
+      return;
+    }
+
+    // TODO BIEN → AQUÍ SE PROCESA EL PEDIDO
+    alert("Pedido realizado correctamente 🎉");
+
+    // Cerrar el modal
+    document.dispatchEvent(new CustomEvent("cerrar-modal"));
+  });
+</script>
+
+

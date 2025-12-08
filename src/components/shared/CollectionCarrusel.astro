@@ -1,0 +1,161 @@
+---
+import TarjetaCollection from "../ui/tarjetaCollection.astro";
+
+const apiUrl = "http://localhost:3000";
+
+interface Categoria {
+  id_categoria: number;
+  nombre_categoria: string;
+  descripcion?: string;
+  url_imagen?: string;
+}
+
+let categorias: Categoria[] = [];
+
+try {
+  const res = await fetch(`${apiUrl}/categorias`, { cache: "no-store" });
+  if (res.ok) {
+    categorias = await res.json() as Categoria[];
+  } else {
+    console.error("Error al cargar categorías:", res.statusText);
+  }
+} catch (err) {
+  console.error("❌ Error de conexión con el backend:", err);
+}
+---
+
+
+
+<div class="collection-carrusel container my-5 position-relative">
+  <h3 class="fw-bold text-center mb-4 text-primary">Categorías</h3>
+
+  <div class="carrusel-container">
+
+    <!-- Flecha izquierda -->
+    <button id="prevBtn" class="btn-flecha btn-left">⬅️</button>
+
+    <!-- Carrusel -->
+  <div id="carrusel" class="carrusel">
+  {categorias.map((c) => (
+    <div class="item">
+      <TarjetaCollection
+        title={c.nombre_categoria}
+        imageUrl={
+          c.url_imagen
+            ? `${apiUrl}/uploads/${c.url_imagen}`
+            : "https://via.placeholder.com/300x260?text=Sin+imagen"
+        }
+      />
+    </div>
+  ))}
+</div>
+
+
+    <!-- Flecha derecha -->
+    <button id="nextBtn" class="btn-flecha btn-right">➡️</button>
+
+  </div>
+</div>
+
+
+<!-- @ts-ignore -->
+<script is:client>
+  const carrusel = document.getElementById("carrusel");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
+  function anchoItem() {
+    const item = carrusel.querySelector(".item");
+    return item ? item.offsetWidth + 24 : 324; // ancho + gap
+  }
+
+  prevBtn.addEventListener("click", () => {
+    carrusel.scrollBy({ left: -anchoItem(), behavior: "smooth" });
+  });
+
+  nextBtn.addEventListener("click", () => {
+    carrusel.scrollBy({ left: anchoItem(), behavior: "smooth" });
+  });
+</script>
+
+
+
+
+
+<style>
+.carrusel-container {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  margin: auto;
+}
+
+/* CARRUSEL BASE */
+.carrusel-container {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  margin: auto;
+}
+
+.carrusel {
+  display: flex;
+  gap: 1.5rem;
+  overflow: hidden;
+  scroll-behavior: smooth;
+  padding: 1rem 0;
+}
+
+.item {
+  flex: 0 0 300px;  /* 🔥 ANCHO FIJO DE CADA TARJETA */
+}
+
+/************ DESKTOP: 3 TARJETAS ************/
+@media (min-width: 768px) {
+  .item {
+    flex: 0 0 calc((100% / 3) - 1rem);
+  }
+}
+
+/************ MOBILE: 1 TARJETA ************/
+@media (max-width: 767px) {
+  .carrusel {
+    overflow-x: auto;              /* 🔥 scroll visible */
+    scroll-snap-type: x mandatory;
+  }
+
+  .item {
+    flex: 0 0 100%;                /* 🔥 SOLO 1 TARJETA */
+    scroll-snap-align: start;
+  }
+}
+
+
+/* FLECHAS */
+.btn-flecha {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: none;
+  font-size: 1.8rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 20;
+}
+
+.btn-left { left: -45px; }
+.btn-right { right: -45px; }
+
+/* MOBILE — OCULTAR FLECHAS PORQUE NO SE USAN */
+@media (max-width: 767px) {
+  .btn-flecha {
+    display: none;
+  }
+}
+
+</style>
+
+
+

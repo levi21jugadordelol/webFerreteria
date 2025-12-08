@@ -1,0 +1,96 @@
+---
+const { id = "modal", title = "Título", show = false } = Astro.props;
+---
+
+<div id={id} class={`modal-overlay ${show ? "visible" : ""}`}>
+  <div class="modal-content">
+    
+    <div class="modal-header">
+      <h3>{title}</h3>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <div class="modal-body">
+      <slot /> <!-- contenido dinámico -->
+    </div>
+
+  </div>
+</div>
+
+<style is:global>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: .2s ease;
+  z-index: 5000;
+}
+
+.modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  padding: 28px;
+  width: 95%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  animation: popup .25s ease;
+}
+
+@keyframes popup {
+  0% { transform: scale(.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+</style>
+
+<script is:client>
+  // Selecciona el modal dinámicamente desde el botón "close"
+  const closeBtn = document.querySelector("[data-close]");
+  const modal = closeBtn.closest(".modal-overlay");
+
+  function closeModal() {
+    modal.classList.remove("visible");
+  }
+
+  closeBtn.addEventListener("click", closeModal);
+
+  // Permitir cerrar haciendo click fuera del contenido
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Permitir cerrar con la tecla ESC
+  document.addEventListener("keyup", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+
+  // Soporte para cerrar desde eventos externos
+  document.addEventListener("cerrar-modal", closeModal);
+</script>
+

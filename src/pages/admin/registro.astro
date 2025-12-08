@@ -1,0 +1,38 @@
+---
+export const prerender = false;
+
+import RegistroLayout from "../../layouts/RegistroLayout.astro";
+
+let error = "";
+let exito = "";
+
+if (Astro.request.method === "POST") {
+  try {
+    const formData = await Astro.request.formData();
+    const nombre = formData.get("nombre");
+    const correo = formData.get("correo");
+    const password = formData.get("password");
+
+    const response = await fetch("http://localhost:3000/auth/registro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, correo, password }),
+    });
+
+    if (response.ok) {
+      return Astro.redirect("/admin/login");
+    } else {
+      const data = await response.json().catch(() => ({}));
+      error = data.msg || "⚠️ Error al registrar el administrador.";
+    }
+  } catch (err) {
+    console.error("💥 Error en el fetch (no se pudo conectar):", err);
+    error = "❌ Error al conectar con el servidor.";
+  }
+}
+---
+
+<main class="flex justify-center items-center min-h-screen bg-gray-100">
+  <RegistroLayout error={error} exito={exito} />
+</main>
+
