@@ -1,0 +1,10 @@
+---
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+import ProductoDetalleAdmin from "../../../../components/ui/productos/ProductoDetalleAdmin.astro";
+
+const { id } = Astro.params;
+---
+
+<AdminLayout title={`Editar producto #${id}`}>
+  <ProductoDetalleAdmin id={Number(id)} />
+</AdminLayout>

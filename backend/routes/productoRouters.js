@@ -12,6 +12,11 @@ import {
   actualizarProducto,
   eliminarProducto,
   subirImagen,
+  subirImagenExtra,
+  eliminarImagenExtra,
+  agregarCaracteristica,
+  eliminarCaracteristica,
+  productosRelacionados,
 } from "../controllers/productoController.js";
 
 import { filtrarPorPrecio } from "../controllers/precioController.js";
@@ -20,54 +25,59 @@ const router = express.Router();
 
 router.use((req, res, next) => {
   console.log(chalk.bgBlue.white(`📥 [ROUTE] /productos${req.url}`));
-  console.log("🟠 ROUTER RECIBIÓ QUERY:", req.query);
-  console.log("🟠 ROUTER RECIBIÓ URL:", req.originalUrl);
   next();
 });
 
-/* 
-───────────────────────────────────────
- 🟢 Rutas públicas (sin login)
-───────────────────────────────────────
-*/
-
-// ⚠️ ESTA RUTA **SIEMPRE ANTES** de /:id
+/* --------------------
+   🟢 Rutas públicas
+-------------------- */
 router.get("/precio", filtrarPorPrecio);
-
+router.get("/:id/relacionados", productosRelacionados); // <--- primero
 router.get("/", listarProductosPublicos);
-router.get("/:id", obtenerProducto);
+router.get("/:id", obtenerProducto); // <--- después
 
-/* 
-───────────────────────────────
- 🔒 Rutas protegidas (solo admin)
-───────────────────────────────
-*/
+/* --------------------
+   🔒 Rutas admin
+-------------------- */
 router.get("/admin/lista", protegerRuta, listarProductosAdmin);
 
-// ➕ Crear producto
+/* Crear Producto */
 router.post(
   "/",
   protegerRuta,
-  body("nombre_producto")
-    .notEmpty()
-    .withMessage("El nombre del producto es obligatorio"),
-  body("descripcion")
-    .notEmpty()
-    .withMessage("La descripción es obligatoria")
-    .isLength({ max: 200 })
-    .withMessage("La descripción no puede superar los 200 caracteres"),
-  body("precio").isNumeric().withMessage("El precio debe ser numérico"),
-  body("stock").isNumeric().withMessage("El stock debe ser numérico"),
+  body("nombre_producto").notEmpty(),
+  body("descripcion").notEmpty(),
+  body("precio").isNumeric(),
+  body("stock").isNumeric(),
   crearProducto
 );
 
-// ✏️ Actualizar producto
+/* Actualizar */
 router.put("/:id", protegerRuta, actualizarProducto);
 
-// 🗑️ Eliminar producto
+/* Eliminar */
 router.delete("/:id", protegerRuta, eliminarProducto);
 
-// 🖼️ Subir imagen
+/* Subir imagen principal */
 router.post("/:id/imagen", protegerRuta, upload.single("file"), subirImagen);
+
+/* Subir imagen adicional */
+router.post(
+  "/:id/imagenes",
+  protegerRuta,
+  upload.single("file"),
+  subirImagenExtra
+);
+
+/* Eliminar imagen adicional */
+router.delete("/:id/imagenes/:idImg", protegerRuta, eliminarImagenExtra);
+
+/* Características */
+router.post("/:id/caracteristicas", protegerRuta, agregarCaracteristica);
+router.delete(
+  "/:id/caracteristicas/:idCarac",
+  protegerRuta,
+  eliminarCaracteristica
+);
 
 export default router;

@@ -86,9 +86,11 @@ app.use((req, res, next) => {
 
 // 🧭 Rutas principales
 app.use("/auth", admiRoutes);
-app.use("/productos/precio", precioRoutes); // 🔥 AQUI
-app.use("/productos", productoRoutes);
-app.use("/categorias", categoriaRoutes); // ✅ NUEVO
+
+app.use("/productos", productoRoutes); // 👈 Correcto
+app.use("/productos/precio", precioRoutes); // 👈 Correcto
+
+app.use("/categorias", categoriaRoutes);
 app.use("/marcas", marcaRoutes);
 
 // 💥 Middleware global de errores
