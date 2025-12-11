@@ -3,7 +3,8 @@ const { id, titulo, precio, imagen } = Astro.props;
 const imgSrc = imagen?.src ?? "/img/no-image.png";
 ---
 
-<div 
+<a 
+  href={`/productos/${id}`}
   class="card-simple"
   data-producto
   data-id={id}
@@ -13,14 +14,14 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
 >
   <div class="card-img">
     <img src={imgSrc} alt={titulo} />
-    <button class="btn-add">Agregar al carrito</button>
+    <button class="btn-add" onclick="event.preventDefault()">Agregar al carrito</button>
   </div>
 
   <div class="card-info">
     <h3>{titulo}</h3>
     <p class="precio">S/ {precio}</p>
   </div>
-</div>
+</a>
 
 <style>
 .card-simple {
@@ -31,6 +32,9 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
   border: 1px solid #e5e5e5;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  display: block;
+  text-decoration: none;
+  color: inherit;
 }
 
 .card-simple:hover {
@@ -91,8 +95,8 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
 }
 </style>
 
-<!-- SOLO REFERENCIA AL ARCHIVO addToCart.js -->
 <script is:client type="module" src="/src/js/addToCart.js"></script>
+
 
 
 

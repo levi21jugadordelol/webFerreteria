@@ -1,0 +1,95 @@
+---
+interface ImagenExtra {
+  id_imagen: number;
+  url: string;
+}
+
+interface Caracteristica {
+  id_caracteristica: number;
+  titulo: string;
+  valor: string;
+}
+
+const apiUrl = "http://localhost:3000";
+const { id } = Astro.params;
+
+const res = await fetch(`${apiUrl}/productos/${id}`);
+const producto = await res.json();
+
+if (!producto || !producto.id_producto) {
+  return Astro.redirect("/productos");
+}
+---
+
+<html>
+  <head>
+    <title>{producto.nombre_producto}</title>
+  </head>
+  <body>
+
+    <section class="producto-detalle">
+
+      <!-- IMAGEN PRINCIPAL + MINIATURAS -->
+      <div class="imagenes">
+        <img id="img-principal" src={`${apiUrl}/uploads/${producto.url_imagen}`} />
+
+        <div class="miniaturas">
+          {producto.imagenes?.map((img: ImagenExtra) => (
+            <img 
+              src={`${apiUrl}/uploads/${img.url}`} 
+              onclick={`document.getElementById('img-principal').src='${apiUrl}/uploads/${img.url}'`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <!-- INFO DEL PRODUCTO -->
+      <div class="info">
+        <h2>{producto.nombre_producto}</h2>
+        <p class="precio">S/ {producto.precio}</p>
+        <p>{producto.descripcion}</p>
+
+        <button class="btn-add-cart">
+          Agregar al carrito
+        </button>
+
+        <h3>Características</h3>
+        <ul>
+          {producto.caracteristicas?.map((c: Caracteristica) => (
+            <li><strong>{c.titulo}:</strong> {c.valor}</li>
+          ))}
+        </ul>
+      </div>
+
+    </section>
+
+  </body>
+</html>
+
+<style>
+.producto-detalle {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.imagenes img {
+  width: 400px;
+  border-radius: 10px;
+}
+
+.miniaturas img {
+  width: 80px;
+  margin-right: 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.precio {
+  font-size: 1.5rem;
+  color: #0d6efd;
+  font-weight: bold;
+}
+</style>
+

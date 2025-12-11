@@ -200,6 +200,7 @@ export const listarProductosPublicos = async (req, res) => {
         "descripcion",
         "precio",
         "url_imagen",
+        "stock", // ✔ AQUÍ VA
       ],
     });
 

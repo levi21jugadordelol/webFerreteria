@@ -1,5 +1,4 @@
 ---
-// src/components/admin/ProductoDetalleAdmin.astro
 const { id } = Astro.props;
 const apiUrl = "http://localhost:3000";
 ---
@@ -56,15 +55,25 @@ const apiUrl = "http://localhost:3000";
 
 <script is:client>
   const apiUrl = "http://localhost:3000";
-  const productoId = Number({id});
+  const productoId = Number(
+  document.getElementById("producto-detalle").dataset.id
+);
 
+ console.log("📌 Producto ID:", productoId); // ← para confirmar
+
+
+  // =========================================
+  // 🔵 Obtener producto completo
+  // =========================================
   async function obtenerProductoDetalle() {
     const res = await fetch(`${apiUrl}/productos/${productoId}`);
     if (!res.ok) throw new Error("No se pudo cargar el producto");
     return res.json();
   }
 
-  // 🔹 Imágenes adicionales
+  // =========================================
+  // 🔵 Cargar imágenes adicionales
+  // =========================================
   async function cargarImagenesExtra() {
     const cont = document.getElementById("lista-imagenes-extra");
     const prod = await obtenerProductoDetalle();
@@ -82,25 +91,35 @@ const apiUrl = "http://localhost:3000";
         <button class="btn btn-sm btn-danger position-absolute top-0 end-0 btn-del-img" data-id="${img.id_imagen}">
           ×
         </button>
-      </div>`
+      </div>
+    `
       )
       .join("");
 
+    // --- Eliminar imagen extra ---
     cont.querySelectorAll(".btn-del-img").forEach((btn) =>
       btn.addEventListener("click", async (e) => {
         const idImg = e.currentTarget.dataset.id;
+
         if (!confirm("¿Eliminar imagen?")) return;
-        const r = await fetch(`${apiUrl}/productos/${productoId}/imagenes/${idImg}`, {
-          method: "DELETE",
-          credentials: "include",
-        });
+
+        const r = await fetch(
+          `${apiUrl}/productos/${productoId}/imagenes/${idImg}`,
+          {
+            method: "DELETE",
+            credentials: "include",
+          }
+        );
+
         if (!r.ok) return alert("Error al eliminar imagen");
         cargarImagenesExtra();
       })
     );
   }
 
-  // 🔹 Características
+  // =========================================
+  // 🔵 Cargar características
+  // =========================================
   async function cargarCaracteristicas() {
     const tbody = document.querySelector("#tabla-caracteristicas tbody");
     const prod = await obtenerProductoDetalle();
@@ -122,14 +141,18 @@ const apiUrl = "http://localhost:3000";
             Eliminar
           </button>
         </td>
-      </tr>`
+      </tr>
+    `
       )
       .join("");
 
+    // --- Eliminar característica ---
     tbody.querySelectorAll(".btn-del-carac").forEach((btn) =>
       btn.addEventListener("click", async (e) => {
         const idCarac = e.currentTarget.dataset.id;
+
         if (!confirm("¿Eliminar característica?")) return;
+
         const r = await fetch(
           `${apiUrl}/productos/${productoId}/caracteristicas/${idCarac}`,
           {
@@ -137,12 +160,16 @@ const apiUrl = "http://localhost:3000";
             credentials: "include",
           }
         );
+
         if (!r.ok) return alert("Error al eliminar característica");
         cargarCaracteristicas();
       })
     );
   }
 
+  // =========================================
+  // 🔵 Eventos del DOM
+  // =========================================
   document.addEventListener("DOMContentLoaded", () => {
     cargarImagenesExtra();
     cargarCaracteristicas();
@@ -152,19 +179,24 @@ const apiUrl = "http://localhost:3000";
       .getElementById("form-img-extra")
       .addEventListener("submit", async (e) => {
         e.preventDefault();
+
         const input = document.getElementById("img-extra");
         if (!input.files[0]) return alert("Selecciona una imagen");
 
         const fd = new FormData();
         fd.append("file", input.files[0]);
 
-        const res = await fetch(`${apiUrl}/productos/${productoId}/imagenes`, {
-          method: "POST",
-          credentials: "include",
-          body: fd,
-        });
+        const res = await fetch(
+          `${apiUrl}/productos/${productoId}/imagenes`,
+          {
+            method: "POST",
+            credentials: "include",
+            body: fd,
+          }
+        );
 
         if (!res.ok) return alert("Error al subir imagen");
+
         input.value = "";
         cargarImagenesExtra();
       });
@@ -174,16 +206,20 @@ const apiUrl = "http://localhost:3000";
       .getElementById("form-carac")
       .addEventListener("submit", async (e) => {
         e.preventDefault();
+
         const titulo = document.getElementById("carac-titulo").value.trim();
         const valor = document.getElementById("carac-valor").value.trim();
         if (!titulo || !valor) return;
 
-        const res = await fetch(`${apiUrl}/productos/${productoId}/caracteristicas`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ titulo, valor }),
-        });
+        const res = await fetch(
+          `${apiUrl}/productos/${productoId}/caracteristicas`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ titulo, valor }),
+          }
+        );
 
         if (!res.ok) return alert("Error al agregar característica");
 
@@ -193,3 +229,5 @@ const apiUrl = "http://localhost:3000";
       });
   });
 </script>
+
+

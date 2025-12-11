@@ -61,14 +61,16 @@ const apiUrl = "http://localhost:3000";
   // 🔹 Cargar Categorías
   async function cargarCategorias() {
     const select = document.getElementById("categoriaSelect");
-    if (!select) return; // seguridad extra
+    if (!select) return;
 
     try {
       const res = await fetch(`${apiUrl}/categorias`, { credentials: "include" });
       const categorias = await res.json();
 
       select.innerHTML = categorias.length
-        ? categorias.map(c => `<option value="${c.id_categoria}">${c.nombre_categoria}</option>`).join("")
+        ? categorias
+            .map((c) => `<option value="${c.id_categoria}">${c.nombre_categoria}</option>`)
+            .join("")
         : `<option value="">No hay categorías disponibles</option>`;
     } catch (error) {
       select.innerHTML = `<option value="">Error al cargar categorías</option>`;
@@ -78,14 +80,16 @@ const apiUrl = "http://localhost:3000";
   // 🔹 Cargar Marcas
   async function cargarMarcas() {
     const select = document.getElementById("marcaSelect");
-    if (!select) return; // seguridad extra
+    if (!select) return;
 
     try {
       const res = await fetch(`${apiUrl}/marcas`, { credentials: "include" });
       const marcas = await res.json();
 
       select.innerHTML = marcas.length
-        ? marcas.map(m => `<option value="${m.id_marca}">${m.nombre_marca}</option>`).join("")
+        ? marcas
+            .map((m) => `<option value="${m.id_marca}">${m.nombre_marca}</option>`)
+            .join("")
         : `<option value="">No hay marcas disponibles</option>`;
     } catch (error) {
       select.innerHTML = `<option value="">Error al cargar marcas</option>`;
@@ -94,61 +98,71 @@ const apiUrl = "http://localhost:3000";
 
   // 🟢 CREAR PRODUCTO + IMAGEN + REDIRECCIÓN
   async function manejarSubmit(e) {
-    e.preventDefault();
-    const form = e.target;
-    const fd = new FormData(form);
+  e.preventDefault();
+  const form = e.target;
+  const fd = new FormData(form);
 
-    const payload = {
-      nombre_producto: fd.get("nombre_producto"),
-      descripcion: fd.get("descripcion"),
-      precio: Number(fd.get("precio")),
-      stock: Number(fd.get("stock")),
-      categoria_id: fd.get("categoria_id") || null,
-      marca_id: fd.get("marca_id") || null,
-    };
+  const payload = {
+    nombre_producto: fd.get("nombre_producto"),
+    descripcion: fd.get("descripcion"),
+    precio: Number(fd.get("precio")),
+    stock: Number(fd.get("stock")),
+    categoria_id: fd.get("categoria_id") || null,
+    marca_id: fd.get("marca_id") || null,
+  };
 
-    try {
-      // 1) Crear producto
-      const res = await fetch(`${apiUrl}/products`, {  // 👈 OJO: ruta base que tengas en index.js
+  try {
+    // 1) Crear producto
+    const res = await fetch(`${apiUrl}/productos`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    // 🔍 LOG 1: Ver la respuesta completa
+    console.log("🔍 Respuesta del backend al crear producto:", data);
+
+    if (!res.ok) {
+      console.error(data);
+      alert("❌ Error al crear producto");
+      return;
+    }
+
+    // 🔍 LOG 2: Ver el ID recibido
+    const id = data.producto.id_producto;
+    console.log("🆔 ID recibido:", id);
+
+    // 2) Subir imagen principal (si se eligió)
+    const fileInput = document.getElementById("imagen");
+    if (fileInput && fileInput.files[0]) {
+      const imgForm = new FormData();
+      imgForm.append("file", fileInput.files[0]);
+
+      const resImg = await fetch(`${apiUrl}/productos/${id}/imagen`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: imgForm,
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        console.error(data);
-        alert("❌ Error al crear producto");
-        return;
+      if (!resImg.ok) {
+        console.warn("⚠️ Producto creado, pero error subiendo imagen principal");
       }
-
-      const id = data.producto.id_producto;
-
-      // 2) Subir imagen principal (si se eligió)
-      const fileInput = document.getElementById("imagen");
-      if (fileInput && fileInput.files[0]) {
-        const imgForm = new FormData();
-        imgForm.append("file", fileInput.files[0]); // 👈 upload.single("file")
-
-        const resImg = await fetch(`${apiUrl}/products/${id}/imagen`, {
-          method: "POST",
-          credentials: "include",
-          body: imgForm,
-        });
-
-        if (!resImg.ok) {
-          console.warn("⚠️ Producto creado, pero error subiendo imagen principal");
-        }
-      }
-
-      // 3) Redirigir a la pantalla de edición avanzada
-      window.location.href = `/admin/productos/editar/${id}`;
-    } catch (err) {
-      console.error(err);
-      alert("❌ Error de conexión al crear producto");
     }
+
+    // 🔍 LOG 3: Ver la URL de redirección
+    console.log(`➡️ Redirigiendo a: /admin/productos/editar/${id}`);
+
+    // 3) Redirigir
+    window.location.href = `/admin/productos/editar/${id}`;
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error de conexión al crear producto");
   }
+}
+
 
   document.addEventListener("DOMContentLoaded", () => {
     cargarCategorias();
@@ -158,6 +172,7 @@ const apiUrl = "http://localhost:3000";
     if (form) form.addEventListener("submit", manejarSubmit);
   });
 </script>
+
 
 
 
