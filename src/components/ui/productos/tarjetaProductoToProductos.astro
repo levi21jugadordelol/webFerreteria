@@ -24,18 +24,24 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
 </a>
 
 <style>
-.card-simple {
+.card-img {
+  position: relative;
+  height: 240px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #fff;
-  border-radius: 10px;
   overflow: hidden;
-  text-align: center;
-  border: 1px solid #e5e5e5;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-  display: block;
-  text-decoration: none;
-  color: inherit;
 }
+
+.card-img img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+
 
 .card-simple:hover {
   transform: translateY(-4px);

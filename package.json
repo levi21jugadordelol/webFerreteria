@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "astro": "^5.15.1",
-    "astro-icon": "^1.1.5"
+    "astro-icon": "^1.1.5",
+    "drift-zoom": "^1.5.1"
   }
 }
