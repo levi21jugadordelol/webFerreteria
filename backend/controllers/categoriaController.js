@@ -60,17 +60,49 @@ export const obtenerCategoria = async (req, res) => {
 // 🟠 Actualizar categoría
 export const actualizarCategoria = async (req, res) => {
   try {
-    const categoria = await Categoria.findByPk(req.params.id);
-    if (!categoria)
-      return res.status(404).json({ msg: "Categoría no encontrada" });
+    console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
+    console.log(chalk.cyan("✏️  ACTUALIZAR CATEGORÍA"));
 
-    await categoria.update(req.body);
+    console.log(chalk.blue("📥 ID recibido:"), chalk.yellow(req.params.id));
+
     console.log(
-      chalk.yellow(`✏️ Categoría actualizada: ${categoria.nombre_categoria}`)
+      chalk.blue("📦 BODY recibido:"),
+      chalk.yellow(JSON.stringify(req.body, null, 2))
     );
-    res.json({ msg: "✅ Categoría actualizada correctamente", categoria });
+
+    const categoria = await Categoria.findByPk(req.params.id);
+
+    if (!categoria) {
+      console.log(chalk.red("❌ Categoría NO encontrada"));
+      return res.status(404).json({ msg: "Categoría no encontrada" });
+    }
+
+    console.log(
+      chalk.magenta("📌 ANTES de actualizar:"),
+      chalk.white(JSON.stringify(categoria.toJSON(), null, 2))
+    );
+
+    const { nombre_categoria, descripcion } = req.body;
+
+    await categoria.update({
+      nombre_categoria,
+      descripcion,
+    });
+
+    console.log(
+      chalk.green("✅ DESPUÉS de actualizar:"),
+      chalk.white(JSON.stringify(categoria.toJSON(), null, 2))
+    );
+
+    console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
+
+    res.json({
+      msg: "✅ Categoría actualizada correctamente",
+      categoria,
+    });
   } catch (error) {
-    console.error("❌ Error al actualizar categoría:", error);
+    console.log(chalk.red("💥 ERROR en actualizarCategoria"));
+    console.error(chalk.red(error));
     res.status(500).json({ msg: "Error al actualizar categoría" });
   }
 };

@@ -10,100 +10,114 @@ import qrImage from "../../../assets/qrlenin.jpeg";
     <div class="grid-2">
       <div>
         <label>Nombre *</label>
-        <input type="text" required>
+        <input type="text" id="nombre" required>
       </div>
-
       <div>
         <label>Apellidos *</label>
-        <input type="text" required>
+        <input type="text" id="apellidos" required>
       </div>
     </div>
 
     <div>
       <label>Teléfono *</label>
-      <input type="tel" required>
+      <input type="tel" id="telefono" required>
     </div>
 
     <div>
       <label>Dirección *</label>
-      <input type="text" required placeholder="Calle, número, referencia">
+      <input type="text" id="direccion" required>
     </div>
 
     <h3 class="sec-title">Método de pago</h3>
 
-    <div class="pago-opcion">
-      <label><input type="radio" name="pago" value="transferencia" checked> Transferencia bancaria</label>
+    <div class="pago-group">
+      <label class="pago-opcion">
+        <input type="radio" name="pago" value="transferencia" checked>
+        Transferencia
+      </label>
+
+      <label class="pago-opcion">
+        <input type="radio" name="pago" value="yape">
+        Yape
+      </label>
+
+      <label class="pago-opcion">
+        <input type="radio" name="pago" value="contra">
+        Contra entrega
+      </label>
     </div>
 
-    <div class="pago-opcion">
-      <label><input type="radio" name="pago" value="contra"> Contra entrega</label>
+    <!-- DETALLES DE PAGO -->
+    <div class="pago-detalle">
+
+      <div id="transferencia-box" class="box hidden">
+        <p><strong>Banco:</strong> BCP</p>
+        <p><strong>Cuenta:</strong> 123-4567890</p>
+        <p><strong>Monto:</strong> S/ <span id="transferencia-monto"></span></p>
+      </div>
+
+      <div id="yape-box" class="box hidden">
+        <img src={qrImage.src} class="yape-img">
+        <p>Monto: <strong>S/ <span id="yape-monto"></span></strong></p>
+      </div>
+
+      <div id="comprobante-box" class="box hidden">
+        <label>Sube tu comprobante *</label>
+        <input type="file" id="comprobante-file" accept="image/*">
+      </div>
+
+      <div id="contra-box" class="box hidden">
+        <a id="btn-whatsapp" target="_blank" class="btn-whatsapp">
+          Coordinar por WhatsApp
+        </a>
+      </div>
+
     </div>
 
-    <div class="pago-opcion">
-      <label><input type="radio" name="pago" value="yape" id="pago-yape"> Yape</label>
-    </div>
-
-    <div id="yape-box" class="yape-box hidden">
-      <img src={qrImage.src} class="yape-img" />
-
-
-      <p>Monto: <strong id="yape-monto"></strong></p>
-    </div>
-
-    <div class="condiciones">
-      <label><input type="checkbox" required> Acepto términos y condiciones</label>
-    </div>
-
-    <button type="submit" class="btn-pedido">Realizar pedido</button>
+    <button type="submit" class="btn-pedido" id="btn-submit">
+      Realizar pedido
+    </button>
 
   </form>
 </div>
 
 <style is:global>
+ /* CONTENEDOR */
 .form-container {
-  padding: 0.5rem;
+  max-width: 420px;
+  margin: auto;
+  padding: 1rem;
 }
 
-/* CONTENEDOR GENERAL DEL FORMULARIO */
+/* FORMULARIO */
 .form-compra {
+  background: #ffffff;
+  padding: 1.8rem;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.12);
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1.4rem;
 }
 
-/* TITULOS */
+/* TÍTULOS */
 .sec-title {
-  margin-top: 0.5rem;
-  margin-bottom: -0.5rem;
   font-size: 1rem;
   font-weight: 700;
-}
-
-/* GRID DE DOS COLUMNAS */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-/* LABELS */
-.form-compra label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-  display: inline-block;
+  margin-top: 1rem;
+  margin-bottom: .2rem;
 }
 
 /* INPUTS */
 .form-compra input[type="text"],
-.form-compra input[type="tel"] {
+.form-compra input[type="tel"],
+.form-compra input[type="file"] {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #cfcfcf;
   border-radius: 8px;
-  font-size: 0.95rem;
+  border: 1px solid #dcdcdc;
+  font-size: .95rem;
   background: #fafafa;
-  transition: border .2s ease;
 }
 
 .form-compra input:focus {
@@ -112,121 +126,178 @@ import qrImage from "../../../assets/qrlenin.jpeg";
   background: #fff;
 }
 
-/* OPCIONES DE PAGO */
+/* GRID */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* MÉTODOS DE PAGO */
+.pago-group {
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+}
+
 .pago-opcion {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
+  gap: .6rem;
+  font-weight: 600;
 }
 
-/* CAJA YAPE */
-.yape-box {
-  margin-top: 0.4rem;
-  background: #f2f2f2;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  text-align: center;
+/* BLOQUE DE DETALLES */
+.pago-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: .5rem;
 }
 
-.yape-img {
-  width: 140px;
+/* CAJAS */
+.box {
+  background: #f4f4f4;
+  padding: 14px;
   border-radius: 10px;
 }
 
+/* OCULTAR */
 .hidden {
   display: none;
 }
 
-/* CHECKBOX */
-.condiciones {
-  margin-top: -0.5rem;
-  font-size: 0.9rem;
+/* YAPE */
+.yape-img {
+  width: 140px;
+  margin: .5rem auto;
+  display: block;
 }
 
-/* BOTÓN DE PEDIDO */
+/* BOTÓN */
 .btn-pedido {
-  width: 100%;
+  margin-top: 1rem;
   padding: 14px;
-  background: #0d6efd;
-  color: white !important;
-  border: none !important;
-  border-radius: 8px;
-  font-size: 1rem;
   font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  background: #0d6efd;
+  color: #fff;
   cursor: pointer;
-  transition: background .2s ease, transform .1s ease;
+  font-size: 1rem;
 }
 
-.btn-pedido:hover {
-  background: #0b5ed7;
+.btn-pedido.loading {
+  opacity: .6;
+  cursor: not-allowed;
 }
 
-.btn-pedido:active {
-  transform: scale(0.97);
+/* WHATSAPP */
+.btn-whatsapp {
+  display: block;
+  padding: 14px;
+  background: #25d366;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
 }
+
 
 </style>
 
 <script is:client>
   const form = document.getElementById("form-compra");
+  const btn = document.getElementById("btn-submit");
+
   const radios = document.querySelectorAll("input[name='pago']");
   const yapeBox = document.getElementById("yape-box");
-  const yapeMonto = document.getElementById("yape-monto");
+  const transferenciaBox = document.getElementById("transferencia-box");
+  const comprobanteBox = document.getElementById("comprobante-box");
+  const contraBox = document.getElementById("contra-box");
+  const comprobanteFile = document.getElementById("comprobante-file");
+  const btnWhatsapp = document.getElementById("btn-whatsapp");
 
-  function setYapeMonto() {
-    const totalEl = document.getElementById("total-precio");
-    if (totalEl) yapeMonto.textContent = totalEl.textContent.replace("S/ ", "");
+  const yapeMonto = document.getElementById("yape-monto");
+  const transferenciaMonto = document.getElementById("transferencia-monto");
+
+  let enviando = false;
+
+  function getTotal() {
+    const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
+    return carrito.reduce((s,p)=>s+p.precio*p.cantidad,0).toFixed(2);
   }
 
-  // Mostrar/ocultar Yape
-  radios.forEach(r => {
-    r.addEventListener("change", () => {
-      if (r.value === "yape") {
+  function resetUI() {
+    [yapeBox, transferenciaBox, comprobanteBox, contraBox].forEach(b=>b.classList.add("hidden"));
+    comprobanteFile.value = "";
+  }
+
+  radios.forEach(radio => {
+    radio.addEventListener("change", () => {
+      resetUI();
+      const total = getTotal();
+
+      if (radio.value === "yape") {
         yapeBox.classList.remove("hidden");
-        setYapeMonto();
-      } else {
-        yapeBox.classList.add("hidden");
+        comprobanteBox.classList.remove("hidden");
+        yapeMonto.textContent = total;
+      }
+
+      if (radio.value === "transferencia") {
+        transferenciaBox.classList.remove("hidden");
+        comprobanteBox.classList.remove("hidden");
+        transferenciaMonto.textContent = total;
+      }
+
+      if (radio.value === "contra") {
+        contraBox.classList.remove("hidden");
+        btnWhatsapp.href =
+          `https://wa.me/51999999999?text=Pedido%20contra%20entrega%20Total:%20S/%20${total}`;
       }
     });
   });
 
-  // VALIDACIÓN DEL FORMULARIO
-  form.addEventListener("submit", (e) => {
-    e.preventDefault(); // Evita enviar si hay errores
+  // estado inicial
+  document.querySelector("input[name='pago']:checked")
+    ?.dispatchEvent(new Event("change"));
 
-    const nombre = form.querySelector("input[type='text']:nth-child(1)").value.trim();
-    const apellidos = form.querySelector("input[type='text']:nth-child(2)").value.trim();
-    const telefono = form.querySelector("input[type='tel']").value.trim();
-    const direccion = form.querySelector("input[placeholder='Calle, número, referencia']").value.trim();
-    const pagoSeleccionado = form.querySelector("input[name='pago']:checked").value;
-    const terminos = form.querySelector("input[type='checkbox']").checked;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (enviando) return;
 
-    let errores = [];
+    const metodo = document.querySelector("input[name='pago']:checked").value;
 
-    if (nombre === "") errores.push("El nombre es obligatorio.");
-    if (apellidos === "") errores.push("Los apellidos son obligatorios.");
-    if (telefono.length < 6) errores.push("El teléfono no es válido.");
-    if (direccion === "") errores.push("La dirección es obligatoria.");
-
-    if (!terminos) errores.push("Debe aceptar los términos y condiciones.");
-
-    if (pagoSeleccionado === "yape" && yapeMonto.textContent === "") {
-      errores.push("Debe verificar el monto de Yape.");
-    }
-
-    if (errores.length > 0) {
-      alert(errores.join("\n"));
+    if ((metodo !== "contra") && !comprobanteFile.files.length) {
+      alert("Debes subir el comprobante");
       return;
     }
 
-    // TODO BIEN → AQUÍ SE PROCESA EL PEDIDO
-    alert("Pedido realizado correctamente 🎉");
+    // LOADING STATE
+    enviando = true;
+    btn.classList.add("loading");
+    btn.textContent = "Enviando pedido...";
+    btn.disabled = true;
 
-    // Cerrar el modal
-    document.dispatchEvent(new CustomEvent("cerrar-modal"));
+    try {
+      // aquí va TU fetch real a /pedidos y /pagos
+      await new Promise(r => setTimeout(r, 1200)); // simulación
+      alert("Pedido enviado correctamente 🎉");
+      document.dispatchEvent(new CustomEvent("cerrar-modal"));
+    } catch {
+      alert("Error al enviar el pedido");
+    } finally {
+      enviando = false;
+      btn.classList.remove("loading");
+      btn.textContent = "Realizar pedido";
+      btn.disabled = false;
+    }
   });
 </script>
+
+
+
+
 
 

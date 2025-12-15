@@ -1,7 +1,7 @@
 import express from "express";
 import { body } from "express-validator";
 import protegerRuta from "../middleware/protegerRuta.js";
-import { upload } from "../middleware/upload.js";
+import uploadCategoria from "../middleware/uploadCategoria.js";
 
 import {
   crearCategoria,
@@ -35,7 +35,7 @@ router.delete("/:id", protegerRuta, eliminarCategoria);
 router.post(
   "/subir-imagen/:id",
   protegerRuta,
-  upload.single("file"), // ⚡ igual que en productos
+  uploadCategoria.single("file"), // ✅ CORRECTO
   subirImagenCategoria
 );
 

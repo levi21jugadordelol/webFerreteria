@@ -2,7 +2,7 @@
 import express from "express";
 import { body } from "express-validator";
 import protegerRuta from "../middleware/protegerRuta.js";
-import { upload } from "../middleware/upload.js";
+import uploadMarca from "../middleware/uploadMarca.js";
 
 import {
   crearMarca,
@@ -36,7 +36,7 @@ router.delete("/:id", protegerRuta, eliminarMarca);
 router.post(
   "/subir-logo/:id",
   protegerRuta,
-  upload.single("file"),
+  uploadMarca.single("file"), // ✅ CORRECTO
   subirLogoMarca
 );
 

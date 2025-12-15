@@ -1,7 +1,7 @@
 import express from "express";
 import { body } from "express-validator";
 import protegerRuta from "../middleware/protegerRuta.js";
-import { upload } from "../middleware/upload.js";
+import uploadProducto from "../middleware/uploadProducto.js";
 import chalk from "chalk";
 
 import {
@@ -32,9 +32,9 @@ router.use((req, res, next) => {
    🟢 Rutas públicas
 -------------------- */
 router.get("/precio", filtrarPorPrecio);
-router.get("/:id/relacionados", productosRelacionados); // <--- primero
+router.get("/:id/relacionados", productosRelacionados);
 router.get("/", listarProductosPublicos);
-router.get("/:id", obtenerProducto); // <--- después
+router.get("/:id", obtenerProducto);
 
 /* --------------------
    🔒 Rutas admin
@@ -59,13 +59,18 @@ router.put("/:id", protegerRuta, actualizarProducto);
 router.delete("/:id", protegerRuta, eliminarProducto);
 
 /* Subir imagen principal */
-router.post("/:id/imagen", protegerRuta, upload.single("file"), subirImagen);
+router.post(
+  "/:id/imagen",
+  protegerRuta,
+  uploadProducto.single("file"),
+  subirImagen
+);
 
 /* Subir imagen adicional */
 router.post(
   "/:id/imagenes",
   protegerRuta,
-  upload.single("file"),
+  uploadProducto.single("file"),
   subirImagenExtra
 );
 

@@ -117,11 +117,18 @@ const { id = "modal-editar-categoria" } = Astro.props;
 </style>
 
 <script is:client>
-  const closeBtn = document.querySelector("[data-close]");
-  const modal = closeBtn.closest(".modal-overlay");
+  console.log("🟢 ModalEditCategoria cargado");
 
-  function closeModal() { modal.classList.remove("visible"); }
+  const modal = document.getElementById("modal-editar-categoria");
+  const closeBtn = modal.querySelector("[data-close]");
+  const form = document.getElementById("form-editar-categoria");
 
+  function closeModal() {
+    console.log("❎ Cerrando modal");
+    modal.classList.remove("visible");
+  }
+
+  // 🔒 cerrar modal
   closeBtn.addEventListener("click", closeModal);
 
   modal.addEventListener("click", e => {
@@ -132,5 +139,52 @@ const { id = "modal-editar-categoria" } = Astro.props;
     if (e.key === "Escape") closeModal();
   });
 
-  document.addEventListener("cerrar-modal-categoria", closeModal);
+  // 🔥 SUBMIT (ESTO ES LO IMPORTANTE)
+  form.addEventListener("submit", async (e) => {
+    console.log("🔥 SUBMIT EJECUTADO");
+    e.preventDefault();
+
+    const id = document.getElementById("cat-id").value;
+    const nombre = document.getElementById("cat-nombre").value;
+    const descripcion = document.getElementById("cat-descripcion").value;
+
+    console.log("📤 DATOS DEL FORM:", {
+      id,
+      nombre,
+      descripcion,
+    });
+
+    try {
+      const res = await fetch(`${window.API_URL}/categorias/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          nombre_categoria: nombre,
+          descripcion,
+        }),
+      });
+
+      console.log("📡 RESPUESTA PUT:", res.status);
+
+      if (!res.ok) {
+        console.error("❌ Error en PUT");
+        return;
+      }
+
+      console.log("✅ PUT OK, recargando lista");
+
+      if (window.cargarCategorias) {
+  window.cargarCategorias();
+}
+
+      closeModal();
+
+    } catch (err) {
+      console.error("💥 Error en fetch PUT:", err);
+    }
+  });
 </script>
+

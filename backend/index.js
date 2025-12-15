@@ -19,6 +19,10 @@ import categoriaRoutes from "./routes/categoriaRouter.js"; // ✅ NUEVO
 import marcaRoutes from "./routes/marcaRouter.js";
 import precioRoutes from "./routes/precioRouters.js"; // 👈 IMPORTA EL ARCHIVO
 
+// 🧩 Rutas de pedidos y pagos
+import pedidoRouter from "./routes/PedidoRouter.js"; // Nueva ruta para pedidos
+import pagoRouter from "./routes/pagoRouter.js"; // Nueva ruta para pagos
+
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -89,6 +93,10 @@ app.use("/auth", admiRoutes);
 
 app.use("/productos", productoRoutes); // 👈 Correcto
 app.use("/productos/precio", precioRoutes); // 👈 Correcto
+
+// NUEVO: Rutas de pedidos y pagos
+app.use("/api/pedidos", pedidoRouter); // Rutas para pedidos
+app.use("/api/pagos", pagoRouter); // Rutas para pagos
 
 app.use("/categorias", categoriaRoutes);
 app.use("/marcas", marcaRoutes);
