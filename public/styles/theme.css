@@ -1,0 +1,109 @@
+/* ======================
+   VARIABLES LIGHT (default)
+====================== */
+:root {
+  --bg: #ffffff;
+  --text: #111111;
+
+  --nav-bg: #ffffff;
+  --nav-border: #eeeeee;
+  --nav-link: #333333;
+  --nav-hover: #f3f3f3;
+
+  /* Theme toggle (luna / estado normal) */
+  --theme-icon: #222222;
+  --theme-icon-bg: rgba(0, 0, 0, 0.06);
+  --theme-icon-hover: rgba(0, 0, 0, 0.12);
+
+  /* Sol */
+  --sun-color: #f5b301;
+  --sun-bg: rgba(245, 179, 1, 0.15);
+}
+
+/* ======================
+   VARIABLES DARK
+====================== */
+html.dark {
+  --bg: #0f0f0f;
+  --text: #f5f5f5;
+
+  --nav-bg: #111111;
+  --nav-border: #222222;
+  --nav-link: #eeeeee;
+  --nav-hover: #222222;
+
+  /* Theme toggle (luna / estado normal) */
+  --theme-icon: #f5f5f5;
+  --theme-icon-bg: rgba(255, 255, 255, 0.08);
+  --theme-icon-hover: rgba(255, 255, 255, 0.18);
+
+  /* Sol (más suave en dark) */
+  --sun-color: #ffd866;
+  --sun-bg: rgba(255, 216, 102, 0.18);
+}
+
+/* ======================
+   APLICACIÓN GLOBAL
+====================== */
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.nav-container {
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--nav-border);
+}
+
+.nav-link {
+  color: var(--nav-link);
+}
+
+.nav-link:hover {
+  background: var(--nav-hover);
+}
+
+/* ======================
+   THEME TOGGLE
+====================== */
+.theme-toggle {
+  background: var(--theme-icon-bg);
+  color: var(--theme-icon);
+
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 20px;
+
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--theme-icon-hover);
+}
+
+/* ☀️ ESTADO SOL ACTIVO */
+.theme-toggle i.fa-sun {
+  color: var(--sun-color);
+}
+
+/* Fondo amarillo cuando el sol está activo */
+.theme-toggle:has(i.fa-sun) {
+  background: var(--sun-bg);
+}
+
+/* ======================
+   TRANSICIONES DE TEMA
+====================== */
+body,
+.nav-container,
+.nav-link {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}

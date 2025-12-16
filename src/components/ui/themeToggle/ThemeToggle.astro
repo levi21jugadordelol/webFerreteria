@@ -1,0 +1,37 @@
+<button
+  id="theme-toggle"
+  class="theme-toggle"
+  aria-label="Cambiar tema"
+>
+  <i class="fa-solid fa-moon"></i>
+</button>
+
+<script is:client>
+  const toggle = document.getElementById("theme-toggle");
+  const icon = toggle.querySelector("i");
+  const html = document.documentElement;
+
+  const savedTheme = localStorage.getItem("theme");
+
+  // Sincroniza ícono al cargar
+  if (savedTheme === "dark") {
+    icon.classList.replace("fa-moon", "fa-sun");
+  }
+
+  toggle.addEventListener("click", () => {
+    const isDark = html.classList.toggle("dark");
+
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+
+    icon.classList.toggle("fa-moon");
+    icon.classList.toggle("fa-sun");
+  });
+</script>
+
+<style>
+/* El estilo visual real vive en theme.css */
+.theme-toggle {
+  all: unset;
+}
+</style>
+
