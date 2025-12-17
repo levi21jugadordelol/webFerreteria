@@ -1,11 +1,15 @@
 // controllers/comprobantePagoController.js
 import ComprobantePago from "../models/Comprobante.js";
 import Pedido from "../models/Pedido.js";
+import chalk from "chalk";
 
 /* ---------------------------------
    Subir comprobante (cliente)
 --------------------------------- */
 export const subirComprobante = async (req, res) => {
+  console.log(chalk.cyan("📦 BODY:"), req.body);
+  console.log(chalk.green("📁 FILE:"), req.file);
+
   try {
     const { pedido_id } = req.body;
 
@@ -18,11 +22,7 @@ export const subirComprobante = async (req, res) => {
       return res.status(404).json({ msg: "Pedido no encontrado" });
     }
 
-    // ❗ Evitar múltiples comprobantes para el mismo pedido
-    const existe = await ComprobantePago.findOne({
-      where: { pedido_id },
-    });
-
+    const existe = await ComprobantePago.findOne({ where: { pedido_id } });
     if (existe) {
       return res
         .status(400)
@@ -31,16 +31,18 @@ export const subirComprobante = async (req, res) => {
 
     const comprobante = await ComprobantePago.create({
       pedido_id,
-      url_imagen: req.file.filename,
+      url_imagen: `/uploads/comprobantes/${req.file.filename}`,
       estado_validacion: "pendiente",
     });
+
+    console.log(chalk.greenBright("✅ Comprobante creado"));
 
     res.status(201).json({
       msg: "Comprobante subido correctamente",
       comprobante,
     });
   } catch (error) {
-    console.error(error);
+    console.error(chalk.red("❌ Error al subir comprobante"), error);
     res.status(500).json({ msg: "Error al subir comprobante" });
   }
 };

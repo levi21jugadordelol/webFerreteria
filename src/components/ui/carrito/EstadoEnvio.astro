@@ -1,0 +1,33 @@
+---
+const { estado = "idle" } = Astro.props;
+---
+
+<div class={`estado ${estado}`}>
+  {estado === "loading" && <p>⏳ Enviando pedido...</p>}
+  {estado === "success" && <p>✅ Pedido enviado correctamente</p>}
+  {estado === "error" && <p>❌ Error al enviar pedido</p>}
+</div>
+
+<style>
+.estado {
+  text-align: center;
+  font-weight: 700;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.estado.loading {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.estado.success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.estado.error {
+  background: #f8d7da;
+  color: #721c24;
+}
+</style>

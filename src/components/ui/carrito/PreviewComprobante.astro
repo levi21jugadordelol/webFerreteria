@@ -1,0 +1,24 @@
+---
+const { src } = Astro.props;
+---
+
+{src && (
+  <div class="preview">
+    <p>Comprobante seleccionado:</p>
+    <img src={src} alt="Comprobante" />
+  </div>
+)}
+
+<style>
+.preview {
+  text-align: center;
+}
+
+.preview img {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 8px;
+  margin-top: .5rem;
+  border: 1px solid #ddd;
+}
+</style>
