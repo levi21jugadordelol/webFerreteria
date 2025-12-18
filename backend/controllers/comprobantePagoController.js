@@ -56,6 +56,7 @@ export const listarComprobantes = async (req, res) => {
       include: [
         {
           model: Pedido,
+          as: "pedido", // 🔥 IMPORTANTE
           attributes: [
             "id_pedido",
             "nombre_comprador",
@@ -69,6 +70,7 @@ export const listarComprobantes = async (req, res) => {
 
     res.json(comprobantes);
   } catch (error) {
+    console.error("🔥 Error al listar comprobantes:", error);
     res.status(500).json({ msg: "Error al listar comprobantes" });
   }
 };

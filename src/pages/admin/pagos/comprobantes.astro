@@ -1,0 +1,105 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Validar Comprobantes de Pago">
+  <div id="app-comprobantes" class="table-responsive"></div>
+</AdminLayout>
+
+<script is:client>
+const API_BASE = "http://localhost:3000/api/pagos";
+const container = document.getElementById("app-comprobantes");
+
+/* 🔥 AQUÍ VA */
+async function fetchJSON(url, options = {}) {
+  const res = await fetch(url, {
+    credentials: "include", // 👈 ENVÍA COOKIES (_token)
+    ...options,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Error en la API");
+  }
+
+  return res.json();
+}
+
+/* 📥 Cargar comprobantes */
+async function cargarComprobantes() {
+  try {
+    const data = await fetchJSON(`${API_BASE}/admin/lista`);
+
+    if (!Array.isArray(data) || data.length === 0) {
+      container.innerHTML = "<p>No hay comprobantes</p>";
+      return;
+    }
+
+    container.innerHTML = `
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Total</th>
+            <th>Imagen</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map(c => `
+            <tr>
+              <td>${c.id_comprobante}</td>
+              <td>#${c.pedido.id_pedido}</td>
+              <td>${c.pedido.nombre_comprador}</td>
+              <td>S/ ${c.pedido.total_pedido}</td>
+              <td>
+                <a href="http://localhost:3000${c.url_imagen}" target="_blank">
+                  Ver
+                </a>
+              </td>
+              <td>${c.estado_validacion}</td>
+              <td>
+                <button class="btn btn-success btn-sm"
+                  onclick="validar(${c.id_comprobante})">
+                  Validar
+                </button>
+                <button class="btn btn-danger btn-sm"
+                  onclick="rechazar(${c.id_comprobante})">
+                  Rechazar
+                </button>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    container.innerHTML = `
+      <div class="alert alert-danger">
+        Error cargando comprobantes
+      </div>
+    `;
+    console.error(err);
+  }
+}
+
+/* ✔ Validar */
+async function validar(id) {
+  if (!confirm("¿Validar comprobante?")) return;
+  await fetchJSON(`${API_BASE}/admin/${id}/validar`, { method: "PUT" });
+  cargarComprobantes();
+}
+
+/* ✖ Rechazar */
+async function rechazar(id) {
+  if (!confirm("¿Rechazar comprobante?")) return;
+  await fetchJSON(`${API_BASE}/admin/${id}/rechazar`, { method: "PUT" });
+  cargarComprobantes();
+}
+
+cargarComprobantes();
+</script>
+
