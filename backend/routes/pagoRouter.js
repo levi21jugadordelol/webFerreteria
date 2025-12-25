@@ -9,6 +9,7 @@ import {
   listarComprobantes,
   validarComprobante,
   rechazarComprobante,
+  revertirComprobante,
 } from "../controllers/comprobantePagoController.js";
 
 const router = express.Router();
@@ -33,6 +34,7 @@ router.post(
 // 🔒 Admin
 router.get("/admin/lista", protegerRuta, listarComprobantes);
 router.put("/admin/:id/validar", protegerRuta, validarComprobante);
+router.put("/admin/:id/revertir", protegerRuta, revertirComprobante);
 router.put("/admin/:id/rechazar", protegerRuta, rechazarComprobante);
 
 export default router;

@@ -17,6 +17,11 @@ const Pedido = db.define(
       type: DataTypes.STRING(15), // suficiente para DNI o RUC
       allowNull: false,
     },
+    direccion_envio: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+
     telefono_comprador: {
       type: DataTypes.STRING(15),
       allowNull: false,

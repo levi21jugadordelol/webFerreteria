@@ -10,6 +10,7 @@ import ProductoCaracteristica from "../models/ProductoCaracteristica.js";
 
 import { validationResult } from "express-validator";
 import chalk from "chalk";
+import ProductoService from "../services/ProductoService.js";
 
 /* -----------------------------
    Multer
@@ -178,35 +179,10 @@ export const eliminarCaracteristica = async (req, res) => {
 ----------------------------- */
 export const listarProductosPublicos = async (req, res) => {
   try {
-    const { search, marca, categoria } = req.query;
-
-    const where = {};
-
-    if (search) {
-      where[Op.or] = [
-        { nombre_producto: { [Op.like]: `%${search}%` } },
-        { descripcion: { [Op.like]: `%${search}%` } },
-      ];
-    }
-
-    if (marca) where.marca_id = marca;
-    if (categoria) where.categoria_id = categoria;
-
-    const productos = await Producto.findAll({
-      where,
-      attributes: [
-        "id_producto",
-        "nombre_producto",
-        "descripcion",
-        "precio",
-        "url_imagen",
-        "stock", // ✔ AQUÍ VA
-      ],
-    });
-
+    const productos = await ProductoService.listarPublicos(req.query);
     res.json(productos);
   } catch (error) {
-    res.status(500).json({ msg: "Error al obtener productos" });
+    res.status(500).json({ msg: error.message });
   }
 };
 
@@ -215,19 +191,10 @@ export const listarProductosPublicos = async (req, res) => {
 ----------------------------- */
 export const obtenerProducto = async (req, res) => {
   try {
-    const producto = await Producto.findByPk(req.params.id, {
-      include: [
-        { model: Categoria, as: "categoria", attributes: ["nombre_categoria"] },
-        { model: ProductoImagen, as: "imagenes" },
-        { model: ProductoCaracteristica, as: "caracteristicas" },
-      ],
-    });
-
-    if (!producto) return res.status(404).json({ msg: "No encontrado" });
-
+    const producto = await ProductoService.obtenerPorId(req.params.id);
     res.json(producto);
   } catch (error) {
-    res.status(500).json({ msg: "Error al obtener producto" });
+    res.status(404).json({ msg: error.message });
   }
 };
 

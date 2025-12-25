@@ -2,6 +2,7 @@
 import ComprobantePago from "../models/Comprobante.js";
 import Pedido from "../models/Pedido.js";
 import chalk from "chalk";
+import PagoService from "../services/PagoService.js";
 
 /* ---------------------------------
    Subir comprobante (cliente)
@@ -80,25 +81,10 @@ export const listarComprobantes = async (req, res) => {
 --------------------------------- */
 export const validarComprobante = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const comprobante = await ComprobantePago.findByPk(id);
-    if (!comprobante) {
-      return res.status(404).json({ msg: "Comprobante no encontrado" });
-    }
-
-    comprobante.estado_validacion = "validado";
-    await comprobante.save();
-
-    // 🔥 Cambiar estado del pedido a PAGADO
-    await Pedido.update(
-      { estado_pedido: "pagado" },
-      { where: { id_pedido: comprobante.pedido_id } }
-    );
-
-    res.json({ msg: "Comprobante validado y pedido marcado como pagado" });
+    await PagoService.validarComprobante(req.params.id);
+    res.json({ msg: "Pago validado, stock actualizado" });
   } catch (error) {
-    res.status(500).json({ msg: "Error al validar comprobante" });
+    res.status(400).json({ msg: error.message });
   }
 };
 
@@ -121,5 +107,17 @@ export const rechazarComprobante = async (req, res) => {
     res.json({ msg: "Comprobante rechazado" });
   } catch (error) {
     res.status(500).json({ msg: "Error al rechazar comprobante" });
+  }
+};
+
+/* ---------------------------------
+   Revertir comprobante (admin)
+--------------------------------- */
+export const revertirComprobante = async (req, res) => {
+  try {
+    await PagoService.revertirComprobante(req.params.id);
+    res.json({ msg: "Pago revertido y stock restaurado" });
+  } catch (error) {
+    res.status(400).json({ msg: error.message });
   }
 };

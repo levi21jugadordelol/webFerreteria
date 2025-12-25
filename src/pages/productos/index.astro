@@ -13,6 +13,7 @@ interface Producto {
   descripcion: string;
   precio: number;
   url_imagen: string | null;
+   agotado: boolean; // 🔥
 }
 
 
@@ -81,6 +82,7 @@ const productos: Producto[] = Array.isArray(data) ? data : [];
       slug={p.slug}
       titulo={p.nombre_producto}
       precio={p.precio}
+      agotado={p.agotado} 
       imagen={{
         src: p.url_imagen
           ? `${apiUrl}/uploads/${p.url_imagen}`

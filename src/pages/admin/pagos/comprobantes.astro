@@ -42,9 +42,12 @@ async function cargarComprobantes() {
             <th>ID</th>
             <th>Pedido</th>
             <th>Cliente</th>
+            <th>Dirección</th>
             <th>Total</th>
             <th>Imagen</th>
-            <th>Estado</th>
+            <th>Estado Pago</th>
+<th>Estado Pedido</th>
+
             <th>Acciones</th>
           </tr>
         </thead>
@@ -54,23 +57,64 @@ async function cargarComprobantes() {
               <td>${c.id_comprobante}</td>
               <td>#${c.pedido.id_pedido}</td>
               <td>${c.pedido.nombre_comprador}</td>
+              <td>${c.pedido.direccion_envio}</td>
               <td>S/ ${c.pedido.total_pedido}</td>
               <td>
                 <a href="http://localhost:3000${c.url_imagen}" target="_blank">
                   Ver
                 </a>
               </td>
-              <td>${c.estado_validacion}</td>
-              <td>
-                <button class="btn btn-success btn-sm"
-                  onclick="validar(${c.id_comprobante})">
-                  Validar
-                </button>
-                <button class="btn btn-danger btn-sm"
-                  onclick="rechazar(${c.id_comprobante})">
-                  Rechazar
-                </button>
-              </td>
+             <td>
+  <span class="badge bg-${
+    c.estado_validacion === "validado"
+      ? "success"
+      : c.estado_validacion === "rechazado"
+      ? "danger"
+      : "warning"
+  }">
+    ${c.estado_validacion}
+  </span>
+</td>
+
+<td>
+  <span class="badge bg-${
+    c.pedido.estado_pedido === "pagado"
+      ? "success"
+      : "secondary"
+  }">
+    ${c.pedido.estado_pedido}
+  </span>
+</td>
+
+<td>
+  ${
+    c.estado_validacion === "pendiente"
+      ? `
+        <button class="btn btn-success btn-sm"
+          onclick="validar(${c.id_comprobante})">
+          Validar
+        </button>
+        <button class="btn btn-danger btn-sm"
+          onclick="rechazar(${c.id_comprobante})">
+          Rechazar
+        </button>
+      `
+      : c.estado_validacion === "validado"
+      ? `
+        <button class="btn btn-warning btn-sm"
+          onclick="revertir(${c.id_comprobante})">
+          Revertir
+        </button>
+      `
+      : `
+        <span class="text-muted fw-bold">
+          Acción completada
+        </span>
+      `
+  }
+</td>
+
+
             </tr>
           `).join("")}
         </tbody>
@@ -99,6 +143,12 @@ async function rechazar(id) {
   await fetchJSON(`${API_BASE}/admin/${id}/rechazar`, { method: "PUT" });
   cargarComprobantes();
 }
+
+  async function revertir(id) {
+    if (!confirm("⚠️ ¿Revertir este pago validado?")) return;
+    await fetchJSON(`${API_BASE}/admin/${id}/revertir`, { method: "PUT" });
+    cargarComprobantes();
+  }
 
 cargarComprobantes();
 </script>

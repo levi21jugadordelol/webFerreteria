@@ -1,7 +1,8 @@
 ---
-const { id, titulo, precio, imagen } = Astro.props;
+const { id, titulo, precio, imagen, agotado = false } = Astro.props;
 const imgSrc = imagen?.src ?? "/img/no-image.png";
 ---
+
 
 <div
   class="card-simple"
@@ -10,12 +11,21 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
   data-nombre={titulo}
   data-precio={precio}
   data-imagen={imgSrc}
+  data-agotado={agotado}  
 >
+
   <!-- Navegar -->
   <a href={`/productos/${id}`} class="card-link">
-    <div class="card-img">
-      <img src={imgSrc} alt={titulo} />
-    </div>
+   <div class="card-img">
+  <img src={imgSrc} alt={titulo} />
+
+  {agotado && (
+    <span class="badge-agotado">
+      AGOTADO
+    </span>
+  )}
+</div>
+
 
     <div class="card-info">
       <h3>{titulo}</h3>
@@ -24,7 +34,13 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
   </a>
 
   <!-- Carrito -->
-  <button class="btn-add">Agregar al carrito</button>
+  <button
+  class="btn-add"
+  disabled={agotado}
+>
+  {agotado ? "Sin stock" : "Agregar al carrito"}
+</button>
+
 </div>
 
 
@@ -104,6 +120,26 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
   color: #0d6efd;
   margin: 0;
 }
+
+.badge-agotado {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(220, 53, 69, 0.95);
+  color: white;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 6px;
+  z-index: 2;
+}
+
+.btn-add:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
 </style>
 
 
