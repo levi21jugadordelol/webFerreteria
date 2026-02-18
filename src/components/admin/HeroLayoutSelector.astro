@@ -1,0 +1,91 @@
+---
+interface Props {
+  selected?: string;
+}
+
+const { selected = "banner" } = Astro.props;
+---
+
+<div class="layout-selector">
+
+  {[
+    { value: "banner", label: "Solo imagen" },
+    { value: "text-left", label: "Texto izquierda" },
+    { value: "text-right", label: "Texto derecha" },
+    { value: "centered", label: "Texto centrado" },
+  ].map(layout => (
+
+    <label class={`layout-card ${selected === layout.value ? "active" : ""}`}>
+      <input
+        type="radio"
+        name="tipo_layout"
+        value={layout.value}
+        checked={selected === layout.value}
+        hidden
+      />
+
+      <div class="layout-preview">
+        <div class="fake-image"></div>
+        {layout.value !== "banner" && (
+          <div class="fake-text"></div>
+        )}
+      </div>
+
+      <span>{layout.label}</span>
+    </label>
+
+  ))}
+
+</div>
+
+<style>
+.layout-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.layout-card {
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  text-align: center;
+  background: white;
+}
+
+.layout-card:hover {
+  border-color: #2563eb;
+}
+
+.layout-card.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.layout-preview {
+  height: 90px;
+  position: relative;
+  background: #f1f5f9;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+.fake-image {
+  background: #cbd5e1;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+}
+
+.fake-text {
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  width: 50%;
+  height: 20px;
+  background: #94a3b8;
+  border-radius: 4px;
+}
+</style>

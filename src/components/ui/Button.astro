@@ -1,35 +1,121 @@
 ---
-const { variant = "primary" } = Astro.props;
+interface Props {
+  href?: string;
+  variant?: "primary" | "secondary" | "outline";
+  size?: "sm" | "md" | "lg";
+  type?: "button" | "submit";
+  fullWidth?: boolean;
+}
+
+const {
+  href,
+  variant = "primary",
+  size = "md",
+  type = "button"
+} = Astro.props;
 ---
 
-<button class="my-btn">
-  <slot>Comprar ahora</slot>
-</button>
+{href ? (
+  <a href={href} class={`btn-cms btn-${variant} btn-${size}`}>
+    <slot>Comprar ahora</slot>
+  </a>
+) : (
+  <button type={type} class={`btn-cms btn-${variant} btn-${size}`}>
+    <slot>Comprar ahora</slot>
+  </button>
+)}
 
 <style>
-  .my-btn {
-    background-color: #5b0c22; /* tu color vino corporativo */
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    font-size: 1rem;
-    letter-spacing: 0.2px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 10px rgba(91, 12, 34, 0.25);
-  }
+/* =========================
+   🧱 BASE BUTTON
+========================= */
 
-  .my-btn:hover {
-    background-color: #78112b;
-    box-shadow: 0 6px 16px rgba(91, 12, 34, 0.4);
-    transform: translateY(-2px);
-  }
+.btn-cms {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
-  .my-btn:active {
-    transform: scale(0.97);
-  }
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+/* =========================
+   🎨 VARIANTS
+========================= */
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 24px rgba(255,102,0,0.25);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+
+
+.btn-secondary {
+  background-color: var(--color-card);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-border);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-outline:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* =========================
+   📏 SIZES
+========================= */
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+.btn-md {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+}
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 1.05rem;
+}
+.btn-full {
+  width: 100%;
+}
+
+
+/* =========================
+   🌙 DARK MODE AJUSTES
+========================= */
+
+html[data-theme="dark"] .btn-secondary {
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+}
 </style>
+
+
 
 

@@ -1,10 +1,15 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro"
-const title="web ferreteria | home"
-
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/sections/Header.astro";
+import Body from "../components/sections/Body.astro";
 ---
 
+<BaseLayout title="Home">
 
-<BaseLayout title={title}></BaseLayout>
+  <Header />
+  <Body />
+
+</BaseLayout>
+
 
 

@@ -55,6 +55,24 @@ const Producto = db.define(
         key: "id_marca",
       },
     },
+    es_destacado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    es_temporada: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    temporada_inicio: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    temporada_fin: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "productos",

@@ -1,0 +1,23 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import HeroSortable from "../../../components/admin/HeroSortable.astro";
+
+const res = await fetch("http://localhost:3000/api/hero");
+const slides = await res.json();
+---
+
+<AdminLayout title="Gestión Hero">
+
+  <a href="/admin/hero/nuevo" class="btn btn-primary mb-4">
+    ➕ Nuevo Slide
+  </a>
+
+  <HeroSortable slides={slides}  />
+
+</AdminLayout>
+
+
+
+

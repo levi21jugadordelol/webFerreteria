@@ -7,24 +7,32 @@ import path from "path";
 // 🟢 Crear categoría
 export const crearCategoria = async (req, res) => {
   const errores = validationResult(req);
-  if (!errores.isEmpty())
+  if (!errores.isEmpty()) {
     return res.status(400).json({ errores: errores.array() });
+  }
 
   try {
     const { nombre_categoria, descripcion } = req.body;
 
     const existe = await Categoria.findOne({ where: { nombre_categoria } });
-    if (existe)
+    if (existe) {
       return res
         .status(400)
         .json({ msg: "Ya existe una categoría con ese nombre" });
+    }
 
-    const nueva = await Categoria.create({ nombre_categoria, descripcion });
+    const nueva = await Categoria.create({
+      nombre_categoria,
+      descripcion,
+      url_imagen: req.file ? `categorias/${req.file.filename}` : null,
+    });
+
     console.log(chalk.green(`✅ Categoría creada: ${nueva.nombre_categoria}`));
 
-    res
-      .status(201)
-      .json({ msg: "✅ Categoría creada correctamente", categoria: nueva });
+    res.status(201).json({
+      msg: "✅ Categoría creada correctamente",
+      categoria: nueva,
+    });
   } catch (error) {
     console.error(chalk.bgRed("❌ Error al crear categoría:"), error);
     res.status(500).json({ msg: "Error interno del servidor" });
@@ -67,7 +75,7 @@ export const actualizarCategoria = async (req, res) => {
 
     console.log(
       chalk.blue("📦 BODY recibido:"),
-      chalk.yellow(JSON.stringify(req.body, null, 2))
+      chalk.yellow(JSON.stringify(req.body, null, 2)),
     );
 
     const categoria = await Categoria.findByPk(req.params.id);
@@ -79,7 +87,7 @@ export const actualizarCategoria = async (req, res) => {
 
     console.log(
       chalk.magenta("📌 ANTES de actualizar:"),
-      chalk.white(JSON.stringify(categoria.toJSON(), null, 2))
+      chalk.white(JSON.stringify(categoria.toJSON(), null, 2)),
     );
 
     const { nombre_categoria, descripcion } = req.body;
@@ -91,7 +99,7 @@ export const actualizarCategoria = async (req, res) => {
 
     console.log(
       chalk.green("✅ DESPUÉS de actualizar:"),
-      chalk.white(JSON.stringify(categoria.toJSON(), null, 2))
+      chalk.white(JSON.stringify(categoria.toJSON(), null, 2)),
     );
 
     console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
@@ -121,7 +129,7 @@ export const eliminarCategoria = async (req, res) => {
 
     await categoria.destroy();
     console.log(
-      chalk.redBright(`🗑️ Categoría eliminada: ${categoria.nombre_categoria}`)
+      chalk.redBright(`🗑️ Categoría eliminada: ${categoria.nombre_categoria}`),
     );
     res.json({ msg: "✅ Categoría eliminada correctamente" });
   } catch (error) {
@@ -146,13 +154,14 @@ export const subirImagenCategoria = async (req, res) => {
       if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
     }
 
-    categoria.url_imagen = req.file.filename;
+    categoria.url_imagen = `categorias/${req.file.filename}`;
+
     await categoria.save();
 
     console.log(
       chalk.greenBright(
-        `🖼️ Imagen subida: http://localhost:3000/uploads/${categoria.url_imagen}`
-      )
+        `🖼️ Imagen subida: http://localhost:3000/uploads/${categoria.url_imagen}`,
+      ),
     );
 
     res.json({

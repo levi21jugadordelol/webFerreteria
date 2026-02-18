@@ -1,10 +1,12 @@
+import dotenv from "dotenv";
 import { check, validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import chalk from "chalk";
 import Administrador from "../models/Administrador.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secreto_admin";
+//const JWT_SECRET = process.env.JWT_SECRET || "secreto_admin";
+dotenv.config(); // 🔥 Asegura que el .env se cargue aquí
 
 // 🟢 Endpoint de prueba (verifica conexión del login)
 const formularioLogin = (req, res) => {
@@ -19,58 +21,57 @@ const autenticar = async (req, res) => {
   try {
     await check("correo").isEmail().run(req);
     await check("password").notEmpty().run(req);
-    console.log(chalk.blue("✅ Validaciones ejecutadas"));
 
     const resultado = validationResult(req);
     if (!resultado.isEmpty()) {
-      console.log(chalk.red("❌ Errores de validación:"), resultado.array());
       return res.status(400).json({ errores: resultado.array() });
     }
 
     const { correo, password } = req.body;
-    console.log(chalk.cyan(`🔎 Buscando admin con correo: ${correo}`));
+
     const admin = await Administrador.findOne({ where: { correo } });
 
     if (!admin) {
-      console.log(chalk.red("⚠️ Admin no encontrado"));
       return res.status(404).json({ msg: "El administrador no existe" });
     }
 
-    console.log(chalk.yellow("🔐 Verificando contraseña..."));
     const esValido = await bcrypt.compare(password, admin.hash);
 
     if (!esValido) {
-      console.log(chalk.red("❌ Contraseña incorrecta"));
       return res.status(401).json({ msg: "La contraseña es incorrecta" });
     }
 
-    console.log(chalk.green("🟢 Credenciales válidas, generando JWT..."));
+    // 🔥 Lee el secret en el momento de usarlo
+    const secret = process.env.JWT_SECRET;
+
+    console.log(chalk.cyan("SECRET BACKEND:"), secret);
+
     const token = jwt.sign(
-      { id: admin.id_administrador, nombre: admin.nombre, rol: admin.rol },
-      JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    res.cookie("_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-
-    console.log(chalk.greenBright("🎉 Login exitoso"));
-    res.json({
-      msg: "Inicio de sesión exitoso",
-      token,
-      admin: {
-        id: admin.id_administrador,
+      {
+        id_administrador: admin.id_administrador,
         nombre: admin.nombre,
         rol: admin.rol,
       },
+      secret,
+      { expiresIn: "1d" },
+    );
+
+    console.log(chalk.green("TOKEN GENERADO BACKEND:"), token);
+
+    res.cookie("_token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      path: "/",
+    });
+
+    return res.json({
+      msg: "Inicio de sesión exitoso",
     });
   } catch (error) {
     console.error(
       chalk.bgRed.white("💥 Error en autenticar():"),
-      error.message
+      error.message,
     );
     res.status(500).json({ msg: "Error interno del servidor" });
   }
@@ -119,9 +120,19 @@ const registrar = async (req, res) => {
 };
 
 // 🟢 Cerrar sesión
+// 🟢 Cerrar sesión
 const cerrarSesion = (req, res) => {
-  res.clearCookie("_token");
-  res.json({ msg: "Sesión cerrada correctamente" });
+  res.clearCookie("_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
+
+  return res.status(200).json({
+    ok: true,
+    msg: "Sesión cerrada correctamente",
+  });
 };
 
 export {

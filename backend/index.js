@@ -18,6 +18,8 @@ import productoRoutes from "./routes/productoRouters.js";
 import categoriaRoutes from "./routes/categoriaRouter.js"; // ✅ NUEVO
 import marcaRoutes from "./routes/marcaRouter.js";
 import precioRoutes from "./routes/precioRouters.js"; // 👈 IMPORTA EL ARCHIVO
+import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
+import heroRoutes from "./routes/HeroRoutes.js";
 
 // 🧩 Rutas de pedidos y pagos
 import pedidoRouter from "./routes/PedidoRouter.js"; // Nueva ruta para pedidos
@@ -28,20 +30,48 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 📂 Servir carpeta "uploads" (donde se guardan imágenes)
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // 🌐 Configurar CORS (para comunicación con Astro)
 app.use(
   cors({
     origin: "http://localhost:4321",
     credentials: true, // permite envío de cookies
-  })
+  }),
 );
 
 // 🧰 Parseo de requests
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+
+// 🔒 DESACTIVAR CACHE (AGREGAR ESTO AQUÍ)
+// 🔒 DESACTIVAR CACHE GLOBALMENTE
+app.use((req, res, next) => {
+  console.log(
+    chalk.blueBright("🛡️ Aplicando headers NO-CACHE a:"),
+    chalk.white(req.method),
+    chalk.yellow(req.originalUrl),
+  );
+
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, private",
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
+  // Confirmar headers antes de enviar
+  res.on("finish", () => {
+    console.log(
+      chalk.green("📦 Headers enviados para:"),
+      chalk.yellow(req.originalUrl),
+    );
+    console.log(chalk.gray("Cache-Control:"), res.getHeader("Cache-Control"));
+  });
+
+  next();
+});
 
 // 📁 Servir archivos estáticos desde "public"
 app.use(express.static("public"));
@@ -68,13 +98,13 @@ app.use((req, res, next) => {
       res.statusCode < 400
         ? chalk.greenBright
         : res.statusCode < 500
-        ? chalk.yellowBright
-        : chalk.redBright;
+          ? chalk.yellowBright
+          : chalk.redBright;
 
     console.log(
       color(
-        `📤 [RESPUESTA] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`
-      )
+        `📤 [RESPUESTA] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`,
+      ),
     );
   });
 
@@ -83,7 +113,9 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => {
   console.log(
-    chalk.magentaBright(`🌐 Request completa: ${req.method} ${req.originalUrl}`)
+    chalk.magentaBright(
+      `🌐 Request completa: ${req.method} ${req.originalUrl}`,
+    ),
   );
   next();
 });
@@ -94,9 +126,11 @@ app.use("/auth", admiRoutes);
 app.use("/productos", productoRoutes); // 👈 Correcto
 app.use("/productos/precio", precioRoutes); // 👈 Correcto
 
-// NUEVO: Rutas de pedidos y pagos
-app.use("/api/pedidos", pedidoRouter); // Rutas para pedidos
-app.use("/api/pagos", pagoRouter); // Rutas para pagos
+// 🧩 API
+app.use("/api/site-settings", siteSettingsRoutes); // ✅ AQUÍ
+app.use("/api/pedidos", pedidoRouter);
+app.use("/api/pagos", pagoRouter);
+app.use("/api/hero", heroRoutes);
 
 app.use("/categorias", categoriaRoutes);
 app.use("/marcas", marcaRoutes);

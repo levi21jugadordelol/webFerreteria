@@ -90,7 +90,41 @@ const apiUrl = "http://localhost:3000";
             .getElementById("modal-editar-categoria")
             .classList.add("visible");
         })
+
       );
+
+      /* 🗑️ Eliminar */
+contenedor.querySelectorAll(".btn-eliminar").forEach((btn) =>
+  btn.addEventListener("click", async (e) => {
+    const card = e.target.closest(".card");
+    const id = card.dataset.id;
+
+    const confirmar = confirm(
+      "¿Estás seguro de eliminar esta categoría?\nEsta acción no se puede deshacer."
+    );
+
+    if (!confirmar) return;
+
+    try {
+      const res = await fetch(`${apiUrl}/categorias/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        alert("❌ Error al eliminar la categoría");
+        return;
+      }
+
+      // 🔄 Recargar lista
+      cargarCategorias();
+    } catch (err) {
+      console.error("💥 Error eliminando:", err);
+      alert("Error de conexión");
+    }
+  })
+);
+
     } catch (err) {
       contenedor.innerHTML = `<p class="text-danger">❌ Error: ${err.message}</p>`;
       contador.textContent = "Error de conexión";

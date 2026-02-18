@@ -1,185 +1,246 @@
 ---
-import Hero from "../ui/Hero.astro"
-import Title from "../shared/Title.astro"
-import { Image } from "astro:assets"
-import Button from "../ui/Button.astro"
+import Hero from "../ui/Hero.astro";
+import Button from "../ui/Button.astro";
 
-import testimonio1 from "../../assets/testimonio1.jpg"
-import testimonio2 from "../../assets/testimonio2.jpg"
-import testimonio3 from "../../assets/testimonio3.jpg"
+export const prerender = false;
 
-import pintura_1 from "../../assets/pintura_1.jpg"
+const API_URL = "http://localhost:3000";
 
+interface HeroSlide {
+  id_hero: number;
+  titulo1: string | null;
+  titulo2: string | null;
+  imagen: string;
+  tipo_layout: string;
+  mostrar_boton: boolean;
+  boton_texto: string | null;
+  boton_url: string | null;
+  orden: number;
+  activo: boolean;
+}
 
+let clientes: HeroSlide[] = [];
 
-const clientes = [
-  {
-    titulo1: "Diseño y confort para tu hogar",
-    titulo2: "Encuentra muebles modernos y funcionales para cada ambiente de tu casa",
-    imagen: pintura_1,
-    refImg: "muebles del hogar"
-  },
-  {
-    titulo1: "Estilo que inspira cada espacio",
-    titulo2: "Salas, dormitorios y comedores con el equilibrio perfecto entre elegancia y comodidad",
-    imagen: testimonio2,
-    refImg: "muebles del hogar"
-  },
-  {
-    titulo1: "Calidad artesanal para tu bienestar",
-    titulo2: "Más de 10 años creando muebles duraderos que combinan diseño y practicidad",
-    imagen: testimonio3,
-    refImg: "muebles del hogar"
-  }
-];
-
+try {
+  const res = await fetch(`${API_URL}/api/hero`);
+  if (res.ok) clientes = await res.json();
+} catch (error) {
+  console.error("Error cargando hero:", error);
+}
 ---
 
-<Hero bg="#e5e7eb" height="500px">
+<Hero height="500px">
+
   <div class="testimonio-carousel">
-    <div class="slides-wrapper">
-      {clientes.map(({ imagen, titulo1, titulo2, refImg }) => (
-        <div class="slide row h-100 w-100">
-          <div class="container col-6 d-flex align-items-center justify-content-center img-col">
-            <Image
-              src={imagen}
-              alt={`Foto de ${refImg}`}
-              class="hero-img"
-              format="webp"
-              widths={[400, 800, 1200]}
-              sizes="100vw"
-            />
+
+    <!-- SLIDER -->
+    <div class="slides-container">
+      <div class="slides-wrapper">
+
+        {clientes.map((slide) => (
+
+          <div class="slide">
+
+            {/* 🖼 BANNER */}
+            {slide.tipo_layout === "banner" && (
+              <div class="w-100 h-100 d-flex align-items-center">
+
+                <img
+                  src={`${API_URL}/uploads/${slide.imagen}`}
+                  alt=""
+                  class="img-fluid w-100 rounded"
+                  style="height:100%; object-fit:cover;"
+                />
+              </div>
+            )}
+
+            {/* 🎨 IMAGEN + TEXTO */}
+        {slide.tipo_layout !== "banner" && (
+  <div class="container h-100">
+    <div class={`row align-items-center h-100 ${
+      slide.tipo_layout === "text-right" ? "flex-row-reverse" : ""
+    }`}>
+
+
+
+                  <div class="col-lg-7">
+                  <img
+  src={`${API_URL}/uploads/${slide.imagen}`}
+  alt=""
+  class="w-100"
+  style="height:100%; object-fit:cover;"
+/>
+
+                  </div>
+
+                  <div class="col-lg-5">
+
+                    {slide.titulo1 && (
+                      <p class="hero-subtitle mb-2">
+
+                        {slide.titulo1}
+                      </p>
+                    )}
+
+                    {slide.titulo2 && (
+                      <h1 class="fw-bold mb-3">
+                        {slide.titulo2}
+                      </h1>
+                    )}
+
+                    {slide.mostrar_boton && slide.boton_texto && (
+                      <Button href={slide.boton_url ?? "#"}>
+                        {slide.boton_texto}
+                      </Button>
+                    )}
+
+                  </div>
+
+                </div>
+              </div>
+            )}
+
           </div>
 
-          <div class="col-6 d-flex flex-column align-items-center justify-content-center text-center">
-            <div class="div_texto px-3">
-              <h1 class="titulo1 mb-2">{titulo1}</h1>
-              <h2 class="titulo2 fw-bold">{titulo2}</h2>
-            </div>
-            <div class="mt-5">
-              <a href="/productos">
-                <Button label="comprar ahora" />
-              </a>
-            </div>
-          </div>
-        </div>
-      ))}
+        ))}
+
+      </div>
     </div>
 
-    <!-- 🔘 Indicadores circulares -->
-    <div class="indicators">
-      {clientes.map((_, index) => (
-        <span class="dot" data-index={index}></span>
-      ))}
-    </div>
+    <!-- INDICADORES -->
+   <div class="indicators">
+  {clientes.length > 0 &&
+    clientes.map((_, index:any) => (
+      <span class="dot" data-index={index}></span>
+    ))
+  }
+</div>
+
+
   </div>
+
 </Hero>
 
 <style>
-  .testimonio-carousel {
-    position: relative; /* necesario para ubicar los indicadores dentro */
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
+.testimonio-carousel {
+  height: 100%;
+  position: relative;
+}
 
-  .slides-wrapper {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    transition: transform 1s ease-in-out;
-  }
 
-  .slide {
-    flex: 0 0 100%;
-  }
+/* Contenedor que oculta lo que se sale */
+.slides-container {
+  height: 100%;
+  overflow: hidden;
+}
 
-  .img-col {
-    height: 100%;
-    overflow: hidden;
-  }
 
-  .hero-img {
-    width: 80%;
-    height: 70%;
-    object-fit: cover;
-    border-radius: 12px;
-  }
+/* Wrapper que se mueve */
+.slides-wrapper {
+  display: flex;
+  height: 100%;
+  transition: transform 0.6s ease;
+}
 
-  /* --- Texto sin fondo --- */
-  .div_texto {
-    max-width: 600px;
-    color: #1f2937; /* gris oscuro legible */
-  }
+.slide {
+  min-width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
 
-  .titulo1 {
-    font-size: 1.1rem;
-    opacity: 0.9;
-  }
+.slides-container {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
 
-  .titulo2 {
-    font-size: 2rem;
-    line-height: 1.3;
-  }
+.slide > div {
+  width: 100%;
+  height: 100%;
+}
 
-  /* 🔘 Indicadores circulares */
-  .indicators {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    z-index: 10;
-  }
+.slide img {
+  height: 100%;
+  object-fit: cover;
+}
 
-  .dot {
-    width: 12px;
-    height: 12px;
-    background-color: #cbd5e1;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-  }
 
-  .dot.active {
-    background-color: #5b0c22; /* color vino */
-    transform: scale(1.25);
-  }
 
-  .dot:hover {
-    background-color: #7a1a36;
-  }
+/* Dots */
+.indicators {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.6);   /* fondo oscuro */
+  backdrop-filter: blur(6px);       /* efecto moderno */
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.3);
+  z-index: 20;
+}
+
+.testimonio-carousel {
+  height: 100%;
+  position: relative;
+}
+
+
+
+
+.dot {
+  width: 12px;
+  height: 12px;
+  background-color: white;
+  opacity: 0.6;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.dot:hover {
+  transform: scale(1.2);
+}
+
+.dot.active {
+  opacity: 1;
+  background-color: #7a0c23;
+  transform: scale(1.2);
+}
 </style>
 
 <script is:inline>
+document.addEventListener("DOMContentLoaded", () => {
+
   const carousel = document.querySelector(".testimonio-carousel");
+  if (!carousel) return;
+
   const wrapper = carousel.querySelector(".slides-wrapper");
   const slides = carousel.querySelectorAll(".slide");
-  const dots = carousel.querySelectorAll(".indicators .dot");
+  const dots = carousel.querySelectorAll(".dot");
+
+  if (!wrapper || slides.length === 0 || dots.length === 0) return;
 
   let current = 0;
 
-  // Mover al slide indicado
   function goToSlide(index) {
-    current = index;
     wrapper.style.transform = `translateX(-${index * 100}%)`;
     dots.forEach(dot => dot.classList.remove("active"));
-    dots[index].classList.add("active");
+    dots[index]?.classList.add("active");
+    current = index;
   }
 
-  // Clic en cada punto
   dots.forEach((dot, i) => {
-    dot.addEventListener("click", () => {
-      goToSlide(i);
-    });
+    dot.addEventListener("click", () => goToSlide(i));
   });
 
-  // Inicia en la primera slide
   goToSlide(0);
+
+});
 </script>
+
 
 
 

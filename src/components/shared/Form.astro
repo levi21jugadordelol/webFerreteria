@@ -57,21 +57,22 @@ let error = "";
           console.log("📤 Enviando datos al backend:", { correo, password });
 
           try {
-            const response = await fetch("http://localhost:3000/auth/login", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ correo, password }),
-              credentials: "include",
-            });
+            const response = await fetch("/auth/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ correo, password }),
+  credentials: "include",
+});
 
-            if (response.ok) {
-              console.log("✅ Login exitoso, redirigiendo...");
-              window.location.href = "http://localhost:4321/admin/panel-admin";
+if (response.ok) {
+  console.log("✅ Login exitoso, redirigiendo...");
+  window.location.replace("/admin/panel-admin");
+  return;
+}
 
-            } else {
-              const data = await response.json();
-              alert(data.msg || "⚠️ Credenciales incorrectas.");
-            }
+const data = await response.json();
+alert(data.msg || "⚠️ Credenciales incorrectas.");
+
           } catch (err) {
             console.error("💥 Error al conectar con el servidor:", err);
             alert("Error al conectar con el servidor.");

@@ -1,19 +1,19 @@
 ---
 const apiUrl = "http://localhost:3000";
 ---
-
 <div class="container my-4">
   <h3 class="fw-bold mb-3">Crear Categoría</h3>
 
-  <!-- ✅ FORMULARIO DE NUEVA CATEGORÍA -->
+  <!-- ✅ FORMULARIO -->
   <form id="formCategoria" class="bg-white p-4 shadow rounded">
+
     <div class="mb-3">
       <label class="form-label fw-semibold">Nombre de la categoría</label>
       <input
         type="text"
         name="nombre_categoria"
         class="form-control"
-        placeholder="Ejemplo: Herramientas eléctricas"
+        placeholder="Ejemplo: Dormitorio"
         required
       />
     </div>
@@ -24,69 +24,109 @@ const apiUrl = "http://localhost:3000";
         name="descripcion"
         class="form-control"
         rows="3"
-        placeholder="Agrega una breve descripción de la categoría"
+        placeholder="Descripción opcional"
       ></textarea>
     </div>
 
-    <!-- 🖼️ Campo de imagen -->
     <div class="mb-3">
       <label class="form-label fw-semibold">Imagen de la categoría</label>
-      <input type="file" id="imagenCategoria" name="imagenCategoria" />
+     <input type="file" name="file" />
     </div>
 
-    <button type="submit" class="btn btn-success w-100 fw-semibold">
+    <!-- 🔥 BOTÓN SIN SUBMIT -->
+    <button
+      type="button"
+      id="btnGuardarCategoria"
+      class="btn btn-success w-100 fw-semibold"
+    >
       Guardar Categoría
     </button>
   </form>
 
   <hr class="my-4" />
 
-  <!-- ✅ LISTADO DE CATEGORÍAS -->
+  <!-- 📋 LISTADO -->
   <h4 class="fw-semibold">Categorías existentes</h4>
   <div id="lista-categorias" class="mt-3 d-flex flex-wrap gap-3"></div>
 </div>
 
-<!-- @ts-ignore -->
+<!-- ================= SCRIPT ================= -->
 <script is:client>
   const apiUrl = "http://localhost:3000";
 
-  // ✅ Cargar lista de categorías
   async function cargarCategorias() {
     const contenedor = document.getElementById("lista-categorias");
     if (!contenedor) return;
 
     try {
-      const res = await fetch(`${apiUrl}/categorias`);
-      if (!res.ok) throw new Error("Error al cargar categorías");
+      const res = await fetch(`${apiUrl}/categorias`, {
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        contenedor.innerHTML = "<p>Error al cargar categorías</p>";
+        return;
+      }
 
       const categorias = await res.json();
 
-      contenedor.innerHTML =
-        categorias.length > 0
-          ? categorias
-              .map(
-                (c) => `
-              <div class="card p-3 shadow-sm text-center" style="width:200px">
-                <img src="${
+      contenedor.innerHTML = categorias.length
+        ? categorias.map(c => `
+            <div class="card p-3 shadow-sm text-center" style="width:200px">
+              <img
+                src="${
                   c.url_imagen
                     ? apiUrl + "/uploads/" + c.url_imagen
                     : "https://via.placeholder.com/150"
-                }" class="img-fluid rounded mb-2" alt="${c.nombre_categoria}" />
-                <h6 class="fw-bold mb-1">${c.nombre_categoria}</h6>
-                <p class="text-muted small">${
-                  c.descripcion || "Sin descripción"
-                }</p>
-              </div>`
-              )
-              .join("")
-          : "<p class='text-center text-muted'>No hay categorías aún.</p>";
+                }"
+                class="img-fluid rounded mb-2"
+                style="height:150px;object-fit:cover"
+              />
+              <h6 class="fw-bold mb-1">${c.nombre_categoria}</h6>
+              <p class="text-muted small">${c.descripcion || "Sin descripción"}</p>
+            </div>
+          `).join("")
+        : "<p class='text-muted'>No hay categorías aún.</p>";
+
     } catch (err) {
       console.error("❌ Error:", err);
+      contenedor.innerHTML = "<p>Error de conexión</p>";
     }
   }
 
-  document.addEventListener("DOMContentLoaded", cargarCategorias);
+  document.addEventListener("DOMContentLoaded", () => {
+    cargarCategorias();
+
+    document
+      .getElementById("btnGuardarCategoria")
+      .addEventListener("click", async () => {
+        const form = document.getElementById("formCategoria");
+        const formData = new FormData(form);
+
+        try {
+          const res = await fetch(`${apiUrl}/categorias`, {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            alert("❌ Error al guardar categoría");
+            return;
+          }
+
+          // ✅ ÉXITO
+          form.reset();
+          cargarCategorias();
+        } catch (err) {
+          console.error("❌ Error:", err);
+          alert("Error de conexión");
+        }
+      });
+  });
 </script>
+
 
 <style>
   .card img {

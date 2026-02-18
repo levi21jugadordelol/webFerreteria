@@ -1,0 +1,446 @@
+/* =========================
+   🧱 COMPONENTS
+========================= */
+
+.nav-container {
+  background-color: var(--color-nav-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.nav-link {
+  color: var(--color-text);
+}
+
+.nav-link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+html[data-theme="dark"] .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+footer {
+  background-color: var(--color-footer-bg);
+  color: var(--color-text);
+}
+
+input,
+select,
+textarea {
+  background-color: var(--color-input-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  color: var(--color-text);
+}
+
+/* =========================
+   📌 SECTION TITLE
+========================= */
+
+.section-title {
+  font-weight: 700;
+  font-size: 1.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  position: relative;
+  display: block;
+  width: fit-content;
+  margin: 0 auto 1.5rem auto;
+  color: var(--color-text);
+}
+
+.section-title::after {
+  content: "";
+  display: block;
+  width: 60%;
+  height: 3px;
+  background-color: var(--color-primary);
+  margin: 10px auto 0 auto;
+}
+
+.section-title::before {
+  content: "";
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 70%;
+  background: var(--color-primary);
+  border-radius: 3px;
+}
+
+/* =========================
+   🎴 UI CARD BASE
+========================= */
+
+.ui-card {
+  display: block;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  overflow: hidden;
+  color: var(--color-text);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.ui-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+/* Imagen base */
+.ui-card-img {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
+
+/* COVER (Categorías) */
+.ui-card-img.is-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.ui-card:hover .is-cover img {
+  transform: scale(1.05);
+}
+
+/* CONTAIN (Marcas) */
+.ui-card-img.is-contain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-card-img.is-contain img {
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+}
+
+/* Body */
+.ui-card-body {
+  padding: 16px;
+  text-align: center;
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-card-body h5 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+/* Dark mode */
+html[data-theme="dark"] .ui-card {
+  background-color: #22252b;
+  border-color: #2f3338;
+}
+
+html[data-theme="dark"] .ui-card:hover {
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* =========================
+   📦 PRODUCTOS LAYOUT
+========================= */
+
+.productos-layout {
+  display: flex;
+  gap: 32px;
+  padding: 32px;
+}
+
+.productos-aside {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.productos-main {
+  flex: 1;
+}
+
+/* =========================
+   📦 PRODUCT GRID
+========================= */
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 28px;
+}
+
+.catalog-empty {
+  text-align: center;
+  color: var(--color-muted);
+  padding: 40px 0;
+}
+
+.productos-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.productos-aside {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 24px;
+  position: sticky;
+  top: 120px;
+  height: fit-content;
+}
+
+.productos-main {
+  min-height: 500px;
+}
+
+/* =========================
+   🧩 ASIDE PRODUCTOS PRO
+========================= */
+
+.productos-layout {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.productos-aside {
+  width: 260px;
+  flex-shrink: 0;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 24px;
+  position: sticky;
+  top: 120px; /* debajo del navbar */
+  height: fit-content;
+}
+
+.productos-main {
+  flex: 1;
+}
+
+.productos-aside > * + * {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+  opacity: 0.9;
+}
+
+.filter-title {
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-muted);
+  margin-bottom: 14px;
+}
+
+.filtro-link {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  color: var(--color-text);
+}
+
+.filtro-link:hover {
+  background-color: var(--color-border);
+  transform: translateX(4px);
+}
+
+.filtro-activo {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.filtro-box {
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+/* =========================
+   🛒 CARRITO
+========================= */
+
+.carrito-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 1rem 3rem 1rem;
+}
+
+.page-title {
+  font-weight: 600;
+  font-size: 1.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2.5rem;
+  border-bottom: 3px solid var(--color-primary);
+  display: inline-block;
+  padding-bottom: 0.5rem;
+}
+
+/* Tarjetas globales ya usan .ui-card */
+/* Si quieres estilo especial del carrito */
+
+.carrito-container .card {
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================
+   🔎 SEARCH COMPONENT
+========================= */
+
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.65rem 2.6rem 0.55rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  outline: none;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background-color: var(--color-card);
+  transition: all 0.25s ease;
+}
+
+.search-input::placeholder {
+  color: var(--color-muted);
+}
+
+.search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.search-button {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  background: var(--color-primary);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.search-button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.search-button i {
+  font-size: 0.9rem;
+}
+
+/* Dark mode ajuste fino */
+html[data-theme="dark"] .search-input:focus {
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.08);
+}
+
+/* =========================
+   🛒 CART BADGE
+========================= */
+
+.cart-count-badge {
+  background-color: var(--color-primary);
+}
+
+/* =========================
+   🌙 THEME TOGGLE
+========================= */
+
+html[data-theme="dark"] .theme-toggle i.fa-sun {
+  color: #facc15;
+}
+
+/* ==========================
+   WhatsApp Floating Button
+========================== */
+
+/* ==========================
+   WhatsApp Floating Button
+========================== */
+
+.whatsapp-float {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 64px;
+  height: 64px;
+  background: #25d366;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 28px;
+  z-index: 99999;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover */
+.whatsapp-float:hover {
+  transform: scale(1.1);
+}
+
+/* 🌊 Animación ola */
+.whatsapp-float::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(37, 211, 102, 0.6);
+  z-index: -1;
+  animation: wave 2.5s infinite;
+}
+
+@keyframes wave {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  70% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}

@@ -1,0 +1,26 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+import HeroForm from "../../../../components/admin/HeroForm.astro";
+
+const { id } = Astro.params;
+
+// 🔐 Validar admin
+const token = Astro.cookies.get("_token");
+if (!token) return Astro.redirect("/admin/login");
+
+// Obtener slide
+const res = await fetch(`http://localhost:3000/api/hero/${id}`);
+if (!res.ok) return Astro.redirect("/admin/hero");
+
+const slide = await res.json();
+---
+
+<AdminLayout title="Editar Slide Hero">
+
+  <div class="card shadow-sm p-4">
+    <HeroForm slide={slide} />
+  </div>
+
+</AdminLayout>

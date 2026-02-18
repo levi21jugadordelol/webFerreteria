@@ -11,6 +11,11 @@
   "dependencies": {
     "astro": "^5.15.1",
     "astro-icon": "^1.1.5",
-    "drift-zoom": "^1.5.1"
+    "drift-zoom": "^1.5.1",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10"
   }
 }

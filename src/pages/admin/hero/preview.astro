@@ -1,0 +1,53 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+
+/* 🧠 Definir tipo */
+interface HeroSlide {
+  id_hero: number;
+  titulo1?: string;
+  titulo2?: string;
+  imagen: string;
+  tipo_layout: string;
+  mostrar_boton: boolean;
+  boton_texto?: string;
+  boton_url?: string;
+  orden: number;
+  activo: boolean;
+}
+
+const res = await fetch("http://localhost:3000/api/hero");
+const slides: HeroSlide[] = await res.json();
+---
+
+<AdminLayout title="Preview Hero">
+
+  <div class="container">
+
+    <div class="carousel slide">
+
+      {slides.map((slide: HeroSlide) => (
+        <div class="mb-4 p-4 border rounded">
+          <img
+            src={`http://localhost:3000/uploads/${slide.imagen}`}
+            class="img-fluid mb-3"
+          />
+
+          <h3>{slide.titulo1}</h3>
+          <p>{slide.titulo2}</p>
+
+          {slide.mostrar_boton && (
+            <a href={slide.boton_url} class="btn btn-primary">
+              {slide.boton_texto}
+            </a>
+          )}
+        </div>
+      ))}
+
+    </div>
+
+  </div>
+
+</AdminLayout>
+

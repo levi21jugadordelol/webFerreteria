@@ -1,0 +1,44 @@
+<section class="container py-5">
+  <h2 class="text-center mb-4">Contáctanos</h2>
+
+  <form class="row g-3 form-wrapper" action="/api/send" method="POST">
+    
+    <div class="col-md-6">
+      <label class="form-label">Nombre</label>
+      <input type="text" name="username" class="form-control" required />
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Email</label>
+      <input type="email" name="email" class="form-control" required />
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Número</label>
+      <div class="d-flex gap-2">
+        <input type="text" value="+51" readonly class="form-control w-25" />
+        <input 
+          type="tel" 
+          name="phone" 
+          class="form-control"
+          maxlength="9"
+          placeholder="123456789"
+          required
+        />
+      </div>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">Mensaje</label>
+      <textarea name="message" class="form-control" rows="5" required></textarea>
+    </div>
+
+    <div class="col-12 text-center">
+      <button class="btn btn-primary px-4">
+        Enviar mensaje
+      </button>
+    </div>
+
+  </form>
+</section>
+

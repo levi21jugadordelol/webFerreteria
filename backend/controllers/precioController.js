@@ -27,12 +27,13 @@ export const filtrarPorPrecio = async (req, res) => {
         "descripcion",
         "precio",
         "url_imagen",
+        "stock", // 👈 AGREGA ESTO
       ],
     });
 
     res.json(productos);
     console.log(
-      chalk.cyan(`📦 Productos por precio devueltos: ${productos.length}`)
+      chalk.cyan(`📦 Productos por precio devueltos: ${productos.length}`),
     );
   } catch (error) {
     console.error("❌ Error al filtrar productos por precio:", error);

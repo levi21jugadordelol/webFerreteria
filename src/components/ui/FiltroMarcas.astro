@@ -8,6 +8,7 @@ const apiUrl = "http://localhost:3000";
 let marcas: Marca[] = [];
 
 const categoriaActual = Astro.url.searchParams.get("categoria") || "";
+const marcaActual = Astro.url.searchParams.get("marca") || "";
 
 try {
   const res = await fetch(apiUrl + "/marcas");
@@ -17,24 +18,60 @@ try {
 }
 ---
 
-<ul>
+<h6 class="filter-title">
+  Marcas
+</h6>
+
+
+<ul class="list-unstyled m-0 p-0 d-flex flex-column align-items-center gap-1">
   {marcas.map((m) => (
-    <li>
- <a 
-  href={`/productos/?marca=${m.id_marca}${categoriaActual ? `&categoria=${categoriaActual}` : ""}`}
-  style="color: blue; font-weight: bold; font-size: 20px; display: inline-block; padding: 10px;"
-  onclick="console.log('CLICK DETECTADO: navegando a', this.href)"
->
-  {m.nombre_marca}
-</a>
-
-
-      <small style="color: red">
-        LINK: /productos?marca={m.id_marca}{categoriaActual && `&categoria=${categoriaActual}`}
-      </small>
+    <li class="w-100">
+      <a
+        href={`/productos/?marca=${m.id_marca}${categoriaActual ? `&categoria=${categoriaActual}` : ""}`}
+        class={`filtro-link ${
+          String(m.id_marca) === marcaActual
+            ? "filtro-activo"
+            : ""
+        }`}
+      >
+        {m.nombre_marca}
+      </a>
     </li>
   ))}
 </ul>
+
+<style>
+.filtro-link {
+  display: block;
+  padding: 10px 14px;
+  width: 100%;
+  text-align: left;
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.filtro-link:hover {
+  background-color: var(--color-border);
+  padding-left: 18px;
+}
+
+.filtro-activo {
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
+}
+
+/* Mejora extra para dark */
+html[data-theme="dark"] .filtro-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+
+</style>
+
 
 
 

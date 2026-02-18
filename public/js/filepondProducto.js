@@ -3,68 +3,51 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("formProducto");
   const inputImagen = document.getElementById("imagen");
 
-  // ✅ Inicializar FilePond
+  if (!form || !inputImagen) return;
+
+  // ✅ GUARDA la instancia
   const pond = FilePond.create(inputImagen, {
     allowMultiple: false,
-    instantUpload: false, // Subir sólo cuando el producto esté creado
+    instantUpload: false,
     acceptedFileTypes: ["image/*"],
-    labelIdle: "Arrastra o haz clic para seleccionar una imagen del producto",
+    labelIdle: "Arrastra o haz clic para seleccionar una imagen",
   });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const productoData = {
-      nombre_producto: form.nombre_producto.value.trim(),
-      descripcion: form.descripcion.value.trim(),
-      precio: parseFloat(form.precio.value),
-      stock: parseInt(form.stock.value, 10),
+    const formData = new FormData(form);
 
-      // 🔹 NUEVO:
-      categoria_id: parseInt(form.categoria_id.value, 10),
-      marca_id: parseInt(form.marca_id.value, 10),
-    };
+    // 🔥 LÍNEA CLAVE (AQUÍ ESTABA EL BUG)
+    if (pond.getFiles().length > 0) {
+      formData.set("imagen", pond.getFiles()[0].file);
+    }
+
+    console.log("📤 Enviando producto a /productos/admin");
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
 
     try {
-      // 1️⃣ Crear el producto
-      const res = await fetch(`${apiUrl}/productos`, {
+      const res = await fetch(`${apiUrl}/productos/admin`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(productoData),
-        credentials: "include", // por si usas login
+        credentials: "include",
+        body: formData,
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.msg || "Error al guardar producto");
+      console.log("📥 Respuesta backend:", data);
 
-      // Obtén el ID del producto (puede ser 'id' o 'id_producto')
-      const productoId =
-        data.producto?.id_producto || data.id_producto || data.producto?.id;
-
-      if (!productoId)
-        throw new Error("No se pudo obtener el ID del producto creado");
-
-      // 2️⃣ Subir imagen si existe
-      if (pond.getFiles().length > 0) {
-        const archivo = pond.getFiles()[0].file;
-        const formData = new FormData();
-        formData.append("file", archivo); // 🔹 nombre correcto que espera multer
-
-        const imgRes = await fetch(`${apiUrl}/productos/${productoId}/imagen`, {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        });
-
-        const imgData = await imgRes.json();
-        if (!imgRes.ok) throw new Error(imgData.msg || "Error al subir imagen");
+      if (!res.ok) {
+        alert(data.msg || "Error al crear producto");
+        return;
       }
 
-      alert("✅ Producto guardado correctamente");
-      window.location.href = "/admin/panel-admin";
+      alert("✅ Producto creado correctamente");
+      window.location.href = `/admin/productos/editar/${data.producto.id_producto}`;
     } catch (err) {
-      console.error("❌ Error al guardar producto:", err);
-      alert("❌ " + err.message);
+      console.error("❌ Error submit:", err);
+      alert("Error de conexión");
     }
   });
 });

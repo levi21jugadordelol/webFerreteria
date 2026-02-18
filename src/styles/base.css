@@ -1,0 +1,48 @@
+/* =========================
+   🌍 GLOBAL BASE
+========================= */
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-text);
+}
+
+p {
+  color: var(--color-text);
+}
+
+a {
+  color: var(--color-primary);
+  transition: 0.2s ease;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-layout {
+  flex: 1;
+}

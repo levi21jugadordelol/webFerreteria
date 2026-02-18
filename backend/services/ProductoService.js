@@ -5,6 +5,9 @@ import ProductoImagen from "../models/ProductoImagen.js";
 import ProductoCaracteristica from "../models/ProductoCaracteristica.js";
 
 class ProductoService {
+  /* =====================================================
+     🟢 LISTADO PÚBLICO (CATÁLOGO)
+     ===================================================== */
   static async listarPublicos({ search, marca, categoria }) {
     const where = {};
 
@@ -27,15 +30,22 @@ class ProductoService {
         "precio",
         "url_imagen",
         "stock",
+        "es_destacado",
+        "es_temporada",
       ],
+      order: [["id_producto", "DESC"]],
     });
 
     return productos.map((p) => ({
       ...p.toJSON(),
       agotado: p.stock <= 0, // 🔥 regla de dominio
+      disponible: p.stock > 0,
     }));
   }
 
+  /* =====================================================
+     🟢 OBTENER PRODUCTO (DETALLE)
+     ===================================================== */
   static async obtenerPorId(id) {
     const producto = await Producto.findByPk(id, {
       include: [
@@ -52,7 +62,64 @@ class ProductoService {
     return {
       ...producto.toJSON(),
       agotado: producto.stock <= 0,
+      disponible: producto.stock > 0,
     };
+  }
+
+  /* =====================================================
+     🟢 PRODUCTOS HOME (DESTACADOS / TEMPORADA)
+     ===================================================== */
+  static async listarHome({ tipo = "temporada", limit = 8 } = {}) {
+    const now = new Date();
+    const where = {
+      stock: { [Op.gt]: 0 }, // ❗ nunca mostrar agotados en home
+    };
+
+    if (tipo === "destacados") {
+      where.es_destacado = true;
+    } else {
+      // temporada por defecto
+      where.es_temporada = true;
+
+      where[Op.and] = [
+        {
+          [Op.or]: [
+            { temporada_inicio: null },
+            { temporada_inicio: { [Op.lte]: now } },
+          ],
+        },
+        {
+          [Op.or]: [
+            { temporada_fin: null },
+            { temporada_fin: { [Op.gte]: now } },
+          ],
+        },
+      ];
+    }
+
+    const productos = await Producto.findAll({
+      where,
+      attributes: [
+        "id_producto",
+        "nombre_producto",
+        "descripcion",
+        "precio",
+        "url_imagen",
+        "stock",
+        "es_destacado",
+        "es_temporada",
+        "temporada_inicio",
+        "temporada_fin",
+      ],
+      limit: Number(limit),
+      order: [["id_producto", "DESC"]],
+    });
+
+    return productos.map((p) => ({
+      ...p.toJSON(),
+      agotado: p.stock <= 0,
+      disponible: p.stock > 0,
+    }));
   }
 }
 

@@ -7,31 +7,54 @@
 </button>
 
 <script is:client>
-  const toggle = document.getElementById("theme-toggle");
-  const icon = toggle.querySelector("i");
-  const html = document.documentElement;
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.getElementById("theme-toggle");
+    if (!toggle) return;
 
-  const savedTheme = localStorage.getItem("theme");
+    const icon = toggle.querySelector("i");
+    const html = document.documentElement;
 
-  // Sincroniza ícono al cargar
-  if (savedTheme === "dark") {
-    icon.classList.replace("fa-moon", "fa-sun");
-  }
+    const savedTheme = localStorage.getItem("theme");
 
-  toggle.addEventListener("click", () => {
-    const isDark = html.classList.toggle("dark");
+    if (savedTheme) {
+      html.setAttribute("data-theme", savedTheme);
+      if (savedTheme === "dark") {
+        icon.classList.replace("fa-moon", "fa-sun");
+      }
+    }
 
-    localStorage.setItem("theme", isDark ? "dark" : "light");
+    toggle.addEventListener("click", () => {
+      const current = html.getAttribute("data-theme");
+      const next = current === "dark" ? "light" : "dark";
 
-    icon.classList.toggle("fa-moon");
-    icon.classList.toggle("fa-sun");
+      html.setAttribute("data-theme", next);
+      localStorage.setItem("theme", next);
+
+      icon.classList.toggle("fa-moon");
+      icon.classList.toggle("fa-sun");
+    });
   });
 </script>
 
+
 <style>
-/* El estilo visual real vive en theme.css */
-.theme-toggle {
-  all: unset;
+  .theme-toggle i {
+  font-size: 20px;
+  transition: color 0.3s ease;
 }
+
+/* 🌙 Modo light → icono luna normal */
+html[data-theme="light"] .theme-toggle i {
+  color: var(--color-text);
+}
+
+/* ☀️ Cuando está en dark → icono sol dorado */
+html[data-theme="dark"] .theme-toggle i.fa-sun {
+  color: #facc15; /* amarillo elegante */
+}
+
 </style>
+
+
+
 

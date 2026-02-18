@@ -20,37 +20,56 @@ import carritoStore from "../../../store/carritoStore.js";
 <style is:global>
 .resumen-container {
   padding: 1.5rem;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background: var(--color-card);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
   max-width: 420px;
 }
-.items { display: block; }
+
 .item {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
 }
+
 .item img {
   width: 60px;
   height: 60px;
   object-fit: cover;
   border-radius: 6px;
 }
-.item-info { flex: 1; }
-.item-name { font-size: 0.95rem; font-weight: 600; }
-.item-detail { font-size: 0.85rem; color: #666; }
+
+.item-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.item-detail {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
 .item-subtotal {
   font-weight: 700;
-  color: #0d6efd;
+  color: var(--color-primary);
   white-space: nowrap;
 }
+
+.total-box {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  display: flex;
+  justify-content: space-between;
+}
+
 .btn-realizar-compra {
   width: 100%;
   padding: 14px 0;
-  background: #0d6efd;
+  background: var(--color-primary);
   color: white;
   font-size: 1rem;
   font-weight: 700;
@@ -58,7 +77,13 @@ import carritoStore from "../../../store/carritoStore.js";
   border-radius: 8px;
   cursor: pointer;
   margin-top: 18px;
+  transition: 0.2s ease;
 }
+
+.btn-realizar-compra:hover {
+  opacity: 0.9;
+}
+
 </style>
 
 <script is:client type="module">

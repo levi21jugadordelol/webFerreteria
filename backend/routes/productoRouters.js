@@ -17,6 +17,8 @@ import {
   agregarCaracteristica,
   eliminarCaracteristica,
   productosRelacionados,
+  listarProductosHome,
+  actualizarCaracteristica,
 } from "../controllers/productoController.js";
 
 import { filtrarPorPrecio } from "../controllers/precioController.js";
@@ -29,60 +31,49 @@ router.use((req, res, next) => {
 });
 
 /* --------------------
-   🟢 Rutas públicas
+   🟢 PÚBLICAS
 -------------------- */
+router.get("/home", listarProductosHome);
 router.get("/precio", filtrarPorPrecio);
 router.get("/:id/relacionados", productosRelacionados);
 router.get("/", listarProductosPublicos);
 router.get("/:id", obtenerProducto);
 
 /* --------------------
-   🔒 Rutas admin
+   🔒 ADMIN
 -------------------- */
-router.get("/admin/lista", protegerRuta, listarProductosAdmin);
+router.use("/admin", protegerRuta);
 
-/* Crear Producto */
+router.get("/admin/lista", listarProductosAdmin);
+
 router.post(
-  "/",
-  protegerRuta,
+  "/admin",
+  uploadProducto.single("imagen"),
   body("nombre_producto").notEmpty(),
-  body("descripcion").notEmpty(),
+  body("descripcion").optional(), // 👈 AQUÍ
   body("precio").isNumeric(),
   body("stock").isNumeric(),
-  crearProducto
+  crearProducto,
 );
 
-/* Actualizar */
-router.put("/:id", protegerRuta, actualizarProducto);
+router.put("/admin/:id", actualizarProducto);
+router.delete("/admin/:id", eliminarProducto);
 
-/* Eliminar */
-router.delete("/:id", protegerRuta, eliminarProducto);
+/* Imágenes */
+router.post("/admin/:id/imagen", uploadProducto.single("imagen"), subirImagen);
 
-/* Subir imagen principal */
 router.post(
-  "/:id/imagen",
-  protegerRuta,
-  uploadProducto.single("file"),
-  subirImagen
+  "/admin/:id/imagenes",
+  uploadProducto.single("imagen"),
+  subirImagenExtra,
 );
 
-/* Subir imagen adicional */
-router.post(
-  "/:id/imagenes",
-  protegerRuta,
-  uploadProducto.single("file"),
-  subirImagenExtra
-);
-
-/* Eliminar imagen adicional */
-router.delete("/:id/imagenes/:idImg", protegerRuta, eliminarImagenExtra);
+router.delete("/admin/:id/imagenes/:idImg", eliminarImagenExtra);
 
 /* Características */
-router.post("/:id/caracteristicas", protegerRuta, agregarCaracteristica);
-router.delete(
-  "/:id/caracteristicas/:idCarac",
-  protegerRuta,
-  eliminarCaracteristica
-);
+router.post("/admin/:id/caracteristicas", agregarCaracteristica);
+router.put("/admin/:id/caracteristicas/:idCarac", actualizarCaracteristica);
+
+router.delete("/admin/:id/caracteristicas/:idCarac", eliminarCaracteristica);
 
 export default router;

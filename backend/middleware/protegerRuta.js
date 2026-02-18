@@ -2,42 +2,45 @@ import jwt from "jsonwebtoken";
 import Administrador from "../models/Administrador.js";
 
 const protegerRuta = async (req, res, next) => {
-  // 1️⃣ Verificar si hay cookie con el token
   const _token = req.cookies?._token;
 
   if (!_token) {
-    console.warn("⚠️ No se encontró token en las cookies");
-    return res.redirect("/login");
+    console.warn("⚠️ No se encontró token");
+    if (req.accepts("json")) {
+      return res.status(401).json({ ok: false, msg: "No autenticado" });
+    }
+    return res.redirect("/admin/login");
   }
 
   try {
-    // 2️⃣ Verificar validez del token
     const decoded = jwt.verify(
       _token,
-      process.env.JWT_SECRET || "secreto_admin"
+      process.env.JWT_SECRET || "secreto_admin",
     );
 
-    // 3️⃣ Buscar el administrador en la base de datos
-    const admin = await Administrador.findByPk(decoded.id, {
-      attributes: { exclude: ["hash"] }, // para no exponer el hash
+    const admin = await Administrador.findByPk(decoded.id_administrador, {
+      attributes: { exclude: ["hash"] },
     });
 
-    // 4️⃣ Validar existencia
-    if (!admin) {
-      console.warn("⚠️ Token válido pero admin no existe");
-      return res.redirect("/login");
+    if (!admin || decoded.rol !== "admin") {
+      console.warn("⛔ Acceso denegado");
+      if (req.accepts("json")) {
+        return res.status(403).json({ ok: false, msg: "Acceso denegado" });
+      }
+      return res.redirect("/admin/login");
     }
 
-    // 5️⃣ Guardar datos del admin en el request
     req.admin = admin;
-
-    // 6️⃣ Pasar al siguiente middleware / controlador
     next();
   } catch (error) {
-    console.error("Error en protegerRuta:", error.message);
-    // Si hay error, limpiar cookie y redirigir
+    console.error("❌ Token inválido:", error.message);
     res.clearCookie("_token");
-    return res.redirect("/login");
+
+    if (req.accepts("json")) {
+      return res.status(401).json({ ok: false, msg: "Token inválido" });
+    }
+
+    return res.redirect("/admin/login");
   }
 };
 

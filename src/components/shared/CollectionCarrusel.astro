@@ -26,33 +26,41 @@ try {
 
 
 
-<div class="collection-carrusel container my-5 position-relative">
-  <h3 class="fw-bold text-center mb-4 text-primary">Categorías</h3>
+<div class="collection-carrusel container position-relative">
+
+ 
 
   <div class="carrusel-container">
 
     <!-- Flecha izquierda -->
-    <button id="prevBtn" class="btn-flecha btn-left">⬅️</button>
+    <button id="prevBtn" class="btn-flecha btn-left" aria-label="Anterior">
+  <i class="fa-solid fa-chevron-left"></i>
+</button>
 
     <!-- Carrusel -->
   <div id="carrusel" class="carrusel">
   {categorias.map((c) => (
-    <div class="item">
-      <TarjetaCollection
-        title={c.nombre_categoria}
-        imageUrl={
-          c.url_imagen
-            ? `${apiUrl}/uploads/${c.url_imagen}`
-            : "https://via.placeholder.com/300x260?text=Sin+imagen"
-        }
-      />
-    </div>
+  <div class="item">
+  <a href={`/productos?categoria=${c.id_categoria}`} class="categoria-link">
+    <TarjetaCollection
+      title={c.nombre_categoria}
+      imageUrl={
+        c.url_imagen
+          ? `${apiUrl}/uploads/${c.url_imagen}`
+          : "https://via.placeholder.com/300x260?text=Sin+imagen"
+      }
+    />
+  </a>
+</div>
+
   ))}
 </div>
 
 
     <!-- Flecha derecha -->
-    <button id="nextBtn" class="btn-flecha btn-right">➡️</button>
+    <button id="nextBtn" class="btn-flecha btn-right" aria-label="Siguiente">
+  <i class="fa-solid fa-chevron-right"></i>
+</button>
 
   </div>
 </div>
@@ -106,6 +114,22 @@ try {
   padding: 1rem 0;
 }
 
+.categoria-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.categoria-link:hover {
+  transform: translateY(-5px);
+}
+
+.card {
+  cursor: pointer;
+}
+
+
 .item {
   flex: 0 0 300px;  /* 🔥 ANCHO FIJO DE CADA TARJETA */
 }
@@ -131,22 +155,51 @@ try {
 }
 
 
-/* FLECHAS */
+
+/* =========================
+   🎯 CARRUSEL FLECHAS PRO
+========================= */
+
 .btn-flecha {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: white;
-  border: none;
-  font-size: 1.8rem;
-  padding: 0.4rem 0.7rem;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(6px);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
   z-index: 20;
 }
 
-.btn-left { left: -45px; }
-.btn-right { right: -45px; }
+.btn-flecha i {
+  font-size: 0.95rem;
+}
+
+.btn-flecha:hover {
+  background: var(--color-primary);
+  color: white;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* Posiciones */
+.btn-left { left: -55px; }
+.btn-right { right: -55px; }
+
+/* Dark mode ajuste */
+html[data-theme="dark"] .btn-flecha {
+  background: rgba(30,30,30,0.8);
+}
+
 
 /* MOBILE — OCULTAR FLECHAS PORQUE NO SE USAN */
 @media (max-width: 767px) {

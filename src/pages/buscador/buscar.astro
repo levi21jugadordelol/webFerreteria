@@ -1,4 +1,5 @@
 ---
+import BuscadorLayout from "../../layouts/buscador/BuscadorLayout.astro";
 const apiUrl = "http://localhost:3000";
 
 const q = Astro.url.searchParams.get("q") || "";
@@ -10,7 +11,8 @@ if (q) {
 }
 ---
 
-<h2>Resultados de búsqueda para: <strong>{q}</strong></h2>
+<BuscadorLayout>
+  <h2>Resultados de búsqueda para: <strong>{q}</strong></h2>
 
 {productos.length === 0 && (
   <p class="text-muted">No se encontraron productos.</p>
@@ -51,3 +53,4 @@ if (q) {
   border-radius: 6px;
 }
 </style>
+</BuscadorLayout>

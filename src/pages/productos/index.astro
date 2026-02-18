@@ -1,4 +1,5 @@
 ---
+import BaseLayout from "../../layouts/BaseLayout.astro";
 import LayoutToProductos from "../../layouts/index/LayoutToProductos.astro";
 import BarraPrecio from "../../components/ui/BarraPrecio.astro";
 import FiltroCategoria from "../../components/ui/FiltroCategoria.astro";
@@ -9,17 +10,15 @@ import ProductoCardSimpleBtn from "../../components/ui/productos/tarjetaProducto
 interface Producto {
   id_producto: number;
   nombre_producto: string;
-  slug: string;              // ✅ AÑADIDO
+  slug: string;
   descripcion: string;
   precio: number;
   url_imagen: string | null;
-   agotado: boolean; // 🔥
+  stock: number;   // 👈 AGREGA ESTO
 }
 
 
 const apiUrl = "http://localhost:3000";
-
-// Parámetros reales de la URL
 const urlParams = Astro.url.searchParams;
 
 const marca = urlParams.get("marca");
@@ -27,79 +26,89 @@ const categoria = urlParams.get("categoria");
 const maxPrecio = urlParams.get("max");
 
 // -------------------------
-//   Construcción del FETCH
+// Construcción del endpoint
 // -------------------------
-let backendURL;
+let backendURL = new URL(apiUrl + "/productos");
 
 if (maxPrecio && !isNaN(Number(maxPrecio))) {
   backendURL = new URL(apiUrl + "/productos/precio");
   backendURL.searchParams.set("max", maxPrecio);
-} 
-else {
-  backendURL = new URL(apiUrl + "/productos");
-
+} else {
   if (marca) backendURL.searchParams.set("marca", marca);
   if (categoria) backendURL.searchParams.set("categoria", categoria);
 }
 
-console.log("🟢 URL FINAL USADA PARA FETCH:", backendURL.toString());
-
 // -------------------------
-//   Fetch productos
+// Fetch productos
 // -------------------------
 const res = await fetch(backendURL);
 const data = await res.json();
 const productos: Producto[] = Array.isArray(data) ? data : [];
 ---
 
-<div style="background:red;color:white;padding:10px;font-weight:bold;">
-  TEST QUERY → Marca: {marca} | Categoria: {categoria} | Max: {maxPrecio}
-</div>
+<BaseLayout title="Productos">
 
-<LayoutToProductos marca={marca} categoria={categoria}>
-  <div slot="aside">
-    <BarraPrecio 
-      marcaActual={marca}
-      categoriaActual={categoria}
-      maxActual={maxPrecio}
-    />
+  <LayoutToProductos marca={marca} categoria={categoria}>
 
-    <FiltroCategoria marcaActual={marca} categoriaActual={categoria} />
-    <FiltroMarcas marcaActual={marca} categoriaActual={categoria} />
-  </div>
+    <!-- ASIDE -->
+  <!-- ASIDE -->
+<BarraPrecio 
+  slot="aside"
+  marcaActual={marca}
+  categoriaActual={categoria}
+  maxActual={maxPrecio}
+/>
 
-  <ProductosCatalogoLayout marca={marca} categoria={categoria}>
-    <div class="row g-3">
+<FiltroCategoria 
+  slot="aside"
+  marcaActual={marca} 
+  categoriaActual={categoria} 
+/>
+
+<FiltroMarcas 
+  slot="aside"
+  marcaActual={marca} 
+  categoriaActual={categoria} 
+/>
+
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <ProductosCatalogoLayout marca={marca} categoria={categoria}>
 
       {productos.length === 0 && (
-        <p class="text-center text-muted">No se encontraron productos.</p>
+        <p class="catalog-empty">
+          No se encontraron productos.
+        </p>
       )}
 
-    {productos.length > 0 && productos.map((p) => (
-  <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-    <ProductoCardSimpleBtn
-      id={p.id_producto}
-      slug={p.slug}
-      titulo={p.nombre_producto}
-      precio={p.precio}
-      agotado={p.agotado} 
-      imagen={{
-        src: p.url_imagen
-          ? `${apiUrl}/uploads/${p.url_imagen}`
-          : "/img/no-image.png"
-      }}
-    />
-  </div>
-))}
+      {productos.length > 0 && (
+        <div class="product-grid">
+          {productos.map((p) => (
+        <ProductoCardSimpleBtn
+  id={p.id_producto}
+  slug={p.slug}
+  titulo={p.nombre_producto}
+  precio={p.precio}
+  agotado={p.stock <= 0}
+  imagen={{
+    src: p.url_imagen
+      ? `${apiUrl}/uploads/${p.url_imagen}`
+      : "/img/no-image.png"
+  }}
+/>
 
+          ))}
+        </div>
+      )}
 
-    </div>
-  </ProductosCatalogoLayout>
+    </ProductosCatalogoLayout>
 
-</LayoutToProductos>
+  </LayoutToProductos>
 
+</BaseLayout>
 
 <script type="module" src="/js/addToCart.js"></script>
+
 
 
 

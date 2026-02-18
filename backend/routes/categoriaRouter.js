@@ -22,10 +22,11 @@ router.get("/:id", obtenerCategoria);
 router.post(
   "/",
   protegerRuta,
+  uploadCategoria.single("file"), // 🔥 OBLIGATORIO
   body("nombre_categoria")
     .notEmpty()
     .withMessage("El nombre de la categoría es obligatorio"),
-  crearCategoria
+  crearCategoria,
 );
 
 router.put("/:id", protegerRuta, actualizarCategoria);
@@ -36,7 +37,7 @@ router.post(
   "/subir-imagen/:id",
   protegerRuta,
   uploadCategoria.single("file"), // ✅ CORRECTO
-  subirImagenCategoria
+  subirImagenCategoria,
 );
 
 export default router;

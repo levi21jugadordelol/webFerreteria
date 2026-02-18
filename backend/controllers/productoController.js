@@ -2,6 +2,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { Op } from "sequelize";
+import chalk from "chalk";
 
 import Producto from "../models/Producto.js";
 import Categoria from "../models/Categoria.js";
@@ -9,14 +10,16 @@ import ProductoImagen from "../models/ProductoImagen.js";
 import ProductoCaracteristica from "../models/ProductoCaracteristica.js";
 
 import { validationResult } from "express-validator";
-import chalk from "chalk";
+
 import ProductoService from "../services/ProductoService.js";
 
 /* -----------------------------
    Multer
 ----------------------------- */
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "public/uploads"),
+  destination: (req, file, cb) => {
+    cb(null, "uploads/productos");
+  },
   filename: (req, file, cb) =>
     cb(null, Date.now() + path.extname(file.originalname)),
 });
@@ -27,6 +30,11 @@ const upload = multer({ storage });
    Crear Producto
 ----------------------------- */
 export const crearProducto = async (req, res) => {
+  console.log(chalk.bgYellow.black("🚨 crearProducto INVOCADO"));
+
+  console.log("🟡 req.file =>", req.file);
+  console.log("🟡 req.body =>", req.body);
+
   const errores = validationResult(req);
   if (!errores.isEmpty()) {
     return res.status(400).json({ errores: errores.array() });
@@ -40,26 +48,85 @@ export const crearProducto = async (req, res) => {
       stock,
       categoria_id,
       marca_id,
+      es_destacado,
+      es_temporada,
+      temporada_inicio,
+      temporada_fin,
     } = req.body;
 
     const administrador_id = req.admin?.id_administrador;
-    if (!administrador_id)
+    if (!administrador_id) {
       return res.status(401).json({ msg: "No autorizado" });
+    }
 
-    const nuevo = await Producto.create({
+    // 🔴 Validaciones básicas
+    if (!nombre_producto || nombre_producto.trim().length < 3) {
+      return res.status(400).json({ msg: "Nombre de producto inválido" });
+    }
+
+    if (!categoria_id || !marca_id) {
+      return res
+        .status(400)
+        .json({ msg: "Categoría y marca son obligatorias" });
+    }
+
+    if (Number(stock) < 0 || Number(precio) <= 0) {
+      return res.status(400).json({ msg: "Precio o stock inválido" });
+    }
+
+    if (es_temporada && (!temporada_inicio || !temporada_fin)) {
+      return res.status(400).json({
+        msg: "Los productos de temporada requieren fechas de inicio y fin",
+      });
+    }
+
+    // 🔴 Validación de duplicado (CLAVE)
+    const existe = await Producto.findOne({
+      where: {
+        nombre_producto,
+        marca_id,
+      },
+    });
+
+    if (existe) {
+      return res.status(400).json({
+        msg: "Ya existe un producto con ese nombre para esta marca",
+      });
+    }
+
+    // 🔴 Validación de imagen
+    if (req.file) {
+      const allowed = ["image/jpeg", "image/png", "image/webp"];
+      if (!allowed.includes(req.file.mimetype)) {
+        return res.status(400).json({
+          msg: "Formato de imagen no permitido",
+        });
+      }
+    }
+
+    const imagen = req.file ? `productos/${req.file.filename}` : null;
+
+    const producto = await Producto.create({
       nombre_producto,
       descripcion,
       precio,
       stock,
-      categoria_id: categoria_id || null,
-      marca_id: marca_id || null,
+      categoria_id,
+      marca_id,
       administrador_id,
-      url_imagen: "",
+      url_imagen: imagen,
+      es_destacado: !!es_destacado,
+      es_temporada: !!es_temporada,
+      temporada_inicio: temporada_inicio || null,
+      temporada_fin: temporada_fin || null,
     });
 
-    res.status(201).json({ msg: "Producto creado", producto: nuevo });
+    res.status(201).json({
+      msg: "Producto creado correctamente",
+      producto,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error crearProducto:", error);
     res.status(500).json({ msg: "Error al crear producto" });
   }
 };
@@ -79,11 +146,11 @@ export const subirImagen = async (req, res) => {
 
     // borrar anterior
     if (producto.url_imagen) {
-      const ruta = path.join("public/uploads", producto.url_imagen);
+      const ruta = path.join("uploads", producto.url_imagen);
       if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
     }
 
-    producto.url_imagen = req.file.filename;
+    producto.url_imagen = `productos/${req.file.filename}`;
     await producto.save();
 
     res.json({ msg: "Imagen actualizada", url_imagen: producto.url_imagen });
@@ -99,15 +166,18 @@ export const subirImagenExtra = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!req.file) return res.status(400).json({ msg: "No se subió imagen" });
+    if (!req.file) {
+      return res.status(400).json({ msg: "No se subió imagen" });
+    }
 
     const nueva = await ProductoImagen.create({
       producto_id: id,
-      url: req.file.filename,
+      url: `productos/${req.file.filename}`, // ✅ AQUÍ ESTÁ EL FIX REAL
     });
 
     res.json({ msg: "Imagen guardada", imagen: nueva });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ msg: "Error al guardar imagen extra" });
   }
 };
@@ -122,7 +192,8 @@ export const eliminarImagenExtra = async (req, res) => {
     const imagen = await ProductoImagen.findByPk(idImg);
     if (!imagen) return res.status(404).json({ msg: "No encontrada" });
 
-    const ruta = path.join("public/uploads", imagen.url);
+    const ruta = path.join("uploads", imagen.url); // ✅
+
     if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
 
     await imagen.destroy();
@@ -153,6 +224,31 @@ export const agregarCaracteristica = async (req, res) => {
     res.json({ msg: "Característica agregada", caracteristica: nueva });
   } catch (error) {
     res.status(500).json({ msg: "Error al agregar característica" });
+  }
+};
+
+/* -----------------------------
+   Editar característica
+----------------------------- */
+
+export const actualizarCaracteristica = async (req, res) => {
+  try {
+    const { idCarac } = req.params;
+    const { titulo, valor } = req.body;
+
+    if (!titulo || !valor)
+      return res.status(400).json({ msg: "Datos incompletos" });
+
+    const carac = await ProductoCaracteristica.findByPk(idCarac);
+
+    if (!carac)
+      return res.status(404).json({ msg: "Característica no encontrada" });
+
+    await carac.update({ titulo, valor });
+
+    res.json({ msg: "Característica actualizada" });
+  } catch (error) {
+    res.status(500).json({ msg: "Error al actualizar característica" });
   }
 };
 
@@ -265,7 +361,8 @@ export const eliminarProducto = async (req, res) => {
 
     // borrar imagen principal
     if (producto.url_imagen) {
-      const ruta = path.join("public/uploads", producto.url_imagen);
+      const ruta = path.join("uploads", producto.url_imagen);
+
       if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
     }
 
@@ -275,7 +372,7 @@ export const eliminarProducto = async (req, res) => {
     });
 
     for (const img of extras) {
-      const ruta = path.join("public/uploads", img.url);
+      const ruta = path.join("uploads", img.url);
       if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
       await img.destroy();
     }
@@ -290,5 +387,18 @@ export const eliminarProducto = async (req, res) => {
     res.json({ msg: "Producto eliminado" });
   } catch (error) {
     res.status(500).json({ msg: "Error al eliminar" });
+  }
+};
+
+/* -----------------------------
+   Productos HOME (temporada / destacados)
+----------------------------- */
+export const listarProductosHome = async (req, res) => {
+  try {
+    const { tipo, limit } = req.query; // tipo=temporada | destacados
+    const productos = await ProductoService.listarHome({ tipo, limit });
+    res.json(productos);
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
   }
 };

@@ -1,0 +1,28 @@
+/* =========================
+   🎨 DESIGN TOKENS
+========================= */
+
+:root {
+  --color-bg: #ffffff;
+  --color-text: #1c1c1c;
+  --color-card: #ffffff;
+  --color-border: #e5e5e5;
+  --color-primary: #ff6600;
+  --color-muted: #6c757d;
+  --color-nav-bg: #ffffff;
+  --color-footer-bg: #f8f9fa;
+  --color-input-bg: #ffffff;
+}
+
+/* Dark theme */
+html[data-theme="dark"] {
+  --color-bg: #181a1f;
+  --color-text: #e4e6eb;
+  --color-card: #22252b;
+  --color-border: #2f3338;
+  --color-primary: #ff8a3d;
+  --color-muted: #b0b3b8;
+  --color-nav-bg: #20242a;
+  --color-footer-bg: #20242a;
+  --color-input-bg: #2a2f36;
+}

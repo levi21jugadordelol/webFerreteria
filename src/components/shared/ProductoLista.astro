@@ -70,12 +70,13 @@ import ModalEditProducto from "../ui/productos/ModalEditProducto.astro";
 
           if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
 
-          const res = await fetch(`${apiUrl}/productos/${id}`, {
-            method: "DELETE",
-            credentials: "include",
-          });
+          const res = await fetch(`${apiUrl}/productos/admin/${id}`, {
+  method: "DELETE",
+  credentials: "include",
+});
 
-          if (!res.ok) return alert("❌ Error al eliminar producto");
+if (!res.ok) return alert("❌ Error al eliminar producto");
+
 
           alert("✅ Producto eliminado correctamente");
           card.remove();

@@ -27,6 +27,15 @@ const apiUrl = "http://localhost:3000";
     <input type="number" name="stock" class="form-control" required />
   </div>
 
+  <!-- DESTACADO -->
+<div class="form-check mb-2">
+  <input class="form-check-input" type="checkbox" name="es_destacado" />
+  <label class="form-check-label">Producto destacado</label>
+</div>
+
+
+
+
   <!-- CATEGORÍA -->
   <div class="mb-3">
     <label class="form-label fw-semibold">Categoría</label>
@@ -49,9 +58,11 @@ const apiUrl = "http://localhost:3000";
     <input type="file" id="imagen" name="imagen" />
   </div>
 
-  <button type="submit" class="btn btn-primary w-100 fw-semibold">
-    Guardar Producto
-  </button>
+ <button type="submit" class="btn btn-primary w-100 fw-semibold">
+  Guardar Producto
+</button>
+
+
 </form>
 
 <!-- @ts-ignore -->
@@ -96,81 +107,59 @@ const apiUrl = "http://localhost:3000";
     }
   }
 
-  // 🟢 CREAR PRODUCTO + IMAGEN + REDIRECCIÓN
-  async function manejarSubmit(e) {
-  e.preventDefault();
-  const form = e.target;
-  const fd = new FormData(form);
+ 
 
-  const payload = {
-    nombre_producto: fd.get("nombre_producto"),
-    descripcion: fd.get("descripcion"),
-    precio: Number(fd.get("precio")),
-    stock: Number(fd.get("stock")),
-    categoria_id: fd.get("categoria_id") || null,
-    marca_id: fd.get("marca_id") || null,
-  };
+
+
+ document.addEventListener("DOMContentLoaded", () => {
+  cargarCategorias();
+  cargarMarcas();
+
+  const form = document.getElementById("formProducto");
+  const btn = document.getElementById("btnGuardar");
+  if (!form || !btn) return;
+
+  let isSubmitting = false;
+
+  form.addEventListener("submit", async (e) => {
+  e.preventDefault(); // 🔥 evita recarga del navegador
+
+  if (isSubmitting) {
+    console.warn("⛔ Envío duplicado bloqueado");
+    return;
+  }
+
+  isSubmitting = true;
 
   try {
-    // 1) Crear producto
-    const res = await fetch(`${apiUrl}/productos`, {
+    const formData = new FormData(form); // 🔥 AQUÍ SE ENVÍA LA IMAGEN
+
+    const res = await fetch("http://localhost:3000/productos/admin", {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: formData, // ⬅️ texto + imagen juntos
     });
 
     const data = await res.json();
-
-    // 🔍 LOG 1: Ver la respuesta completa
-    console.log("🔍 Respuesta del backend al crear producto:", data);
+    console.log("✅ Backend respondió:", data);
 
     if (!res.ok) {
-      console.error(data);
-      alert("❌ Error al crear producto");
+      alert(data.msg || "Error al crear producto");
+      isSubmitting = false;
       return;
     }
 
-    // 🔍 LOG 2: Ver el ID recibido
-    const id = data.producto.id_producto;
-    console.log("🆔 ID recibido:", id);
-
-    // 2) Subir imagen principal (si se eligió)
-    const fileInput = document.getElementById("imagen");
-    if (fileInput && fileInput.files[0]) {
-      const imgForm = new FormData();
-      imgForm.append("file", fileInput.files[0]);
-
-      const resImg = await fetch(`${apiUrl}/productos/${id}/imagen`, {
-        method: "POST",
-        credentials: "include",
-        body: imgForm,
-      });
-
-      if (!resImg.ok) {
-        console.warn("⚠️ Producto creado, pero error subiendo imagen principal");
-      }
-    }
-
-    // 🔍 LOG 3: Ver la URL de redirección
-    console.log(`➡️ Redirigiendo a: /admin/productos/editar/${id}`);
-
-    // 3) Redirigir
-    window.location.href = `/admin/productos/editar/${id}`;
+    window.location.href = `/admin/productos/editar/${data.producto.id_producto}`;
   } catch (err) {
-    console.error(err);
-    alert("❌ Error de conexión al crear producto");
+    console.error("❌ Error submit:", err);
+    alert("Error de conexión");
+    isSubmitting = false;
   }
-}
+});
+
+});
 
 
-  document.addEventListener("DOMContentLoaded", () => {
-    cargarCategorias();
-    cargarMarcas();
-
-    const form = document.getElementById("formProducto");
-    if (form) form.addEventListener("submit", manejarSubmit);
-  });
 </script>
 
 

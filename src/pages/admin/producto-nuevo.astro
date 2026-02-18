@@ -1,7 +1,19 @@
 ---
-import ProductoNuevoLayout from "../../layouts/ProductoNuevoLayout.astro";
+export const prerender = false;
+
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import ProductoForm from "../../components/shared/ProductoForm.astro";
+
+// 🔐 Validación admin
+const token = Astro.cookies.get("_token");
+
+if (!token) {
+  return Astro.redirect("/admin/login");
+}
 ---
 
-<ProductoNuevoLayout title="Agregar nuevo producto" />
+<AdminLayout title="Nuevo Producto">
+  <ProductoForm />
+</AdminLayout>
 
 

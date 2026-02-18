@@ -141,50 +141,55 @@ const { id = "modal-editar-categoria" } = Astro.props;
 
   // 🔥 SUBMIT (ESTO ES LO IMPORTANTE)
   form.addEventListener("submit", async (e) => {
-    console.log("🔥 SUBMIT EJECUTADO");
-    e.preventDefault();
+  e.preventDefault();
 
-    const id = document.getElementById("cat-id").value;
-    const nombre = document.getElementById("cat-nombre").value;
-    const descripcion = document.getElementById("cat-descripcion").value;
+  const id = document.getElementById("cat-id").value;
+  const nombre = document.getElementById("cat-nombre").value;
+  const descripcion = document.getElementById("cat-descripcion").value;
+  const fileInput = document.getElementById("cat-img");
 
-    console.log("📤 DATOS DEL FORM:", {
-      id,
-      nombre,
+  // 1️⃣ Actualizar texto
+  const res = await fetch(`${window.API_URL}/categorias/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      nombre_categoria: nombre,
       descripcion,
-    });
-
-    try {
-      const res = await fetch(`${window.API_URL}/categorias/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          nombre_categoria: nombre,
-          descripcion,
-        }),
-      });
-
-      console.log("📡 RESPUESTA PUT:", res.status);
-
-      if (!res.ok) {
-        console.error("❌ Error en PUT");
-        return;
-      }
-
-      console.log("✅ PUT OK, recargando lista");
-
-      if (window.cargarCategorias) {
-  window.cargarCategorias();
-}
-
-      closeModal();
-
-    } catch (err) {
-      console.error("💥 Error en fetch PUT:", err);
-    }
+    }),
   });
+
+  if (!res.ok) {
+    console.error("❌ Error actualizando categoría");
+    return;
+  }
+
+  // 2️⃣ Subir imagen (si hay)
+  if (fileInput.files.length > 0) {
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    const imgRes = await fetch(
+      `${window.API_URL}/categorias/subir-imagen/${id}`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      }
+    );
+
+    if (!imgRes.ok) {
+      console.error("❌ Error subiendo imagen");
+    }
+  }
+
+  // 3️⃣ Refrescar UI
+  if (window.cargarCategorias) {
+    window.cargarCategorias();
+  }
+
+  closeModal();
+});
+
 </script>
 

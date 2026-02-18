@@ -111,7 +111,8 @@ export const subirLogoMarca = async (req, res) => {
       if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
     }
 
-    marca.url_logo = req.file.filename;
+    marca.url_logo = `marcas/${req.file.filename}`;
+
     await marca.save();
 
     res.json({

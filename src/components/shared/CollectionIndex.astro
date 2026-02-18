@@ -4,9 +4,22 @@ import TarjetaCollection from "../ui/tarjetaCollection.astro"
 import CollectionCarrusel from "./CollectionCarrusel.astro"
 ---
 
-<div class="mt-5">
-  <Title>Categorias</Title>
-  <div class="justify-content-center d-flex">
-   <CollectionCarrusel></CollectionCarrusel>
+<div class="collection-section mt-5">
+  <Title>Categorías</Title>
+
+  <div class="carrusel-wrapper">
+    <CollectionCarrusel />
   </div>
 </div>
+
+<style>
+  .collection-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+
+
+
+
+</style>

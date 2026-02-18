@@ -8,8 +8,7 @@ const links = [
   { href: '/categoria', text: 'categorias', isMega: true },
   { href: '/marcas', text: 'marcas', isMega: true },
   { href: '/productos', text: 'productos' },
-  { href: '/ofertas', text: 'ofertas' },
-  { href: '/contactanos', text: 'contactanos' },
+
 ];
 ---
 
@@ -40,13 +39,13 @@ const links = [
 
     <!-- BUSCADOR -->
     <div class="buscador-wrapper">
-      <Buscador />
+      <Buscador  />
     </div>
 
     <!-- ICONOS -->
     <div class="icons">
-      <CarritoCounter />
-      <ThemeToggle />
+     <CarritoCounter  />
+<ThemeToggle  />
     </div>
 
   </div>
@@ -79,12 +78,29 @@ const links = [
 .icons {
   display: flex;
   align-items: center;
-  gap: 18px; /* Ajusta este valor a tu gusto */
+  gap: 18px;
 }
 
-.icons i {
-  font-size: 22px; /* tamaño general para íconos */
+.icons a,
+.icons button {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: all 0.2s ease;
 }
+
+.icons a:hover,
+.icons button:hover {
+  background: var(--color-border);
+  transform: translateY(-1px);
+}
+
 
 
 
@@ -157,14 +173,18 @@ const links = [
 .cart-count-badge {
   position: absolute;
   top: -6px;
-  right: -10px;
-  background: #ff3b3b;
+  right: -8px;
+  background: var(--color-primary);
   color: white;
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 600;
   padding: 2px 6px;
-  border-radius: 50%;
+  border-radius: 999px;
+  min-width: 18px;
+  text-align: center;
   display: none;
 }
+
 
 /* WHATSAPP BUTTON */
 .whatsapp-wrapper .whatsapp-float {
@@ -186,7 +206,8 @@ const links = [
 </style>
 
 <!-- ========== JS MEGA MENÚ ========== -->
-<script is:client>
+<script is:inline>
+
 document.addEventListener("DOMContentLoaded", () => {
   const apiUrl = "http://localhost:3000";
 

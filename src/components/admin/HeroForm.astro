@@ -1,0 +1,267 @@
+---
+interface HeroSlide {
+  id_hero?: number;
+  titulo1?: string;
+  titulo2?: string;
+  tipo_layout?: string;
+  mostrar_boton?: boolean;
+  boton_texto?: string;
+  boton_url?: string;
+  orden?: number;
+  activo?: boolean;
+}
+
+const { slide } = Astro.props as { slide?: HeroSlide };
+const isEdit = !!slide;
+---
+
+<div class="hero-editor">
+
+  <!-- 📝 FORMULARIO -->
+  <div class="editor-form card shadow-sm p-4">
+
+    <form id="heroForm" enctype="multipart/form-data">
+
+      <!-- 🎨 Tipo Layout -->
+      <div class="mb-4">
+        <label class="form-label fw-bold">Tipo de Layout</label>
+
+        <div class="layout-options">
+          <label>
+            <input type="radio" name="tipo_layout" value="banner" checked />
+            Solo imagen
+          </label>
+
+          <label>
+            <input type="radio" name="tipo_layout" value="text-left" />
+            Texto izquierda
+          </label>
+
+          <label>
+            <input type="radio" name="tipo_layout" value="text-right" />
+            Texto derecha
+          </label>
+
+          <label>
+            <input type="radio" name="tipo_layout" value="centered" />
+            Texto centrado
+          </label>
+        </div>
+      </div>
+
+      <!-- ✍ Textos -->
+      <div id="textFields">
+        <div class="mb-3">
+          <label class="form-label">Título 1</label>
+          <input type="text" name="titulo1" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Título 2</label>
+          <textarea name="titulo2" class="form-control"></textarea>
+        </div>
+      </div>
+
+      <!-- 🔘 Botón -->
+      <div class="form-check mb-3">
+        <input type="checkbox" name="mostrar_boton" id="mostrar_boton" class="form-check-input" />
+        <label class="form-check-label">Mostrar botón</label>
+      </div>
+
+      <div id="botonFields" style="display:none;">
+        <div class="mb-3">
+          <label class="form-label">Texto botón</label>
+          <input type="text" name="boton_texto" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">URL botón</label>
+          <select name="boton_url" class="form-select">
+            <option value="">Seleccionar destino</option>
+            <option value="/productos">Productos</option>
+            <option value="/contacto">Contacto</option>
+            <option value="/nosotros">Nosotros</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 🖼 Imagen -->
+      <div class="mb-3">
+  <label class="form-label fw-bold">Imagen</label>
+  <input 
+    type="file" 
+    name="imagen" 
+    class="form-control" 
+    accept="image/*"
+    required={!isEdit}
+  />
+</div>
+
+
+      <!-- 🟢 Activo -->
+      <div class="form-check mb-3">
+        <input type="checkbox" name="activo" class="form-check-input" checked />
+        <label class="form-check-label">Activo</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">
+        ${isEdit ? "Actualizar Slide" : "Guardar Slide"}
+      </button>
+
+      <div id="mensaje" class="mt-3"></div>
+
+    </form>
+  </div>
+
+  <!-- 👁 PREVIEW -->
+  <div class="editor-preview card shadow-sm p-4">
+    <h6 class="fw-bold mb-3">Vista previa</h6>
+    <div id="previewContainer">
+      <p class="text-muted">La vista previa aparecerá aquí</p>
+    </div>
+  </div>
+
+</div>
+
+<script is:inline>
+  {`
+    window.HERO_EDIT_MODE = ${JSON.stringify(isEdit)};
+    window.HERO_SLIDE_ID = ${JSON.stringify(slide?.id_hero ?? null)};
+  `}
+</script>
+
+
+
+
+<script is:inline>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const form = document.getElementById("heroForm");
+  const textFields = document.getElementById("textFields");
+  const botonFields = document.getElementById("botonFields");
+  const mostrarBoton = document.getElementById("mostrar_boton");
+  const previewContainer = document.getElementById("previewContainer");
+
+  const tipoLayoutRadios = document.querySelectorAll('input[name="tipo_layout"]');
+  const inputImagen = form.querySelector('input[name="imagen"]');
+  const mensaje = document.getElementById("mensaje");
+
+  function updateTextVisibility() {
+    const selected = document.querySelector('input[name="tipo_layout"]:checked').value;
+    textFields.style.display = selected === "banner" ? "none" : "block";
+  }
+
+  function updatePreview(imageUrl = null) {
+
+    const titulo1 = form.titulo1.value;
+    const titulo2 = form.titulo2.value;
+    const layout = document.querySelector('input[name="tipo_layout"]:checked').value;
+    const boton = mostrarBoton.checked;
+
+    previewContainer.innerHTML = `
+      <div style="border:1px solid #ddd; padding:20px;">
+        ${imageUrl ? `<img src="${imageUrl}" style="max-width:100%; margin-bottom:10px;" />` : ""}
+        ${layout !== "banner" ? `
+          <h4>${titulo1 || ""}</h4>
+          <p>${titulo2 || ""}</p>
+          ${boton ? `<button class="btn btn-sm btn-dark">Botón</button>` : ""}
+        ` : ""}
+      </div>
+    `;
+  }
+
+  tipoLayoutRadios.forEach(radio =>
+    radio.addEventListener("change", updateTextVisibility)
+  );
+
+  mostrarBoton.addEventListener("change", () => {
+    botonFields.style.display = mostrarBoton.checked ? "block" : "none";
+    updatePreview();
+  });
+
+  form.addEventListener("input", updatePreview);
+
+  inputImagen.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const imageUrl = URL.createObjectURL(file);
+    updatePreview(imageUrl);
+  });
+
+  // 🟢 CARGAR DATOS SI ES EDICIÓN
+  if (window.HERO_EDIT_MODE) {
+
+    fetch(`http://localhost:3000/api/hero/${window.HERO_SLIDE_ID}`)
+      .then(res => res.json())
+      .then(data => {
+
+        form.titulo1.value = data.titulo1 || "";
+        form.titulo2.value = data.titulo2 || "";
+
+        const radio = document.querySelector(
+          `input[name="tipo_layout"][value="${data.tipo_layout}"]`
+        );
+        if (radio) radio.checked = true;
+
+        if (data.mostrar_boton) {
+          mostrarBoton.checked = true;
+          botonFields.style.display = "block";
+          form.boton_texto.value = data.boton_texto || "";
+          form.boton_url.value = data.boton_url || "";
+        }
+
+        form.activo.checked = data.activo;
+
+        updateTextVisibility();
+        updatePreview();
+      });
+  }
+
+  // 🚀 SUBMIT DINÁMICO
+  form.addEventListener("submit", async (e) => {
+
+    e.preventDefault();
+
+    const formData = new FormData(form);
+
+    const url = window.HERO_EDIT_MODE
+      ? `http://localhost:3000/api/hero/${window.HERO_SLIDE_ID}`
+      : "http://localhost:3000/api/hero";
+
+    const method = window.HERO_EDIT_MODE ? "PUT" : "POST";
+
+    try {
+
+      const res = await fetch(url, {
+        method,
+        body: formData,
+        credentials: "include"
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        mensaje.innerHTML = `<div class="alert alert-danger">${data.msg}</div>`;
+        return;
+      }
+
+      mensaje.innerHTML = `<div class="alert alert-success">
+        ${window.HERO_EDIT_MODE ? "Slide actualizado 🎉" : "Slide creado 🎉"}
+      </div>`;
+
+      setTimeout(() => {
+        window.location.href = "/admin/hero";
+      }, 1200);
+
+    } catch {
+      mensaje.innerHTML = `<div class="alert alert-danger">Error inesperado</div>`;
+    }
+
+  });
+
+  updateTextVisibility();
+
+});
+</script>
+
+

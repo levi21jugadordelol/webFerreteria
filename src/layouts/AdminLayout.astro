@@ -1,76 +1,148 @@
 ---
-const { title = "Panel Admin", children } = Astro.props;
+const { title = "Panel Admin" } = Astro.props;
 ---
 
 <html lang="es">
   <head>
     <meta charset="utf-8" />
     <title>{title}</title>
+
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
     />
-    <link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
-/>
-
   </head>
 
   <body class="bg-gray-100 d-flex">
-   <aside class="bg-dark text-white p-3" style="width: 250px; height: 100vh;">
-  <h3 class="text-center mb-4">Admin</h3>
+    <aside class="bg-dark text-white p-3" style="width: 250px; height: 100vh;">
+      <h3 class="text-center mb-4">Admin</h3>
 
-  <nav class="d-flex flex-column gap-2">
+   <nav class="d-flex flex-column gap-2">
 
-    <a href="/admin/panel-admin" class="text-white text-decoration-none">
-      🏠 Inicio
-    </a>
+  <!-- 🔹 Sección Principal -->
+  <small class="text-uppercase text-muted mt-2">Principal</small>
 
-    <a href="/admin/productos" class="text-white text-decoration-none">
-      <i class="bi bi-box"></i> Productos
-    </a>
+  <a href="/admin/panel-admin" class="text-white text-decoration-none">
+    🏠 Inicio
+  </a>
 
-    <a href="/admin/categoria-lista" class="text-white text-decoration-none">
-      <i class="bi bi-tags"></i> Categorías
-    </a>
+  <hr class="border-light opacity-25" />
 
-    <a href="/admin/categoria-nueva" class="text-white text-decoration-none">
-      <i class="bi bi-plus-lg"></i> Agregar Categoría
-    </a>
+  <!-- 🔹 Sección Productos -->
+  <small class="text-uppercase text-muted">Productos</small>
 
-    <a href="/admin/marcas/marca-lista" class="text-white text-decoration-none">
-      <i class="bi bi-bookmark-star"></i> Marcas
-    </a>
+  <a href="/admin/productos" class="text-white text-decoration-none">
+    <i class="bi bi-box"></i> Lista de Productos
+  </a>
 
-    <a href="/admin/marcas/marca-nueva" class="text-white text-decoration-none">
-      <i class="bi bi-plus-square"></i> Agregar Marca
-    </a>
+  <a href="/admin/producto-nuevo" class="text-white text-decoration-none">
+    <i class="bi bi-plus-circle"></i> Nuevo Producto
+  </a>
 
-    <a href="/admin/producto-nuevo" class="text-white text-decoration-none">
-      <i class="bi bi-plus-circle"></i> Nuevo Producto
-    </a>
+  <hr class="border-light opacity-25" />
 
-    <a href="/admin/pagos/comprobantes" class="text-white text-decoration-none">
-  <i class="bi bi-receipt"></i> Validar Pagos
+  <!-- 🔹 Sección Categorías -->
+  <small class="text-uppercase text-muted">Categorías</small>
+
+  <a href="/admin/categoria-lista" class="text-white text-decoration-none">
+    <i class="bi bi-tags"></i> Lista de Categorías
+  </a>
+
+  <a href="/admin/categoria-nueva" class="text-white text-decoration-none">
+    <i class="bi bi-tag-fill"></i> Nueva Categoría
+  </a>
+
+  <hr class="border-light opacity-25" />
+
+  <!-- 🔹 Sección Marcas -->
+  <small class="text-uppercase text-muted">Marcas</small>
+
+ <a href="/admin/marcas/marca-lista" class="text-white text-decoration-none">
+  <i class="bi bi-award"></i> Lista de Marcas
+</a>
+
+<a href="/admin/marcas/marca-nueva" class="text-white text-decoration-none">
+  <i class="bi bi-award-fill"></i> Nueva Marca
 </a>
 
 
-  </nav>
-</aside>
+  <hr class="border-light opacity-25" />
+
+  <!-- 🔹 Sección Pagos -->
+  <small class="text-uppercase text-muted">Pagos</small>
+
+  <a href="/admin/pagos/comprobantes" class="text-white text-decoration-none">
+    <i class="bi bi-receipt"></i> Comprobantes
+  </a>
+
+  <hr class="border-light opacity-25" />
+
+<small class="text-uppercase text-muted">Contenido</small>
+
+<a href="/admin/hero" class="text-white text-decoration-none">
+  <i class="bi bi-images"></i> Hero Slides
+</a>
+
+<a href="/admin/hero/nuevo" class="text-white text-decoration-none">
+  <i class="bi bi-image"></i> Nuevo Slide
+</a>
 
 
-   <main class="flex-grow-1 p-4">
-  <h2 class="fw-bold mb-4">{title}</h2>
-  <slot /> <!-- Aquí se renderiza el contenido que envíes desde productos.astro -->
-</main>
+  <hr class="border-light opacity-25" />
+
+
+  
+
+  <!-- 🔹 Logout -->
+  <button id="btnLogout" class="btn btn-danger mt-3">
+    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+  </button>
+
+</nav>
+
+
+    </aside>
+
+    <main class="flex-grow-1 p-4">
+      <h2 class="fw-bold mb-4">{title}</h2>
+      <slot />
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+
+    <!-- Logout -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const btnLogout = document.getElementById("btnLogout");
+
+        if (!btnLogout) return;
+
+        btnLogout.addEventListener("click", async () => {
+          await fetch("/auth/logout", {
+            method: "POST",
+            credentials: "include",
+          });
+
+          window.location.replace("/admin/login");
+        });
+      });
+
+      // 🔥 Protección contra botón atrás (bfcache)
+    window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+      console.log("🔄 Página cargada desde bfcache, recargando...");
+      window.location.reload();
+    }
+  });
+    </script>
   </body>
 </html>
+
+
+
+
 

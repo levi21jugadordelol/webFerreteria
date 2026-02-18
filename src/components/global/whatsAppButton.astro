@@ -1,0 +1,37 @@
+---
+interface SiteSettings {
+  site_content?: {
+    whatsapp?: string;
+  };
+}
+
+const apiUrl = new URL("/api/site-settings", Astro.url).toString();
+
+let config: SiteSettings = {};
+
+try {
+  const res = await fetch(apiUrl);
+  if (res.ok) {
+    config = await res.json();
+  }
+} catch (error) {
+  console.error("Error cargando site-settings:", error);
+}
+
+const whatsappNumber = config.site_content?.whatsapp;
+---
+
+<a
+  href={`https://wa.me/${whatsappNumber}`}
+  class="whatsapp-float"
+  target="_blank"
+>
+  💬
+</a>
+
+
+
+
+
+
+

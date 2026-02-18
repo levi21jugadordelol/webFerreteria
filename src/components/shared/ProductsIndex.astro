@@ -3,86 +3,114 @@ import Title from "./Title.astro";
 import Subtitulo from "./Subtitulo.astro";
 import TarjetaProducto from "../ui/tarjetaProducto.astro";
 import Button from "../ui/Button.astro";
-import pintura from "../../assets/rubro1.jpg"
-import clavos from "../../assets/rubro2.jpg"
-import arena from "../../assets/rubro3.jpg"
-// Lista de productos
-const productos = [
-  {
-    titulo: "Taladro Inalámbrico",
-    precio: "S/ 320.00",
-    descripcion: "Potente y ligero para todo tipo de trabajos",
-    imagen: pintura
-  },
-  {
-    titulo: "Sierra Circular",
-    precio: "S/ 280.00",
-    descripcion: "Ideal para cortes precisos y potentes",
-    imagen: clavos
-  },
-  {
-    titulo: "Amoladora Angular",
-    precio: "S/ 190.00",
-    descripcion: "Compacta y resistente para uso intensivo",
-    imagen: arena
-  },
-    {
-    titulo: "Taladro Inalámbrico",
-    precio: "S/ 320.00",
-    descripcion: "Potente y ligero para todo tipo de trabajos",
-    imagen: pintura
-  },
-  {
-    titulo: "Sierra Circular",
-    precio: "S/ 280.00",
-    descripcion: "Ideal para cortes precisos y potentes",
-    imagen: clavos
-  },
-  {
-    titulo: "Amoladora Angular",
-    precio: "S/ 190.00",
-    descripcion: "Compacta y resistente para uso intensivo",
-    imagen: arena
-  },  {
-    titulo: "Taladro Inalámbrico",
-    precio: "S/ 320.00",
-    descripcion: "Potente y ligero para todo tipo de trabajos",
-    imagen: pintura
-  },
-  {
-    titulo: "Sierra Circular",
-    precio: "S/ 280.00",
-    descripcion: "Ideal para cortes precisos y potentes",
-    imagen: clavos
-  },
 
+interface Props {
+  title?: string;
+  subtitle?: string;
+  tipo?: string;
+  limit?: number;
+  showButton?: boolean;
+}
 
-];
+const {
+  title = "Productos destacados",
+  subtitle = "Explora nuestros mejores productos",
+  tipo = "destacados",
+  limit = 8,
+  showButton = true
+} = Astro.props;
+
+const apiUrl = "http://localhost:3000";
+
+const res = await fetch(
+  `${apiUrl}/productos/home?tipo=${tipo}&limit=${limit}`
+);
+
+const productos = await res.json();
+
+console.log("🧪 showButton:", showButton);
+console.log("🧪 productos.length:", productos.length);
+
 ---
 
-<div class="mt-5">
-  <Title>Productos destacados</Title>
-  <Subtitulo>Explora nuestros mejores productos</Subtitulo>
+<section class="products-section">
 
   <div class="container">
-    <div class="row justify-content-center">
-      {productos.map((p) => (
-        <div class="col-md-3 mb-4">
-          <TarjetaProducto
-            titulo={p.titulo}
-            precio={p.precio}
-            descripcion={p.descripcion}
-            imagen={p.imagen}
-          />
-        </div>
-      ))}
-    </div>
 
-    <div class="text-center">
-      <Button>+ Ver todos nuestros productos</Button>
+    <Title>{title}</Title>
+    <Subtitulo>{subtitle}</Subtitulo>
+
+    {productos.length === 0 && (
+      <p class="text-center text-danger fw-bold">
+        ⚠️ No hay productos disponibles
+      </p>
+    )}
+
+    {productos.length > 0 && (
+      <div class="products-grid">
+        {productos.map((p:any) => (
+          <TarjetaProducto
+            titulo={p.nombre_producto}
+            precio={`S/ ${p.precio}`}
+            descripcion={p.descripcion}
+            imagen={{
+              src: p.url_imagen
+                ? `${apiUrl}/uploads/${p.url_imagen}`
+                : "https://via.placeholder.com/300x300?text=Sin+imagen"
+            }}
+            agotado={p.agotado}
+          />
+        ))}
+      </div>
+    )}
+
+  {showButton && (
+  <>
+    {console.log("✅ Botón renderizado en SSR")}
+    <div class="text-center mt-4">
+      <Button href="/productos">
+        Ver todos los productos
+      </Button>
     </div>
+  </>
+)}
+
+
   </div>
-</div>
+
+</section>
+
+<style>
+.products-section {
+  position: relative;
+  z-index: 2;
+}
+
+
+.products-section .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Grid limpio y centrado */
+.products-grid {
+  display: grid;
+  gap: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* Espacio correcto antes del botón */
+.products-section .text-center {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: center;
+}
+
+
+</style>
+
+
+
 
 
 

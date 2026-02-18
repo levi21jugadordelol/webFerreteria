@@ -32,12 +32,14 @@ const relacionados = await relRes.json();
   title={producto.nombre_producto}
   description={producto.descripcion}
 >
-  <div class="row g-5">
+  <div class="producto-layout">
+
 
     <!-- ===================== -->
     <!-- 🖼️ GALERÍA DE IMÁGENES -->
     <!-- ===================== -->
-    <div class="col-md-6">
+   <div class="producto-galeria">
+
 
       <!-- 🔵 IMAGEN PRINCIPAL -->
       <div class="zoom-container border rounded mb-3 position-relative">
@@ -79,13 +81,24 @@ const relacionados = await relRes.json();
     <!-- ===================== -->
     <!-- ℹ️ INFO DEL PRODUCTO -->
     <!-- ===================== -->
-    <div class="col-md-6">
-      <h1 class="fw-bold">{producto.nombre_producto}</h1>
-      <p class="fs-4 text-primary fw-semibold">S/ {producto.precio}</p>
+    <div class="producto-info">
 
-      <button class="btn btn-primary btn-lg mb-4">
-        Agregar al carrito
-      </button>
+      <h1 class="fw-bold">{producto.nombre_producto}</h1>
+      <p class="precio-producto">
+S/ {producto.precio}</p>
+
+    <div
+  data-producto
+  data-id={producto.id_producto}
+  data-nombre={producto.nombre_producto}
+  data-precio={producto.precio}
+  data-imagen={`${apiUrl}/uploads/${producto.url_imagen}`}
+>
+  <button class="btn-add btn btn-primary btn-lg mb-4">
+    Agregar al carrito
+  </button>
+</div>
+
 
       <!-- TABS -->
       <ul class="nav nav-tabs" role="tablist">
@@ -116,11 +129,27 @@ const relacionados = await relRes.json();
 
         <div class="tab-pane fade" id="caracteristicas">
           <ul class="list-unstyled">
-            {producto.caracteristicas?.map((c: Caracteristica) => (
-              <li class="mb-2">
-                <strong>{c.titulo}:</strong> {c.valor}
-              </li>
-            ))}
+          {producto.caracteristicas && producto.caracteristicas.length > 0 ? (
+  <table class="table table-sm mb-0">
+    <tbody>
+      {producto.caracteristicas.map((c: Caracteristica) => (
+        <tr>
+          <td class="fw-semibold" style="width:40%;">
+            {c.titulo}
+          </td>
+          <td>
+            {c.valor}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+) : (
+  <p class="text-muted mb-0">
+    Este producto no tiene características adicionales.
+  </p>
+)}
+
           </ul>
         </div>
       </div>
@@ -133,32 +162,33 @@ const relacionados = await relRes.json();
   <hr class="my-5" />
   <h3 class="fw-bold mb-4">Productos relacionados</h3>
 
-  <div class="row g-3">
-    {relacionados.map((p: any) => (
-      <div class="col-6 col-md-3">
-        <a
-          href={`/productos/${p.id_producto}`}
-          class="text-decoration-none text-dark"
-        >
-          <div class="card h-100">
-            <img
-              src={
-                p.url_imagen
-                  ? `${apiUrl}/uploads/${p.url_imagen}`
-                  : "/img/no-image.png"
-              }
-              class="card-img-top"
-              style="height:180px;object-fit:contain"
-            />
-            <div class="card-body text-center">
-              <h6 class="fw-semibold">{p.nombre_producto}</h6>
-              <p class="text-primary fw-bold">S/ {p.precio}</p>
-            </div>
-          </div>
-        </a>
+  <div class="relacionados-grid">
+
+  {relacionados.map((p: any) => (
+    <a
+      href={`/productos/${p.id_producto}`}
+      class="relacionado-card"
+    >
+      <div class="card h-100">
+        <img
+          src={
+            p.url_imagen
+              ? `${apiUrl}/uploads/${p.url_imagen}`
+              : "/img/no-image.png"
+          }
+          class="card-img-top"
+          style="height:180px;object-fit:contain"
+        />
+        <div class="card-body text-center">
+          <h6 class="fw-semibold">{p.nombre_producto}</h6>
+          <p class="text-primary fw-bold">S/ {p.precio}</p>
+        </div>
       </div>
-    ))}
-  </div>
+    </a>
+  ))}
+
+</div>
+
 
   <!-- ===================== -->
   <!-- 🧠 DRIFT SCRIPT -->
@@ -180,6 +210,84 @@ const relacionados = await relRes.json();
   </style>
 
 </CaracteristicasProductosLayout>
+
+
+<style>
+.producto-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
+  align-items: start;
+}
+
+
+.producto-galeria {
+  display: flex;
+  flex-direction: column;
+}
+
+.producto-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.zoom-container {
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-container {
+  width: 100%;
+  max-height: 600px;
+  padding: 30px;
+   background: linear-gradient(
+    180deg,
+    var(--color-bg),
+    var(--color-card)
+  );
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+
+.precio-producto {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+
+.relacionados-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 28px;
+}
+
+.relacionado-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+#img-principal {
+  max-width: 100%;
+  max-height: 520px;
+  object-fit: contain; /* 🔥 clave */
+}
+
+
+
+</style>
+
+
+
+<script type="module" src="/js/addToCart.js"></script>
 
 
 

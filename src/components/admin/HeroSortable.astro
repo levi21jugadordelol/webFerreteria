@@ -1,0 +1,169 @@
+---
+interface Slide {
+  id_hero: number;
+  titulo1: string | null;
+  tipo_layout: string;
+  activo: boolean;
+  orden: number;
+}
+
+const { slides } = Astro.props as { slides: Slide[] };
+---
+
+<div class="hero-list" id="heroList">
+
+  {slides.map((slide) => (
+    <div class="hero-row" data-id={slide.id_hero}>
+
+      <div class="drag-handle">☰</div>
+
+      <div class="hero-info">
+        <strong>{slide.titulo1 || "Sin título"}</strong>
+        <small>
+          {slide.tipo_layout} • 
+          {slide.activo ? "Activo" : "Inactivo"}
+        </small>
+      </div>
+
+      <div class="hero-actions">
+        <a
+          href={`/admin/hero/editar/${slide.id_hero}`}
+          class="btn btn-sm btn-warning"
+        >
+          ✏ Editar
+        </a>
+
+        <button
+          class="btn btn-sm btn-danger btn-delete"
+          data-id={slide.id_hero}
+        >
+          🗑 Eliminar
+        </button>
+      </div>
+
+    </div>
+  ))}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<script is:inline>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const heroList = document.getElementById("heroList");
+
+  // 🔥 SORTABLE
+  new Sortable(heroList, {
+    animation: 200,
+    handle: ".drag-handle",
+    ghostClass: "drag-ghost",
+    chosenClass: "drag-chosen",
+
+    onEnd: async function () {
+
+      const items = [...heroList.children];
+
+      const slides = items.map((el, index) => ({
+        id_hero: el.dataset.id,
+        orden: index
+      }));
+
+      await fetch("http://localhost:3000/api/hero/orden", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ slides })
+      });
+
+    }
+  });
+
+  // 🔥 ELIMINAR
+  document.querySelectorAll(".btn-delete").forEach(btn => {
+
+    btn.addEventListener("click", async function () {
+
+      const id = this.dataset.id;
+
+      if (!confirm("¿Eliminar este slide?")) return;
+
+      try {
+
+        const res = await fetch(
+          `http://localhost:3000/api/hero/${id}`,
+          {
+            method: "DELETE",
+            credentials: "include"
+          }
+        );
+
+        if (!res.ok) {
+          alert("Error al eliminar");
+          return;
+        }
+
+        // 💥 Eliminación visual sin recargar
+        const row = this.closest(".hero-row");
+        row.style.transition = "opacity 0.3s";
+        row.style.opacity = "0";
+
+        setTimeout(() => {
+          row.remove();
+        }, 300);
+
+      } catch (error) {
+        alert("Error inesperado");
+      }
+
+    });
+
+  });
+
+});
+</script>
+
+<style>
+.hero-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hero-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.drag-handle {
+  cursor: grab;
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.hero-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-info small {
+  color: #777;
+}
+
+.drag-ghost {
+  opacity: 0.4;
+}
+
+.drag-chosen {
+  background: #f1f5f9;
+}
+</style>
+
+
+

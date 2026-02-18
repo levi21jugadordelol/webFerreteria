@@ -41,106 +41,152 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
   {agotado ? "Sin stock" : "Agregar al carrito"}
 </button>
 
+<!-- 🔥 NUEVO: mensaje dinámico -->
+<div class="card-msg hidden"></div>
+
 </div>
 
 
 <style>
-.card-img {
-  position: relative;
-  height: 240px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
+.card-simple {
+  background: #ffffff;
+  border: 1px solid #e4e4e4;
+  border-radius: 6px;
   overflow: hidden;
+  transition: 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
-
-.card-img img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-
 
 .card-simple:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
 }
 
+
+.card-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Imagen */
+
 .card-img {
-  position: relative;
-  height: 240px;
+  background: #f5f5f5;
+  height: 260px;   /* más protagonismo */
   overflow: hidden;
-  width: 100%;
-  background: #fff;
+  display: flex;
 }
 
 .card-img img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  transition: transform 0.4s ease;
 }
 
-.btn-add {
-  position: absolute;
-  bottom: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  background: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.6rem 1.2rem;
-  font-size: 0.9rem;
-  transition: all 0.4s ease;
-}
 
-.card-simple:hover .btn-add {
-  bottom: 1rem;
-  opacity: 1;
-}
 
+
+/* Información */
 .card-info {
-  padding: 1rem;
+  padding: 0.8rem;
+  text-align: center;  /* centra todo */
 }
 
 .card-info h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #222;
-  margin-bottom: 0.3rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.4rem;
 }
 
 .precio {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #0d6efd;
+  color: #111;
   margin: 0;
 }
 
-.badge-agotado {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(220, 53, 69, 0.95);
+.card-simple:hover .card-img img {
+  transform: scale(1.05);
+}
+
+/* Botón */
+
+.btn-add {
+  width: 100%;
+  background: #2c2c2c;
   color: white;
-  padding: 0.4rem 0.7rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 6px;
-  z-index: 2;
+  border: 1px solid transparent; /* importante */
+  padding: 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+
+.btn-add:hover {
+  background: #000;
+  letter-spacing: 0.5px;
+  transform: translateY(-2px);
+  box-shadow: inset 0 0 0 1px #fff;
+}
+
+
+.btn-add:active {
+  transform: translateY(0);
 }
 
 .btn-add:disabled {
   background: #aaa;
   cursor: not-allowed;
-  opacity: 0.8;
 }
 
+
+/* Agotado */
+
+.badge-agotado {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #c0392b;
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+}
+
+.card-msg {
+  padding: 0.6rem;
+  font-size: 0.85rem;
+  text-align: center;
+  font-weight: 600;
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.08);
+}
+
+.hidden {
+  display: none;
+}
+
+.card-msg {
+  padding: 0.6rem;
+  font-size: 0.85rem;
+  text-align: center;
+  font-weight: 600;
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.08);
+}
+
+
 </style>
+
+
 
 
 
