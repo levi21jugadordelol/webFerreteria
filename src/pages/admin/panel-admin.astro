@@ -1,13 +1,182 @@
 ---
-export const prerender = false;
-
 import AdminLayout from "../../layouts/AdminLayout.astro";
-import ProductoForm from "../../components/shared/ProductoForm.astro";
 ---
 
-<AdminLayout title="Nuevo Producto">
-  <ProductoForm />
+<AdminLayout title="Panel Administrativo">
+
+<div class="row g-4">
+
+  <!-- PRODUCTOS -->
+  <div class="col-md-3">
+    <div class="card border-primary shadow-sm">
+      <div class="card-body text-center">
+        <h6 class="text-muted">Productos</h6>
+        <h2 id="totalProductos">
+          <span class="spinner-border spinner-border-sm"></span>
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- VENTAS HOY -->
+  <div class="col-md-3">
+    <div class="card border-success shadow-sm">
+      <div class="card-body text-center">
+        <h6 class="text-muted">Ventas Hoy</h6>
+        <h2 id="ventasHoy">
+          <span class="spinner-border spinner-border-sm"></span>
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGOS PENDIENTES -->
+  <div class="col-md-3">
+    <div class="card border-warning shadow-sm">
+      <div class="card-body text-center">
+        <h6 class="text-muted">Pagos Pendientes</h6>
+        <h2 id="pagosPendientes">
+          <span class="spinner-border spinner-border-sm"></span>
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOCK BAJO -->
+  <div class="col-md-3">
+    <div class="card border-danger shadow-sm">
+      <div class="card-body text-center">
+        <h6 class="text-muted">Stock Bajo</h6>
+        <h2 id="stockBajo">
+          <span class="spinner-border spinner-border-sm"></span>
+        </h2>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ACTIVIDAD RECIENTE -->
+<hr class="my-5">
+
+<h4 class="mb-3">Actividad reciente</h4>
+
+<div id="actividad-reciente">
+  <div class="spinner-border spinner-border-sm"></div>
+</div>
+
 </AdminLayout>
+
+
+<script is:client>
+
+async function cargarDashboard(){
+
+ try{
+
+  const res = await fetch(
+   "http://localhost:3000/api/dashboard",
+   {credentials:"include"}
+  )
+
+  const data = await res.json()
+
+  document.getElementById("totalProductos").innerText = data.totalProductos
+  document.getElementById("ventasHoy").innerText = data.ventasHoy
+  document.getElementById("pagosPendientes").innerText = data.pagosPendientes
+  document.getElementById("stockBajo").innerText = data.stockBajo
+
+  /* ALERTAS AUTOMÁTICAS */
+
+  if(data.pagosPendientes > 3){
+    document.getElementById("pagosPendientes").classList.add("text-danger")
+  }
+
+  if(data.stockBajo > 0){
+    document.getElementById("stockBajo").classList.add("text-danger")
+  }
+
+ }catch(error){
+
+  console.error("Error dashboard",error)
+
+ }
+
+}
+
+
+async function cargarActividad(){
+
+ try{
+
+ const res = await fetch(
+  "http://localhost:3000/api/dashboard/actividad",
+  {credentials:"include"}
+ )
+
+ const data = await res.json()
+
+ const cont = document.getElementById("actividad-reciente")
+
+ if(data.length===0){
+
+  cont.innerHTML = `
+   <div class="alert alert-info">
+    No hay actividad reciente
+   </div>
+  `
+  return
+ }
+
+ cont.innerHTML = `
+  <ul class="list-group">
+
+  ${
+   data.map(a=>`
+
+    <li class="list-group-item d-flex justify-content-between">
+
+      <span>
+        ${iconoAccion(a.accion)} 
+        ${a.accion} comprobante #${a.comprobante_id}
+      </span>
+
+      <small class="text-muted">
+        ${new Date(a.fecha).toLocaleString()}
+      </small>
+
+    </li>
+
+   `).join("")
+  }
+
+  </ul>
+ `
+
+ }catch(error){
+
+  console.error("Error actividad",error)
+
+ }
+
+}
+
+
+function iconoAccion(accion){
+
+ if(accion==="validado") return "✅"
+ if(accion==="revertido") return "↩️"
+
+ return "📌"
+
+}
+
+
+cargarDashboard()
+cargarActividad()
+
+</script>
 
 
 

@@ -27,3 +27,10 @@ const SiteSetting = db.define(
 );
 
 export default SiteSetting;
+
+// key/value configuration for site settings
+// example keys:
+// site_name
+// telefono
+// direccion
+// tipo_negocio

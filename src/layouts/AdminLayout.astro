@@ -18,94 +18,91 @@ const { title = "Panel Admin" } = Astro.props;
   </head>
 
   <body class="bg-gray-100 d-flex">
-    <aside class="bg-dark text-white p-3" style="width: 250px; height: 100vh;">
-      <h3 class="text-center mb-4">Admin</h3>
+    <aside class="bg-dark text-white p-3 d-flex flex-column sidebar-admin">
 
-   <nav class="d-flex flex-column gap-2">
+  <h4 class="text-center mb-4 fw-bold">Admin</h4>
 
-  <!-- 🔹 Sección Principal -->
-  <small class="text-uppercase text-muted mt-2">Principal</small>
+  <nav class="nav flex-column gap-2 flex-grow-1">
 
-  <a href="/admin/panel-admin" class="text-white text-decoration-none">
-    🏠 Inicio
-  </a>
+<!-- PRINCIPAL -->
+<small class="text-uppercase text-secondary">Principal</small>
 
-  <hr class="border-light opacity-25" />
-
-  <!-- 🔹 Sección Productos -->
-  <small class="text-uppercase text-muted">Productos</small>
-
-  <a href="/admin/productos" class="text-white text-decoration-none">
-    <i class="bi bi-box"></i> Lista de Productos
-  </a>
-
-  <a href="/admin/producto-nuevo" class="text-white text-decoration-none">
-    <i class="bi bi-plus-circle"></i> Nuevo Producto
-  </a>
-
-  <hr class="border-light opacity-25" />
-
-  <!-- 🔹 Sección Categorías -->
-  <small class="text-uppercase text-muted">Categorías</small>
-
-  <a href="/admin/categoria-lista" class="text-white text-decoration-none">
-    <i class="bi bi-tags"></i> Lista de Categorías
-  </a>
-
-  <a href="/admin/categoria-nueva" class="text-white text-decoration-none">
-    <i class="bi bi-tag-fill"></i> Nueva Categoría
-  </a>
-
-  <hr class="border-light opacity-25" />
-
-  <!-- 🔹 Sección Marcas -->
-  <small class="text-uppercase text-muted">Marcas</small>
-
- <a href="/admin/marcas/marca-lista" class="text-white text-decoration-none">
-  <i class="bi bi-award"></i> Lista de Marcas
+<a href="/admin/panel-admin" class="nav-link text-white">
+ 🏠 Inicio
 </a>
 
-<a href="/admin/marcas/marca-nueva" class="text-white text-decoration-none">
-  <i class="bi bi-award-fill"></i> Nueva Marca
+<hr class="border-secondary opacity-25" />
+
+<!-- CATÁLOGO -->
+<small class="text-uppercase text-secondary">Catálogo</small>
+
+<a href="/admin/productos" class="nav-link text-white">
+ <i class="bi bi-box"></i> Productos
 </a>
 
-
-  <hr class="border-light opacity-25" />
-
-  <!-- 🔹 Sección Pagos -->
-  <small class="text-uppercase text-muted">Pagos</small>
-
-  <a href="/admin/pagos/comprobantes" class="text-white text-decoration-none">
-    <i class="bi bi-receipt"></i> Comprobantes
-  </a>
-
-  <hr class="border-light opacity-25" />
-
-<small class="text-uppercase text-muted">Contenido</small>
-
-<a href="/admin/hero" class="text-white text-decoration-none">
-  <i class="bi bi-images"></i> Hero Slides
+<a href="/admin/categoria-lista" class="nav-link text-white">
+ <i class="bi bi-tags"></i> Categorías
 </a>
 
-<a href="/admin/hero/nuevo" class="text-white text-decoration-none">
-  <i class="bi bi-image"></i> Nuevo Slide
+<a href="/admin/marcas/marca-lista" class="nav-link text-white">
+ <i class="bi bi-award"></i> Marcas
 </a>
 
+<hr class="border-secondary opacity-25" />
 
-  <hr class="border-light opacity-25" />
+<!-- VENTAS -->
+<small class="text-uppercase text-secondary">Ventas</small>
 
+<a href="/admin/pagos/comprobantes" class="nav-link text-white">
+ <i class="bi bi-receipt"></i> Comprobantes
+</a>
 
-  
+<a href="/admin/auditoria/pagos" class="nav-link text-white">
+ <i class="bi bi-clock-history"></i> Auditoría
+</a>
 
-  <!-- 🔹 Logout -->
-  <button id="btnLogout" class="btn btn-danger mt-3">
-    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
-  </button>
+<hr class="border-secondary opacity-25" />
+
+<!-- CONTENIDO -->
+<small class="text-uppercase text-secondary">Contenido</small>
+
+<a href="/admin/hero" class="nav-link text-white">
+ <i class="bi bi-images"></i> Hero Slides
+</a>
+
+<a href="/admin/paginas/lista" class="nav-link text-white">
+ <i class="bi bi-file-text"></i> Páginas
+</a>
+
+<a href="/admin/menu/lista" class="nav-link text-white">
+ <i class="bi bi-list"></i> Menú
+</a>
+
+<hr class="border-secondary opacity-25" />
+
+<!-- CONFIGURACIÓN -->
+<small class="text-uppercase text-secondary">Configuración</small>
+
+<a href="/admin/configuracion" class="nav-link text-white">
+ <i class="bi bi-gear"></i> Configuración
+</a>
 
 </nav>
 
+  <!-- LOGOUT -->
+  <div class="mt-auto">
 
-    </aside>
+    <hr class="border-secondary opacity-25" />
+
+    <div class="mt-auto">
+  <button id="btnLogout" class="btn btn-danger w-100">
+    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+  </button>
+</div>
+
+  </div>
+
+</aside>
 
     <main class="flex-grow-1 p-4">
       <h2 class="fw-bold mb-4">{title}</h2>
@@ -143,6 +140,24 @@ const { title = "Panel Admin" } = Astro.props;
 </html>
 
 
+<style>
+
+  .nav-link{
+  border-radius:8px;
+  transition:all .2s;
+}
+
+.nav-link:hover{
+  background:#343a40;
+  padding-left:12px;
+}
+
+ .sidebar-admin {
+  width: 260px;
+  height: 100vh;
+  overflow-y: auto;
+}
+</style>
 
 
 

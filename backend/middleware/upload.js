@@ -29,5 +29,11 @@ export function crearUpload(destino) {
     }
   };
 
-  return multer({ storage, fileFilter });
+  return multer({
+    storage,
+    fileFilter,
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB
+    },
+  });
 }

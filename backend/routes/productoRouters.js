@@ -19,6 +19,8 @@ import {
   productosRelacionados,
   listarProductosHome,
   actualizarCaracteristica,
+  obtenerProductoCompleto,
+  obtenerCaracteristicas,
 } from "../controllers/productoController.js";
 
 import { filtrarPorPrecio } from "../controllers/precioController.js";
@@ -36,7 +38,9 @@ router.use((req, res, next) => {
 router.get("/home", listarProductosHome);
 router.get("/precio", filtrarPorPrecio);
 router.get("/:id/relacionados", productosRelacionados);
+router.get("/:id/full", obtenerProductoCompleto);
 router.get("/", listarProductosPublicos);
+router.get("/:id/caracteristicas", obtenerCaracteristicas);
 router.get("/:id", obtenerProducto);
 
 /* --------------------

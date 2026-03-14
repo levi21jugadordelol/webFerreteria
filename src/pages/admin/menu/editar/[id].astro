@@ -1,0 +1,88 @@
+---
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+
+const { id } = Astro.params;
+---
+
+<AdminLayout title="Editar menú">
+
+<form id="formMenu">
+
+<div class="mb-3">
+<label>Título</label>
+<input class="form-control" name="titulo" id="titulo">
+</div>
+
+<div class="mb-3">
+<label>URL</label>
+<input class="form-control" name="url" id="url">
+</div>
+
+<div class="mb-3">
+<label>Orden</label>
+<input class="form-control" name="orden" id="orden" type="number">
+</div>
+
+<div class="form-check mb-3">
+<input type="checkbox" class="form-check-input" id="activo">
+<label class="form-check-label">Activo</label>
+</div>
+
+<button class="btn btn-success">
+Guardar cambios
+</button>
+
+</form>
+
+</AdminLayout>
+
+<script is:client>
+
+const id = window.location.pathname.split("/").pop()
+
+async function cargar(){
+
+ const res = await fetch(
+  "http://localhost:3000/api/menu/"+id,
+  { credentials:"include" }
+ )
+
+ const m = await res.json()
+
+ document.getElementById("titulo").value = m.titulo
+ document.getElementById("url").value = m.url
+ document.getElementById("orden").value = m.orden
+ document.getElementById("activo").checked = m.activo
+
+}
+
+document
+.getElementById("formMenu")
+.addEventListener("submit",async(e)=>{
+
+ e.preventDefault()
+
+ const data = {
+  titulo:document.getElementById("titulo").value,
+  url:document.getElementById("url").value,
+  orden:document.getElementById("orden").value,
+  activo:document.getElementById("activo").checked
+ }
+
+ await fetch(
+  "http://localhost:3000/api/menu/"+id,
+  {
+   method:"PUT",
+   headers:{ "Content-Type":"application/json" },
+   body:JSON.stringify(data),
+   credentials:"include"
+  }
+ )
+
+ window.location="/admin/menu/lista"
+
+})
+
+cargar()
+
+</script>

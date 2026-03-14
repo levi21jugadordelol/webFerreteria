@@ -1,4 +1,4 @@
-import Categoria from "../models/Categoria.js";
+import Categoria from "../../../src/modules/categories/category.model.js";
 import { validationResult } from "express-validator";
 import chalk from "chalk";
 import fs from "fs";

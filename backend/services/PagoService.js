@@ -4,84 +4,187 @@ import ComprobantePago from "../models/Comprobante.js";
 import Pedido from "../models/Pedido.js";
 import DetallePedido from "../models/DetallePedido.js";
 import Producto from "../models/Producto.js";
+import PagoAuditoria from "../models/PagoAuditoria.js";
+import { Op } from "sequelize";
 
 class PagoService {
-  static async validarComprobante(id) {
-    console.log(chalk.blueBright("💳 [PagoService] Validar comprobante:", id));
-
+  /* ---------------------------------
+     VALIDAR COMPROBANTE
+  --------------------------------- */
+  static async validarComprobante(id, admin = "admin") {
     return await db.transaction(async (t) => {
       const comprobante = await ComprobantePago.findByPk(id, {
         transaction: t,
+        lock: t.LOCK.UPDATE,
       });
 
       if (!comprobante) {
-        console.log(chalk.red("❌ Comprobante no encontrado"));
         throw new Error("Comprobante no encontrado");
       }
 
-      console.log(
-        chalk.yellow(
-          "🧾 Comprobante encontrado, pedido_id:",
-          comprobante.pedido_id
-        )
-      );
+      if (comprobante.estado_validacion === "validado") {
+        throw new Error("Este comprobante ya fue validado");
+      }
 
       const pedido = await Pedido.findByPk(comprobante.pedido_id, {
         transaction: t,
+        lock: t.LOCK.UPDATE,
       });
 
       if (!pedido) {
-        console.log(chalk.red("❌ Pedido no encontrado"));
         throw new Error("Pedido no encontrado");
       }
-
-      console.log(
-        chalk.green(`📦 Pedido estado actual: ${pedido.estado_pedido}`)
-      );
 
       const detalles = await DetallePedido.findAll({
         where: { pedido_id: pedido.id_pedido },
         transaction: t,
       });
 
-      console.log(chalk.cyan(`📋 Detalles encontrados: ${detalles.length}`));
-
-      if (detalles.length === 0) {
-        console.log(chalk.red("❌ Pedido sin detalles"));
-        throw new Error("Pedido sin detalles");
-      }
-
-      // 🔥 DESCONTAR STOCK
       for (const d of detalles) {
-        console.log(
-          chalk.yellow(
-            `🔻 Descontando stock producto=${d.producto_id}, cantidad=${d.cantidad}`
-          )
-        );
-
         const producto = await Producto.findByPk(d.producto_id, {
           transaction: t,
+          lock: t.LOCK.UPDATE,
         });
 
-        console.log(chalk.gray(`📊 Stock antes: ${producto.stock}`));
+        if (!producto) {
+          throw new Error(`Producto ${d.producto_id} no encontrado`);
+        }
+
+        if (producto.stock < d.cantidad) {
+          throw new Error(
+            `Stock insuficiente para ${producto.nombre_producto}`,
+          );
+        }
 
         producto.stock -= d.cantidad;
 
         await producto.save({ transaction: t });
-
-        console.log(chalk.green(`✅ Stock después: ${producto.stock}`));
       }
 
       pedido.estado_pedido = "pagado";
       await pedido.save({ transaction: t });
 
       comprobante.estado_validacion = "validado";
+      comprobante.fecha_validacion_pago = new Date();
+
       await comprobante.save({ transaction: t });
 
-      console.log(chalk.greenBright("🎉 Pago validado completamente"));
+      await PagoAuditoria.create(
+        {
+          comprobante_id: comprobante.id_comprobante,
+          accion: "validado",
+          admin_usuario: admin?.nombre || admin,
+          estado_anterior: "pendiente",
+          estado_nuevo: "validado",
+        },
+        { transaction: t },
+      );
+
+      console.log(chalk.green(`✔ Pago ${id} validado`));
 
       return true;
     });
+  }
+
+  /* ---------------------------------
+     REVERTIR COMPROBANTE
+  --------------------------------- */
+  static async revertirComprobante(id, admin = "admin") {
+    return await db.transaction(async (t) => {
+      const comprobante = await ComprobantePago.findByPk(id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (!comprobante) {
+        throw new Error("Comprobante no encontrado");
+      }
+
+      if (comprobante.estado_validacion !== "validado") {
+        throw new Error("Solo se pueden revertir pagos validados");
+      }
+
+      const pedido = await Pedido.findByPk(comprobante.pedido_id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (!pedido) {
+        throw new Error("Pedido no encontrado");
+      }
+
+      const detalles = await DetallePedido.findAll({
+        where: { pedido_id: pedido.id_pedido },
+        transaction: t,
+      });
+
+      for (const d of detalles) {
+        const producto = await Producto.findByPk(d.producto_id, {
+          transaction: t,
+          lock: t.LOCK.UPDATE,
+        });
+
+        if (!producto) {
+          throw new Error(`Producto ${d.producto_id} no encontrado`);
+        }
+
+        producto.stock += d.cantidad;
+
+        await producto.save({ transaction: t });
+      }
+
+      pedido.estado_pedido = "pendiente";
+      await pedido.save({ transaction: t });
+
+      comprobante.estado_validacion = "pendiente";
+      comprobante.fecha_validacion_pago = null;
+
+      await comprobante.save({ transaction: t });
+
+      await PagoAuditoria.create(
+        {
+          comprobante_id: comprobante.id_comprobante,
+          accion: "revertido",
+          admin_usuario: admin?.nombre || admin,
+          estado_anterior: "validado",
+          estado_nuevo: "pendiente",
+        },
+        { transaction: t },
+      );
+
+      console.log(chalk.yellow(`↩ Pago ${id} revertido`));
+
+      return true;
+    });
+  }
+
+  static async expirarComprobantes() {
+    const limite = new Date(Date.now() - 3 * 60 * 60 * 1000); // 3 horas
+
+    const comprobantes = await ComprobantePago.findAll({
+      where: {
+        estado_validacion: "pendiente",
+        fecha_hora: {
+          [Op.lt]: limite,
+        },
+      },
+    });
+
+    for (const c of comprobantes) {
+      c.estado_validacion = "vencido";
+
+      await c.save();
+
+      await PagoAuditoria.create({
+        comprobante_id: c.id_comprobante,
+        accion: "vencido",
+        admin_usuario: "sistema",
+        estado_anterior: "pendiente",
+        estado_nuevo: "vencido",
+      });
+    }
+
+    console.log(`⏰ ${comprobantes.length} comprobantes vencidos`);
   }
 }
 

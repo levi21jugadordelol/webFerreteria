@@ -2,42 +2,69 @@ import jwt from "jsonwebtoken";
 import Administrador from "../models/Administrador.js";
 
 const protegerRuta = async (req, res, next) => {
-  const _token = req.cookies?._token;
+  const token = req.cookies?._token;
 
-  if (!_token) {
+  /* ───────── TOKEN EXISTE ───────── */
+
+  if (!token) {
     console.warn("⚠️ No se encontró token");
+
     if (req.accepts("json")) {
-      return res.status(401).json({ ok: false, msg: "No autenticado" });
+      return res.status(401).json({
+        ok: false,
+        msg: "No autenticado",
+      });
     }
+
     return res.redirect("/admin/login");
   }
 
   try {
-    const decoded = jwt.verify(
-      _token,
-      process.env.JWT_SECRET || "secreto_admin",
-    );
+    /* ───────── VERIFICAR TOKEN ───────── */
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    /* ───────── BUSCAR ADMIN ───────── */
 
     const admin = await Administrador.findByPk(decoded.id_administrador, {
       attributes: { exclude: ["hash"] },
     });
 
-    if (!admin || decoded.rol !== "admin") {
-      console.warn("⛔ Acceso denegado");
-      if (req.accepts("json")) {
-        return res.status(403).json({ ok: false, msg: "Acceso denegado" });
-      }
-      return res.redirect("/admin/login");
+    if (!admin) {
+      console.warn("⛔ Admin no encontrado");
+
+      return res.status(403).json({
+        ok: false,
+        msg: "Acceso denegado",
+      });
     }
 
+    /* ───────── VALIDAR ROL ───────── */
+
+    if (decoded.rol !== "admin") {
+      console.warn("⛔ Rol inválido");
+
+      return res.status(403).json({
+        ok: false,
+        msg: "Acceso denegado",
+      });
+    }
+
+    /* ───────── PASAR ADMIN ───────── */
+
     req.admin = admin;
+
     next();
   } catch (error) {
     console.error("❌ Token inválido:", error.message);
+
     res.clearCookie("_token");
 
     if (req.accepts("json")) {
-      return res.status(401).json({ ok: false, msg: "Token inválido" });
+      return res.status(401).json({
+        ok: false,
+        msg: "Token inválido",
+      });
     }
 
     return res.redirect("/admin/login");

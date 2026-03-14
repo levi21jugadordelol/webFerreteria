@@ -34,6 +34,7 @@ const HeroSlide = db.define(
         "text-left", // texto izquierda
         "text-right", // texto derecha
         "centered", // texto centrado
+        "triple", // 👈 nuevo layout
       ),
       allowNull: false,
       defaultValue: "banner",
@@ -51,6 +52,11 @@ const HeroSlide = db.define(
     },
 
     boton_url: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+
+    link_url: {
       type: DataTypes.STRING(255),
       allowNull: true,
     },

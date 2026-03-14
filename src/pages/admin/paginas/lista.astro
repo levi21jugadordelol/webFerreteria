@@ -1,0 +1,126 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Páginas">
+
+<div class="card shadow-sm p-4">
+
+<div class="d-flex justify-content-between mb-3">
+
+<h5 class="mb-0">Listado de páginas</h5>
+
+<a href="/admin/paginas/nueva" class="btn btn-success">
+<i class="bi bi-plus"></i> Nueva página
+</a>
+
+</div>
+
+<table class="table table-hover">
+
+<thead class="table-light">
+<tr>
+<th>ID</th>
+<th>Título</th>
+<th>Slug</th>
+<th>Estado</th>
+<th width="220">Acciones</th>
+</tr>
+</thead>
+
+<tbody id="tablaPaginas"></tbody>
+
+</table>
+
+</div>
+
+</AdminLayout>
+
+<script is:client>
+
+const API = "http://localhost:3000"
+
+const tabla = document.getElementById("tablaPaginas")
+
+async function cargarPaginas(){
+
+ const res = await fetch(API + "/api/paginas/admin/lista",{
+  credentials:"include"
+ })
+
+ const paginas = await res.json()
+
+ tabla.innerHTML = ""
+
+ paginas.forEach(p=>{
+
+  const estado = p.activo
+   ? '<span class="badge bg-success">Activo</span>'
+   : '<span class="badge bg-secondary">Inactivo</span>'
+
+  tabla.innerHTML += `
+   <tr>
+
+    <td>${p.id_pagina}</td>
+
+    <td>${p.titulo}</td>
+
+    <td>${p.slug}</td>
+
+    <td>${estado}</td>
+
+    <td class="d-flex gap-2">
+
+     <a
+      href="/${p.slug}"
+      class="btn btn-sm btn-outline-primary"
+      target="_blank"
+     >
+     <i class="bi bi-eye"></i>
+     </a>
+
+     <a
+      href="/admin/paginas/editar/${p.id_pagina}"
+      class="btn btn-sm btn-outline-warning"
+     >
+     <i class="bi bi-pencil"></i>
+     </a>
+
+     <button
+      class="btn btn-sm btn-outline-danger"
+      onclick="eliminarPagina(${p.id_pagina})"
+     >
+     <i class="bi bi-trash"></i>
+     </button>
+
+    </td>
+
+   </tr>
+  `
+ })
+
+}
+
+cargarPaginas()
+
+/* -----------------------------
+   ELIMINAR
+----------------------------- */
+
+window.eliminarPagina = async function(id){
+
+ if(!confirm("¿Eliminar esta página?")) return
+
+ await fetch(
+  API + "/api/paginas/admin/" + id,
+  {
+   method:"DELETE",
+   credentials:"include"
+  }
+ )
+
+ cargarPaginas()
+
+}
+
+</script>

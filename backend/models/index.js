@@ -3,10 +3,11 @@ import Producto from "./Producto.js";
 import Pedido from "./Pedido.js";
 import DetallePedido from "./DetallePedido.js";
 import ComprobantePago from "./Comprobante.js";
-import Categoria from "./Categoria.js";
+import Categoria from "../src/modules/categories/category.model.js";
 import Marca from "./Marca.js";
 import ProductoCaracteristica from "./ProductoCaracteristica.js"; // 🆕
 import ProductoImagen from "./ProductoImagen.js"; // 🆕
+import ProductoTab from "./ProductoTab.js";
 
 /* ──────────────────────────────
    ADMINISTRADOR ↔ PRODUCTO
@@ -105,6 +106,20 @@ ProductoImagen.belongsTo(Producto, {
 });
 
 /* ──────────────────────────────
+   TAB ↔ CARACTERÍSTICAS
+────────────────────────────── */
+
+ProductoTab.hasMany(ProductoCaracteristica, {
+  foreignKey: "tab_id",
+  as: "caracteristicas",
+});
+
+ProductoCaracteristica.belongsTo(ProductoTab, {
+  foreignKey: "tab_id",
+  as: "tab",
+});
+
+/* ──────────────────────────────
    EXPORTAR TODO
 ────────────────────────────── */
 export {
@@ -115,6 +130,7 @@ export {
   ComprobantePago,
   Categoria,
   Marca,
-  ProductoCaracteristica, // 🆕
-  ProductoImagen, // 🆕
+  ProductoCaracteristica,
+  ProductoImagen,
+  ProductoTab,
 };

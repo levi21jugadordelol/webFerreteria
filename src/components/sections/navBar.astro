@@ -3,52 +3,71 @@ import Buscador from "../ui/Buscador.astro";
 import CarritoCounter from "../ui/carrito/CarritoCounter.astro";
 import ThemeToggle from "../ui/themeToggle/ThemeToggle.astro";
 
-const links = [
-  { href: '/', text: 'inicio' },
-  { href: '/categoria', text: 'categorias', isMega: true },
-  { href: '/marcas', text: 'marcas', isMega: true },
-  { href: '/productos', text: 'productos' },
+const API = "http://localhost:3000";
 
-];
+interface MenuItem {
+  url: string;
+  titulo: string;
+  tipo?: string;
+}
+
+const res = await fetch(`${API}/api/menu`);
+const data = await res.json();
+
+const links: MenuItem[] = Array.isArray(data) ? data : [];
 ---
 
 <nav class="nav-container">
-  <div class="nav-inner">
 
-    <!-- LOGO -->
-    <a href="/" class="logo"></a>
+<div class="nav-inner">
 
-    <!-- LINKS -->
-    <div class="nav-links">
-      {links.map(({ href, text }) => (
-        <div class="nav-item">
-          <a 
-            href={href}
-            class={`nav-link 
-              ${text === "categorias" ? "nav-link-categorias" : ""} 
-              ${text === "marcas" ? "nav-link-marcas" : ""}`}
-          >
-            {text}
-          </a>
+<a href="/" class="logo"></a>
 
-          {text === "categorias" && <div id="mega-categorias" class="mega-menu"><p>Cargando...</p></div>}
-          {text === "marcas" && <div id="mega-marcas" class="mega-menu"><p>Cargando...</p></div>}
-        </div>
-      ))}
-    </div>
+<div class="nav-links">
 
-    <!-- BUSCADOR -->
-    <div class="buscador-wrapper">
-      <Buscador  />
-    </div>
+{links.map((item) => (
 
-    <!-- ICONOS -->
-    <div class="icons">
-     <CarritoCounter  />
-<ThemeToggle  />
-    </div>
+<div class="nav-item">
 
-  </div>
+<a
+ href={item.tipo === "pagina" ? "/" + item.url : item.url}
+ class={`nav-link 
+ ${item.titulo === "categorias" ? "nav-link-categorias" : ""}
+ ${item.titulo === "marcas" ? "nav-link-marcas" : ""}
+ `}
+>
+ {item.titulo}
+</a>
+
+{item.titulo === "categorias" && (
+<div id="mega-categorias" class="mega-menu">
+<p>Cargando...</p>
+</div>
+)}
+
+{item.titulo === "marcas" && (
+<div id="mega-marcas" class="mega-menu">
+<p>Cargando...</p>
+</div>
+)}
+
+</div>
+
+))}
+
+</div>
+
+<div class="buscador-wrapper">
+<Buscador />
+</div>
+
+<div class="icons">
+<CarritoCounter />
+<ThemeToggle />
+</div>
+
+</div>
+
 </nav>
 
 

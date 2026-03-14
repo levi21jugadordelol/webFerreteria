@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import db from "../config/db.js";
+import db from "../../config/db.js";
 
 const Categoria = db.define(
   "categoria",
@@ -28,7 +28,7 @@ const Categoria = db.define(
   {
     tableName: "categorias",
     timestamps: false, // no createdAt / updatedAt
-  }
+  },
 );
 
 export default Categoria;

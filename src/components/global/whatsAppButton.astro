@@ -10,15 +10,19 @@ const apiUrl = new URL("/api/site-settings", Astro.url).toString();
 let config: SiteSettings = {};
 
 try {
-  const res = await fetch(apiUrl);
+  const res = await fetch(apiUrl, {
+    cache: "no-store"
+  });
+
   if (res.ok) {
     config = await res.json();
   }
+
 } catch (error) {
   console.error("Error cargando site-settings:", error);
 }
 
-const whatsappNumber = config.site_content?.whatsapp;
+const whatsappNumber = config.site_content?.whatsapp ?? "";
 ---
 
 <a
@@ -28,6 +32,44 @@ const whatsappNumber = config.site_content?.whatsapp;
 >
   💬
 </a>
+
+<style>
+
+.whatsapp-float {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 64px;
+  height: 64px;
+
+  background: #25D366;
+  border-radius: 50%;
+
+  color: white;
+  font-size: 28px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 99999;
+
+  animation: pulseWhatsapp 2.5s infinite;
+  transition: transform .2s ease;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 25px rgba(0,0,0,.3);
+}
+
+@keyframes pulseWhatsapp {
+  0% { box-shadow: 0 0 0 0 rgba(37,211,102,.6); }
+  70% { box-shadow: 0 0 0 15px rgba(37,211,102,0); }
+  100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
+}
+
+</style>
 
 
 

@@ -10,12 +10,14 @@ interface Caracteristica {
   id_caracteristica: number;
   titulo: string;
   valor: string;
+  tipo?: string;
+  orden?: number;
 }
 
 const apiUrl = "http://localhost:3000";
 const { id } = Astro.params;
 
-// Producto principal
+// PRODUCTO
 const res = await fetch(`${apiUrl}/productos/${id}`);
 const producto = await res.json();
 
@@ -23,271 +25,313 @@ if (!producto || !producto.id_producto) {
   return Astro.redirect("/productos");
 }
 
-// Productos relacionados
+// RELACIONADOS
 const relRes = await fetch(`${apiUrl}/productos/${id}/relacionados`);
 const relacionados = await relRes.json();
+
+// SETTINGS
+const settingsRes = await fetch(`${apiUrl}/api/site-settings`);
+const settings = await settingsRes.json();
+
+// TABS DINÁMICOS
+const caracteristicas: Caracteristica[] = producto.caracteristicas || [];
+
+const tiposTabs = [
+  ...new Set(caracteristicas.map(c => c.tipo || "especificaciones"))
+];
+
+// TAB ACTIVO
+const primerTab = tiposTabs.length > 0 ? tiposTabs[0] : null;
 ---
 
 <CaracteristicasProductosLayout
   title={producto.nombre_producto}
   description={producto.descripcion}
 >
-  <div class="producto-layout">
 
+<div class="producto-layout">
 
-    <!-- ===================== -->
-    <!-- 🖼️ GALERÍA DE IMÁGENES -->
-    <!-- ===================== -->
-   <div class="producto-galeria">
+<!-- GALERÍA -->
 
+<div class="producto-galeria">
 
-      <!-- 🔵 IMAGEN PRINCIPAL -->
-      <div class="zoom-container border rounded mb-3 position-relative">
-        <img
-          id="img-principal"
-          class="img-fluid"
-          src={`${apiUrl}/uploads/${producto.url_imagen}`}
-          data-zoom={`${apiUrl}/uploads/${producto.url_imagen}`}
-          alt={producto.nombre_producto}
-        />
-        <div class="zoom-pane"></div>
-      </div>
+<div class="zoom-container border rounded mb-3 position-relative">
+<img
+id="img-principal"
+class="img-fluid"
+src={`${apiUrl}/uploads/${producto.url_imagen}`}
+data-zoom={`${apiUrl}/uploads/${producto.url_imagen}`}
+alt={producto.nombre_producto}
+/>
+<div class="zoom-pane"></div>
+</div>
 
-      <!-- 🔵 MINIATURAS -->
-      <div class="d-flex gap-2 flex-wrap">
+<div class="d-flex gap-2 flex-wrap">
 
-        <!-- 🟢 MINIATURA PRINCIPAL -->
-        <img
-          src={`${apiUrl}/uploads/${producto.url_imagen}`}
-          width="80"
-          class="border rounded miniatura"
-          data-src={`${apiUrl}/uploads/${producto.url_imagen}`}
-          alt="Imagen principal"
-        />
+<img
+src={`${apiUrl}/uploads/${producto.url_imagen}`}
+width="80"
+class="border rounded miniatura"
+data-src={`${apiUrl}/uploads/${producto.url_imagen}`}
+alt="Imagen principal"
+/>
 
-        <!-- 🔵 MINIATURAS ADICIONALES -->
-        {producto.imagenes?.map((img: ImagenExtra) => (
-          <img
-            src={`${apiUrl}/uploads/${img.url}`}
-            width="80"
-            class="border rounded miniatura"
-            data-src={`${apiUrl}/uploads/${img.url}`}
-            alt="Miniatura del producto"
-          />
-        ))}
-      </div>
-    </div>
+{producto.imagenes?.map((img: ImagenExtra) => (
+<img
+src={`${apiUrl}/uploads/${img.url}`}
+width="80"
+class="border rounded miniatura"
+data-src={`${apiUrl}/uploads/${img.url}`}
+alt="Miniatura"
+/>
+))}
 
-    <!-- ===================== -->
-    <!-- ℹ️ INFO DEL PRODUCTO -->
-    <!-- ===================== -->
-    <div class="producto-info">
+</div>
 
-      <h1 class="fw-bold">{producto.nombre_producto}</h1>
-      <p class="precio-producto">
-S/ {producto.precio}</p>
-
-    <div
-  data-producto
-  data-id={producto.id_producto}
-  data-nombre={producto.nombre_producto}
-  data-precio={producto.precio}
-  data-imagen={`${apiUrl}/uploads/${producto.url_imagen}`}
->
-  <button class="btn-add btn btn-primary btn-lg mb-4">
-    Agregar al carrito
-  </button>
 </div>
 
 
-      <!-- TABS -->
-      <ul class="nav nav-tabs" role="tablist">
-        <li class="nav-item">
-          <button
-            class="nav-link active"
-            data-bs-toggle="tab"
-            data-bs-target="#descripcion"
-          >
-            Descripción
-          </button>
-        </li>
-        <li class="nav-item">
-          <button
-            class="nav-link"
-            data-bs-toggle="tab"
-            data-bs-target="#caracteristicas"
-          >
-            Características
-          </button>
-        </li>
-      </ul>
+<!-- INFO PRODUCTO -->
 
-      <div class="tab-content border border-top-0 p-4">
-        <div class="tab-pane fade show active" id="descripcion">
-          <p>{producto.descripcion}</p>
-        </div>
+<div class="producto-info">
 
-        <div class="tab-pane fade" id="caracteristicas">
-          <ul class="list-unstyled">
-          {producto.caracteristicas && producto.caracteristicas.length > 0 ? (
-  <table class="table table-sm mb-0">
-    <tbody>
-      {producto.caracteristicas.map((c: Caracteristica) => (
-        <tr>
-          <td class="fw-semibold" style="width:40%;">
-            {c.titulo}
-          </td>
-          <td>
-            {c.valor}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
+<h1 class="fw-bold">{producto.nombre_producto}</h1>
+
+<p class="precio-producto">
+S/ {producto.precio}
+</p>
+
+<p class="descripcion-producto mt-2">
+{producto.descripcion}
+</p>
+
+<div
+data-producto
+data-id={producto.id_producto}
+data-nombre={producto.nombre_producto}
+data-precio={producto.precio}
+data-imagen={`${apiUrl}/uploads/${producto.url_imagen}`}
+>
+<button class="btn-add btn btn-primary btn-lg mb-4">
+Agregar al carrito
+</button>
+</div>
+
+
+<!-- TABS DINÁMICOS -->
+
+{tiposTabs.length > 0 && (
+
+<>
+
+<ul class="nav nav-tabs" role="tablist">
+
+{tiposTabs.map((tipo, index) => (
+
+<li class="nav-item">
+
+<button
+class={`nav-link ${index === 0 ? "active" : ""}`}
+data-bs-toggle="tab"
+data-bs-target={`#tab-${tipo}`}
+>
+
+{tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+
+</button>
+
+</li>
+
+))}
+
+</ul>
+
+
+<div class="tab-content border border-top-0 p-4">
+
+{tiposTabs.map((tipo, index) => {
+
+const items = caracteristicas
+.filter(c => (c.tipo || "especificaciones") === tipo)
+.sort((a,b) => (a.orden ?? 0) - (b.orden ?? 0));
+
+return (
+
+<div
+class={`tab-pane fade ${index === 0 ? "show active" : ""}`}
+id={`tab-${tipo}`}
+>
+
+{items.length > 0 ? (
+
+<table class="table table-sm mb-0">
+
+<tbody>
+
+{items.map((c: Caracteristica) => (
+
+<tr>
+
+<td class="fw-semibold" style="width:40%">
+{c.titulo}
+</td>
+
+<td>
+{c.valor}
+</td>
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
 ) : (
-  <p class="text-muted mb-0">
-    Este producto no tiene características adicionales.
-  </p>
+
+<p class="text-muted mb-0">
+No hay contenido en esta sección.
+</p>
+
 )}
 
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+</div>
 
-  <!-- ===================== -->
-  <!-- 🔁 PRODUCTOS RELACIONADOS -->
-  <!-- ===================== -->
-  <hr class="my-5" />
-  <h3 class="fw-bold mb-4">Productos relacionados</h3>
+);
 
-  <div class="relacionados-grid">
+})}
 
-  {relacionados.map((p: any) => (
-    <a
-      href={`/productos/${p.id_producto}`}
-      class="relacionado-card"
-    >
-      <div class="card h-100">
-        <img
-          src={
-            p.url_imagen
-              ? `${apiUrl}/uploads/${p.url_imagen}`
-              : "/img/no-image.png"
-          }
-          class="card-img-top"
-          style="height:180px;object-fit:contain"
-        />
-        <div class="card-body text-center">
-          <h6 class="fw-semibold">{p.nombre_producto}</h6>
-          <p class="text-primary fw-bold">S/ {p.precio}</p>
-        </div>
-      </div>
-    </a>
-  ))}
+</div>
+
+</>
+
+)}
+
+</div>
 
 </div>
 
 
-  <!-- ===================== -->
-  <!-- 🧠 DRIFT SCRIPT -->
-  <!-- ===================== -->
-  <script type="module" src="/src/scripts/drift-producto.js"></script>
+<!-- RELACIONADOS -->
 
-  <style>
-    .zoom-container {
-      overflow: hidden;
-    }
+<hr class="my-5" />
 
-    .miniatura {
-      cursor: pointer;
-    }
+<h3 class="fw-bold mb-4">
+Productos relacionados
+</h3>
 
-    .miniatura:hover {
-      outline: 2px solid #0d6efd;
-    }
-  </style>
+<div class="relacionados-grid">
+
+{relacionados.map((p: any) => (
+
+<a
+href={`/productos/${p.id_producto}`}
+class="relacionado-card"
+>
+
+<div class="card h-100">
+
+<img
+src={
+p.url_imagen
+? `${apiUrl}/uploads/${p.url_imagen}`
+: "/img/no-image.png"
+}
+class="card-img-top"
+style="height:180px;object-fit:contain"
+/>
+
+<div class="card-body text-center">
+
+<h6 class="fw-semibold">
+{p.nombre_producto}
+</h6>
+
+<p class="text-primary fw-bold">
+S/ {p.precio}
+</p>
+
+</div>
+
+</div>
+
+</a>
+
+))}
+
+</div>
+
+
+<script type="module" src="/src/scripts/drift-producto.js"></script>
 
 </CaracteristicasProductosLayout>
 
 
 <style>
-.producto-layout {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 48px;
-  align-items: start;
+
+.producto-layout{
+display:grid;
+grid-template-columns:1.1fr 0.9fr;
+gap:48px;
+align-items:start;
 }
 
-
-.producto-galeria {
-  display: flex;
-  flex-direction: column;
+.producto-galeria{
+display:flex;
+flex-direction:column;
 }
 
-.producto-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.producto-info{
+display:flex;
+flex-direction:column;
+justify-content:center;
 }
 
-.zoom-container {
-  height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.zoom-container{
+width:100%;
+max-height:600px;
+padding:30px;
+background:linear-gradient(
+180deg,
+var(--color-bg),
+var(--color-card)
+);
+border:1px solid var(--color-border);
+border-radius:16px;
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
 }
 
-.zoom-container {
-  width: 100%;
-  max-height: 600px;
-  padding: 30px;
-   background: linear-gradient(
-    180deg,
-    var(--color-bg),
-    var(--color-card)
-  );
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+.precio-producto{
+font-size:2.2rem;
+font-weight:700;
+color:var(--color-primary);
 }
 
-
-.precio-producto {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: var(--color-primary);
+.relacionados-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+gap:28px;
 }
 
-
-.relacionados-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 28px;
+.relacionado-card{
+text-decoration:none;
+color:inherit;
 }
 
-.relacionado-card {
-  text-decoration: none;
-  color: inherit;
+#img-principal{
+max-width:100%;
+max-height:520px;
+object-fit:contain;
 }
-
-#img-principal {
-  max-width: 100%;
-  max-height: 520px;
-  object-fit: contain; /* 🔥 clave */
-}
-
-
 
 </style>
 
 
-
-<script type="module" src="/js/addToCart.js"></script>
+<script is:inline type="module" src="/js/addToCart.js"></script>
 
 
 

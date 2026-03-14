@@ -1,0 +1,35 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const API = "http://localhost:3000";
+const { slug } = Astro.params;
+
+// evitar archivos como favicon.ico, robots.txt, etc
+if (slug?.includes(".")) {
+  return Astro.redirect("/");
+}
+
+const res = await fetch(`${API}/api/paginas/${slug}`);
+
+if (!res.ok) {
+  throw new Error("Página no encontrada");
+}
+
+const pagina = await res.json();
+---
+
+
+<BaseLayout
+  title={pagina.meta_title || pagina.titulo}
+  description={pagina.meta_description || pagina.titulo}
+>
+
+<section class="container py-5">
+
+<h1 class="mb-4">{pagina.titulo}</h1>
+
+<div class="cms-content" set:html={pagina.contenido}></div>
+
+</section>
+
+</BaseLayout>

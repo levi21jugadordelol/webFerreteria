@@ -1,0 +1,166 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Nuevo enlace de menú">
+
+<form id="formMenu">
+
+<div class="mb-3">
+<label>Título</label>
+<input class="form-control" name="titulo" required>
+</div>
+
+<div class="mb-3">
+<label>Página</label>
+<select id="paginaSelect" class="form-control">
+<option value="">Seleccionar página</option>
+</select>
+</div>
+
+<div class="mb-3">
+<label>Orden</label>
+<input class="form-control" name="orden" type="number" value="0">
+</div>
+
+<div class="form-check mb-3">
+<input type="checkbox" class="form-check-input" name="activo" checked>
+<label class="form-check-label">Activo</label>
+</div>
+
+<button class="btn btn-success">
+Guardar
+</button>
+
+</form>
+
+
+<div id="mensaje" class="mt-3"></div>
+
+</AdminLayout>
+
+<script is:client>
+
+const API = "http://localhost:3000"
+
+const select = document.getElementById("paginaSelect")
+
+/* --------------------------
+   CARGAR PAGINAS
+---------------------------*/
+
+async function cargarPaginas(){
+
+ try{
+
+  const res = await fetch(API + "/api/paginas")
+
+  const paginas = await res.json()
+
+  paginas.forEach(p=>{
+
+   const option = document.createElement("option")
+
+   option.value = p.slug
+   option.textContent = p.titulo
+
+   select.appendChild(option)
+
+  })
+
+ }catch(err){
+  console.error("Error cargando páginas",err)
+ }
+
+}
+
+cargarPaginas()
+
+
+function mostrarMensaje(tipo, texto){
+
+  const msg = document.getElementById("mensaje")
+
+  if(!msg) return
+
+  msg.innerHTML = `
+    <div class="alert alert-${tipo}">
+      ${texto}
+    </div>
+  `
+}
+
+/* --------------------------
+   FORMULARIO
+---------------------------*/
+
+document
+.getElementById("formMenu")
+.addEventListener("submit", async (e) => {
+
+  e.preventDefault()
+
+  // 🔹 DESACTIVAR BOTÓN
+  const btn = e.target.querySelector("button")
+  btn.disabled = true
+  btn.innerText = "Guardando..."
+
+  const form = new FormData(e.target)
+
+  const data = Object.fromEntries(form)
+
+  data.url = select.value
+  data.activo = form.get("activo") ? 1 : 0
+  data.orden = Number(data.orden || 0)
+
+  if(!data.url){
+    mostrarMensaje("danger","Debe seleccionar una página")
+
+    // 🔹 REACTIVAR BOTÓN
+    btn.disabled = false
+    btn.innerText = "Guardar"
+
+    return
+  }
+
+  try{
+
+  const res = await fetch(
+    API + "/api/menu/admin",
+    {
+      method:"POST",
+      body:JSON.stringify(data),
+      headers:{ "Content-Type":"application/json" },
+      credentials:"include"
+    }
+  )
+
+  if(!res.ok){
+    mostrarMensaje("danger","No se pudo crear el enlace")
+
+    btn.disabled = false
+    btn.innerText = "Guardar"
+
+    return
+  }
+
+  mostrarMensaje("success","Enlace creado correctamente")
+
+  setTimeout(()=>{
+    window.location="/admin/menu/lista"
+  },1200)
+
+}catch(err){
+
+  console.error(err)
+
+  mostrarMensaje("danger","Error de conexión")
+
+  btn.disabled = false
+  btn.innerText = "Guardar"
+
+}
+
+})
+
+</script>

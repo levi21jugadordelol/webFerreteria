@@ -3,6 +3,8 @@ import ComprobantePago from "../models/Comprobante.js";
 import Pedido from "../models/Pedido.js";
 import chalk from "chalk";
 import PagoService from "../services/PagoService.js";
+import { formatearFechaHora } from "../helpers/fechaHelper.js";
+import { tiempoPendiente } from "../helpers/tiempoHelper.js";
 
 /* ---------------------------------
    Subir comprobante (cliente)
@@ -57,10 +59,11 @@ export const listarComprobantes = async (req, res) => {
       include: [
         {
           model: Pedido,
-          as: "pedido", // 🔥 IMPORTANTE
+          as: "pedido",
           attributes: [
             "id_pedido",
             "nombre_comprador",
+            "direccion_envio",
             "total_pedido",
             "estado_pedido",
           ],
@@ -69,7 +72,31 @@ export const listarComprobantes = async (req, res) => {
       order: [["fecha_hora", "DESC"]],
     });
 
-    res.json(comprobantes);
+    const data = comprobantes.map((c) => ({
+      ...c.toJSON(),
+
+      fecha_envio: formatearFechaHora(c.fecha_hora),
+
+      fecha_validacion: formatearFechaHora(c.fecha_validacion_pago),
+
+      tiempo_pendiente:
+        c.estado_validacion === "pendiente"
+          ? tiempoPendiente(c.fecha_hora)
+          : "-",
+    }));
+
+    const prioridad = {
+      pendiente: 1,
+      vencido: 2,
+      validado: 3,
+      rechazado: 4,
+    };
+
+    data.sort((a, b) => {
+      return prioridad[a.estado_validacion] - prioridad[b.estado_validacion];
+    });
+
+    res.json(data);
   } catch (error) {
     console.error("🔥 Error al listar comprobantes:", error);
     res.status(500).json({ msg: "Error al listar comprobantes" });
@@ -81,7 +108,7 @@ export const listarComprobantes = async (req, res) => {
 --------------------------------- */
 export const validarComprobante = async (req, res) => {
   try {
-    await PagoService.validarComprobante(req.params.id);
+    await PagoService.validarComprobante(req.params.id, req.admin);
     res.json({ msg: "Pago validado, stock actualizado" });
   } catch (error) {
     res.status(400).json({ msg: error.message });
@@ -115,7 +142,7 @@ export const rechazarComprobante = async (req, res) => {
 --------------------------------- */
 export const revertirComprobante = async (req, res) => {
   try {
-    await PagoService.revertirComprobante(req.params.id);
+    await PagoService.revertirComprobante(req.params.id, req.admin);
     res.json({ msg: "Pago revertido y stock restaurado" });
   } catch (error) {
     res.status(400).json({ msg: error.message });

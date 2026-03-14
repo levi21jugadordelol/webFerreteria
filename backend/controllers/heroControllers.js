@@ -2,6 +2,7 @@ import HeroSlide from "../models/HeroSlides.js";
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
+import { Op } from "sequelize";
 
 /* ──────────────────────────────
    🟢 GET PUBLICO
@@ -9,10 +10,26 @@ import path from "path";
 export const getHeroSlides = async (req, res) => {
   try {
     console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-    console.log(chalk.blue("🎯 LISTAR HERO SLIDES (PÚBLICO)"));
+    console.log(chalk.blue("🎯 LISTAR HERO SLIDES"));
+
+    const { type } = req.query;
+
+    let where = { activo: true };
+
+    // 🔹 hero carrusel
+    if (type === "carousel") {
+      where.tipo_layout = {
+        [Op.in]: ["banner", "text-left", "text-right", "centered"],
+      };
+    }
+
+    // 🔹 banners promocionales
+    if (type === "triple") {
+      where.tipo_layout = "triple";
+    }
 
     const slides = await HeroSlide.findAll({
-      where: { activo: true },
+      where,
       order: [["orden", "ASC"]],
     });
 
@@ -53,16 +70,34 @@ export const getHeroById = async (req, res) => {
    🔒 CREAR SLIDE
 ────────────────────────────── */
 export const createHeroSlide = async (req, res) => {
+  console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
+  console.log(chalk.blue("📥 BODY RECIBIDO"));
+
+  console.log(chalk.yellow("tipo_layout:"), req.body.tipo_layout);
+  console.log(chalk.yellow("link_url:"), req.body.link_url);
+  console.log(chalk.yellow("boton_url:"), req.body.boton_url);
+  console.log(chalk.yellow("activo:"), req.body.activo);
+
+  console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
   try {
     console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
     console.log(chalk.yellow("🆕 CREAR HERO SLIDE"));
-    console.log(
-      chalk.magenta("📦 BODY:"),
-      chalk.white(JSON.stringify(req.body, null, 2)),
-    );
 
-    const { titulo1, titulo2, orden, tipo_layout, boton_texto, boton_url } =
-      req.body;
+    const {
+      titulo1,
+      titulo2,
+      orden,
+      tipo_layout,
+      boton_texto,
+      boton_url,
+      link_url,
+    } = req.body;
+
+    let url = boton_url;
+
+    if (Array.isArray(url)) {
+      url = url[0];
+    }
 
     const activo = req.body.activo === "on";
     const mostrar_boton = req.body.mostrar_boton === "on";
@@ -73,16 +108,23 @@ export const createHeroSlide = async (req, res) => {
       });
     }
 
-    const total = await HeroSlide.count();
-    if (total >= 3) {
-      console.log(chalk.red("⛔ Límite máximo de 3 slides alcanzado"));
-      return res.status(400).json({
-        msg: "Solo se permiten máximo 3 slides",
+    /* LIMITE SOLO PARA TRIPLE */
+
+    if (tipo_layout === "triple") {
+      const totalTriple = await HeroSlide.count({
+        where: { tipo_layout: "triple" },
       });
+
+      if (totalTriple >= 3) {
+        return res.status(400).json({
+          msg: "Solo se permiten máximo 3 banners promocionales",
+        });
+      }
     }
 
-    // 🔥 Validación inteligente según layout
-    if (tipo_layout !== "banner") {
+    /* VALIDACIÓN TEXTO */
+
+    if (tipo_layout !== "banner" && tipo_layout !== "triple") {
       if (!titulo1 && !titulo2) {
         return res.status(400).json({
           msg: "Este layout requiere texto",
@@ -90,8 +132,10 @@ export const createHeroSlide = async (req, res) => {
       }
     }
 
+    /* VALIDAR BOTÓN */
+
     if (mostrar_boton) {
-      if (!boton_texto || !boton_url) {
+      if (!boton_texto || !url) {
         return res.status(400).json({
           msg: "Debe completar texto y URL del botón",
         });
@@ -103,17 +147,17 @@ export const createHeroSlide = async (req, res) => {
       titulo2: titulo2 || null,
       imagen: `hero/${req.file.filename}`,
       tipo_layout: tipo_layout || "banner",
+
       mostrar_boton,
       boton_texto: mostrar_boton ? boton_texto : null,
-      boton_url: mostrar_boton ? boton_url : null,
+      boton_url: mostrar_boton ? url : null,
+
+      // 🔗 SOLO PARA TRIPLE
+      link_url: tipo_layout === "triple" ? link_url : null,
+
       orden: Number(orden) || 0,
       activo,
     });
-
-    console.log(
-      chalk.blue("🖼 Imagen guardada en:"),
-      chalk.white(`uploads/hero/${req.file.filename}`),
-    );
 
     console.log(chalk.green(`✅ Slide creado ID: ${slide.id_hero}`));
 
@@ -131,8 +175,16 @@ export const createHeroSlide = async (req, res) => {
    🔒 ACTUALIZAR SLIDE
 ────────────────────────────── */
 export const updateHeroSlide = async (req, res) => {
+  console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
+  console.log(chalk.yellow("✏️ ACTUALIZAR HERO SLIDE"));
+  console.log(chalk.blue("📦 BODY RECIBIDO →"), req.body);
+
+  console.log(chalk.magenta("🔗 LINK_URL →"), req.body.link_url);
+  console.log(chalk.magenta("🎨 LAYOUT →"), req.body.tipo_layout);
+  console.log(chalk.magenta("🟢 ACTIVO →"), req.body.activo);
+
+  console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
   try {
-    console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
     console.log(chalk.yellow("✏️ ACTUALIZAR HERO SLIDE"));
 
     const { id } = req.params;
@@ -142,10 +194,21 @@ export const updateHeroSlide = async (req, res) => {
       return res.status(404).json({ msg: "Hero slide no encontrado" });
     }
 
-    console.log(
-      chalk.magenta("📌 ANTES:"),
-      chalk.white(JSON.stringify(slide.toJSON(), null, 2)),
-    );
+    /* VALIDAR LIMITE TRIPLE */
+
+    if (req.body.tipo_layout === "triple" && slide.tipo_layout !== "triple") {
+      const totalTriple = await HeroSlide.count({
+        where: { tipo_layout: "triple" },
+      });
+
+      if (totalTriple >= 3) {
+        return res.status(400).json({
+          msg: "Solo se permiten máximo 3 banners promocionales",
+        });
+      }
+    }
+
+    /* CAMBIO IMAGEN */
 
     if (req.file) {
       if (slide.imagen) {
@@ -175,6 +238,12 @@ export const updateHeroSlide = async (req, res) => {
       ? (req.body.boton_url ?? slide.boton_url)
       : null;
 
+    // 🔗 LINK PARA TRIPLE
+    slide.link_url =
+      slide.tipo_layout === "triple"
+        ? (req.body.link_url ?? slide.link_url)
+        : null;
+
     slide.orden =
       req.body.orden !== undefined ? Number(req.body.orden) : slide.orden;
 
@@ -182,12 +251,7 @@ export const updateHeroSlide = async (req, res) => {
       req.body.activo !== undefined ? req.body.activo === "on" : slide.activo;
 
     await slide.save();
-
-    console.log(
-      chalk.green("✅ DESPUÉS:"),
-      chalk.white(JSON.stringify(slide.toJSON(), null, 2)),
-    );
-
+    console.log(chalk.green("✅ LINK GUARDADO →"), slide.link_url);
     res.json({
       msg: "Hero slide actualizado correctamente",
       slide,
@@ -211,12 +275,14 @@ export const updateHeroOrden = async (req, res) => {
       return res.status(400).json({ msg: "Formato inválido" });
     }
 
-    for (const item of slides) {
-      await HeroSlide.update(
-        { orden: item.orden },
-        { where: { id_hero: item.id_hero } },
-      );
-    }
+    await Promise.all(
+      slides.map((item) =>
+        HeroSlide.update(
+          { orden: item.orden },
+          { where: { id_hero: item.id_hero } },
+        ),
+      ),
+    );
 
     console.log(chalk.green("✅ Orden actualizado"));
 

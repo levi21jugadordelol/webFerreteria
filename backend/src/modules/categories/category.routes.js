@@ -1,7 +1,7 @@
 import express from "express";
 import { body } from "express-validator";
-import protegerRuta from "../middleware/protegerRuta.js";
-import uploadCategoria from "../middleware/uploadCategoria.js";
+import protegerRuta from "../../../middleware/protegerRuta.js";
+import uploadCategoria from "../../../middleware/uploadCategoria.js";
 
 import {
   crearCategoria,
@@ -10,7 +10,7 @@ import {
   actualizarCategoria,
   eliminarCategoria,
   subirImagenCategoria,
-} from "../controllers/categoriaController.js";
+} from "./category.controller.js";
 
 const router = express.Router();
 

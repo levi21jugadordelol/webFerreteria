@@ -1,0 +1,116 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Menú del sitio">
+
+<div class="mb-3">
+ <a href="/admin/menu/nuevo" class="btn btn-primary">
+  Nuevo enlace
+ </a>
+</div>
+
+<div id="tabla-menu"></div>
+
+</AdminLayout>
+
+<script is:client>
+
+const API = "http://localhost:3000"
+
+async function cargarMenu(){
+
+ const res = await fetch(
+  API + "/api/menu/admin/lista",
+  { credentials:"include" }
+ )
+
+ const data = await res.json()
+
+ const cont = document.getElementById("tabla-menu")
+
+ cont.innerHTML = `
+  <table class="table table-striped">
+
+   <thead>
+    <tr>
+     <th>ID</th>
+     <th>Título</th>
+     <th>URL</th>
+     <th>Tipo</th>
+     <th>Orden</th>
+     <th>Activo</th>
+     <th>Acciones</th>
+    </tr>
+   </thead>
+
+   <tbody>
+
+   ${
+    data.map(m=>`
+
+     <tr>
+
+      <td>${m.id_menu}</td>
+
+      <td>${m.titulo}</td>
+
+      <td>${m.url}</td>
+
+      <td>${m.tipo}</td>
+
+      <td>${m.orden}</td>
+
+      <td>
+       <span class="badge ${m.activo ? "bg-success":"bg-secondary"}">
+        ${m.activo ? "Activo":"Inactivo"}
+       </span>
+      </td>
+
+      <td>
+
+       <a
+        href="/admin/menu/editar/${m.id_menu}"
+        class="btn btn-sm btn-warning"
+       >
+        Editar
+       </a>
+
+       <button
+        onclick="eliminarMenu(${m.id_menu})"
+        class="btn btn-sm btn-danger"
+       >
+        Eliminar
+       </button>
+
+      </td>
+
+     </tr>
+
+    `).join("")
+   }
+
+   </tbody>
+
+  </table>
+ `
+}
+
+async function eliminarMenu(id){
+
+ if(!confirm("¿Eliminar este enlace del menú?")) return
+
+ await fetch(
+  API + "/api/menu/admin/" + id,
+  {
+   method:"DELETE",
+   credentials:"include"
+  }
+ )
+
+ cargarMenu()
+}
+
+cargarMenu()
+
+</script>

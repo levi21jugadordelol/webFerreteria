@@ -444,3 +444,31 @@ html[data-theme="dark"] .theme-toggle i.fa-sun {
     opacity: 0;
   }
 }
+
+/* =========================
+   CMS CONTENT
+========================= */
+
+.cms-content h2 {
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+.cms-content p {
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.cms-content img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin: 20px 0;
+}
+
+.cms-content ul {
+  padding-left: 20px;
+}
+
+.cms-content li {
+  margin-bottom: 6px;
+}

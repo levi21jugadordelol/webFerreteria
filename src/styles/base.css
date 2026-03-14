@@ -46,3 +46,27 @@ body {
 .main-layout {
   flex: 1;
 }
+
+/* =========================
+   🧱 MAIN LAYOUT
+========================= */
+
+/* Compensar navbar fixed */
+.main-layout {
+  padding-top: 100px; /* altura navbar */
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+}
+
+/* Espaciado vertical entre secciones */
+.main-layout > * + * {
+  margin-top: 4rem;
+}
+
+/* Espacio antes del footer */
+footer {
+  margin-top: 6rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--color-border);
+}

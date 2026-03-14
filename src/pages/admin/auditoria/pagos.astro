@@ -1,0 +1,57 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Auditoría de Pagos">
+
+<div id="tabla-auditoria"></div>
+
+</AdminLayout>
+
+<script is:client>
+
+const API = "http://localhost:3000/api/auditoria/pagos"
+
+async function cargar(){
+
+ const res = await fetch(API,{credentials:"include"})
+ const data = await res.json()
+
+ const cont = document.getElementById("tabla-auditoria")
+
+ cont.innerHTML = `
+  <table class="table table-striped">
+
+   <thead>
+    <tr>
+     <th>ID</th>
+     <th>Comprobante</th>
+     <th>Acción</th>
+     <th>Admin</th>
+     <th>Fecha</th>
+    </tr>
+   </thead>
+
+   <tbody>
+
+   ${
+    data.map(a=>`
+     <tr>
+      <td>${a.id_auditoria}</td>
+      <td>#${a.comprobante_id}</td>
+      <td>${a.accion}</td>
+      <td>${a.admin_usuario}</td>
+      <td>${new Date(a.fecha).toLocaleString()}</td>
+     </tr>
+    `).join("")
+   }
+
+   </tbody>
+
+  </table>
+ `
+}
+
+cargar()
+
+</script>

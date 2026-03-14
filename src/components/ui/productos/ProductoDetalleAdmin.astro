@@ -3,273 +3,402 @@ const { id } = Astro.props;
 const apiUrl = "http://localhost:3000";
 ---
 
-<!-- ========================= -->
-<!-- 🖼️ IMÁGENES ADICIONALES -->
-<!-- ========================= -->
 <section class="bg-white p-4 shadow rounded mb-4">
-  <h3 class="fw-semibold mb-3">Imágenes adicionales</h3>
 
-  <form id="form-img-extra" class="d-flex gap-2 align-items-center">
-    <input type="file" id="img-extra" class="form-control" />
-    <button type="submit" class="btn btn-secondary btn-sm">
-      Subir
-    </button>
-  </form>
+<h3 class="fw-semibold mb-3">Imágenes adicionales</h3>
 
-  <div id="lista-imagenes-extra" class="d-flex flex-wrap gap-3 mt-3"></div>
+<form id="form-img-extra" class="d-flex gap-2 align-items-center">
+<input type="file" id="img-extra" class="form-control" />
+<button type="submit" class="btn btn-secondary btn-sm">
+Subir
+</button>
+</form>
+
+<div id="lista-imagenes-extra" class="d-flex flex-wrap gap-3 mt-3"></div>
+
 </section>
 
-<!-- ========================= -->
-<!-- 🧾 CARACTERÍSTICAS -->
-<!-- ========================= -->
+
 <section class="bg-white p-4 shadow rounded">
 
-  <!-- Header con contador -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="fw-semibold mb-0">Características</h3>
-    <small id="contador-carac" class="text-muted"></small>
-  </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h3 class="fw-semibold mb-0">Características</h3>
+<small id="contador-carac" class="text-muted"></small>
+</div>
 
-  <!-- Formulario -->
-  <form id="form-carac" class="row g-3 align-items-end mb-4">
-    <div class="col-md-5">
-      <label class="form-label fw-semibold">
-        Nombre de la característica
-      </label>
-      <input
-        type="text"
-        id="carac-titulo"
-        class="form-control"
-        placeholder="Ej: Material, Dimensiones, Peso..."
-        required
-      />
-    </div>
 
-    <div class="col-md-5">
-      <label class="form-label fw-semibold">Valor</label>
-      <input
-        type="text"
-        id="carac-valor"
-        class="form-control"
-        placeholder="Ej: Algodón, 20cm x 15cm, 1.2kg..."
-        required
-      />
-    </div>
+<form id="form-carac" class="row g-3 align-items-end mb-4">
 
-    <div class="col-md-2">
-      <button class="btn btn-primary w-100" type="submit">
-        Agregar
-      </button>
-    </div>
-  </form>
+<div class="col-md-3">
+<label class="form-label fw-semibold">Tipo</label>
+<select id="carac-tab" class="form-select"></select>
+</div>
 
-  <!-- Tabla -->
-  <div class="table-responsive">
-    <table class="table table-sm align-middle mb-0" id="tabla-caracteristicas">
-      <thead class="table-light">
-        <tr>
-          <th style="width:40%">Característica</th>
-          <th style="width:45%">Valor</th>
-          <th class="text-end" style="width:15%">Acciones</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<div class="col-md-3">
+<label class="form-label fw-semibold">Característica</label>
+<input type="text" id="carac-titulo" class="form-control" required />
+</div>
+
+<div class="col-md-3">
+<label class="form-label fw-semibold">Valor</label>
+<input type="text" id="carac-valor" class="form-control" required />
+</div>
+
+<div class="col-md-1">
+<label class="form-label fw-semibold">Orden</label>
+<input type="number" id="carac-orden" class="form-control" value="0" />
+</div>
+
+<div class="col-md-2">
+<button class="btn btn-primary w-100" type="submit">
+Agregar
+</button>
+</div>
+
+</form>
+
+
+<div class="table-responsive">
+
+<table class="table table-sm align-middle mb-0" id="tabla-caracteristicas">
+
+<thead class="table-light">
+<tr>
+<th style="width:20%">Tipo</th>
+<th style="width:10%">Orden</th>
+<th style="width:30%">Característica</th>
+<th style="width:25%">Valor</th>
+<th class="text-end" style="width:15%">Acciones</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
 
 </section>
 
+
 <script is:client>
-  const apiUrl = "http://localhost:3000";
-  const productoId = Number(
-    document.getElementById("producto-detalle").dataset.id
-  );
 
-  // =========================================
-  // 🔵 Obtener producto completo
-  // =========================================
-  async function obtenerProductoDetalle() {
-    const res = await fetch(`${apiUrl}/productos/${productoId}`);
-    if (!res.ok) throw new Error("No se pudo cargar el producto");
-    return res.json();
-  }
+const apiUrl = "http://localhost:3000";
 
-  // =========================================
-  // 🔵 Cargar características
-  // =========================================
-  async function cargarCaracteristicas() {
-  const tbody = document.querySelector("#tabla-caracteristicas tbody");
-  const contador = document.getElementById("contador-carac");
-  const prod = await obtenerProductoDetalle();
+let tabsCache = [];
 
-  if (!prod.caracteristicas || prod.caracteristicas.length === 0) {
-    contador.textContent = "";
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="3" class="text-center py-4 text-muted">
-          No hay características agregadas
-        </td>
-      </tr>
-    `;
-    return;
-  }
+/* =====================================
+CARGAR TABS
+===================================== */
 
-  contador.textContent = `${prod.caracteristicas.length} registradas`;
+async function cargarTabs(){
 
-  tbody.innerHTML = prod.caracteristicas
-    .map(
-      (c) => `
-    <tr data-id="${c.id_caracteristica}">
-      <td class="fw-semibold carac-titulo">${c.titulo}</td>
-      <td class="carac-valor">${c.valor}</td>
-      <td class="text-end">
-        <button
-          class="btn btn-sm btn-outline-primary btn-edit-carac"
-          title="Editar"
-        >
-          ✏
-        </button>
-        <button
-          class="btn btn-sm btn-danger btn-del-carac"
-          data-id="${c.id_caracteristica}"
-          title="Eliminar"
-        >
-          ✕
-        </button>
-      </td>
-    </tr>
-  `
-    )
-    .join("");
+const res = await fetch(`${apiUrl}/producto-tabs`);
+tabsCache = await res.json();
 
-  // -------------------------
-  // ELIMINAR
-  // -------------------------
-  tbody.querySelectorAll(".btn-del-carac").forEach((btn) =>
-    btn.addEventListener("click", async (e) => {
-      const idCarac = e.currentTarget.dataset.id;
+const select = document.getElementById("carac-tab");
 
-      if (!confirm("¿Eliminar característica?")) return;
+select.innerHTML = tabsCache.map(tab=>`
+<option value="${tab.id_tab}">
+${tab.nombre}
+</option>
+`).join("");
 
-      const r = await fetch(
-        `${apiUrl}/productos/admin/${productoId}/caracteristicas/${idCarac}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
+activarPlaceholder();
 
-      if (!r.ok) return alert("Error al eliminar característica");
+}
 
-      cargarCaracteristicas();
-    })
-  );
+/* =====================================
+PLACEHOLDER INTELIGENTE
+===================================== */
 
-  // -------------------------
-  // EDITAR
-  // -------------------------
-  tbody.querySelectorAll(".btn-edit-carac").forEach((btn) =>
-    btn.addEventListener("click", (e) => {
-      const row = e.currentTarget.closest("tr");
-      const tituloTd = row.querySelector(".carac-titulo");
-      const valorTd = row.querySelector(".carac-valor");
+const tituloInput = document.getElementById("carac-titulo");
+const valorInput = document.getElementById("carac-valor");
 
-      const tituloActual = tituloTd.textContent.trim();
-      const valorActual = valorTd.textContent.trim();
+const placeholders = {
 
-      tituloTd.innerHTML = `
-        <input type="text" 
-               class="form-control form-control-sm edit-titulo"
-               value="${tituloActual}">
-      `;
+especificaciones:{
+titulo:"Ej: Material",
+valor:"Ej: Acero"
+},
 
-      valorTd.innerHTML = `
-        <input type="text" 
-               class="form-control form-control-sm edit-valor"
-               value="${valorActual}">
-      `;
+caracteristicas:{
+titulo:"Ej: Uso",
+valor:"Ej: Interior"
+},
 
-      const accionesTd = row.querySelector("td.text-end");
+garantia:{
+titulo:"Ej: Tiempo",
+valor:"Ej: 12 meses"
+},
 
-      accionesTd.innerHTML = `
-        <button class="btn btn-sm btn-success btn-save-carac">💾</button>
-        <button class="btn btn-sm btn-secondary btn-cancel-carac">↩</button>
-      `;
+manual:{
+titulo:"Ej: Descarga",
+valor:"Ej: manual.pdf"
+}
 
-      // Guardar
-      accionesTd.querySelector(".btn-save-carac")
-        .addEventListener("click", async () => {
+};
 
-          const nuevoTitulo =
-            row.querySelector(".edit-titulo").value.trim();
-          const nuevoValor =
-            row.querySelector(".edit-valor").value.trim();
+function activarPlaceholder(){
 
-          const idCarac = row.dataset.id;
+const select = document.getElementById("carac-tab");
 
-          if (!nuevoTitulo || !nuevoValor) return;
+const nombre = select.options[select.selectedIndex]
+  .text
+  .toLowerCase()
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "");
 
-          const r = await fetch(
-            `${apiUrl}/productos/admin/${productoId}/caracteristicas/${idCarac}`,
-            {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({
-                titulo: nuevoTitulo,
-                valor: nuevoValor,
-              }),
-            }
-          );
+if(placeholders[nombre]){
 
-          if (!r.ok) return alert("Error al actualizar");
+tituloInput.placeholder = placeholders[nombre].titulo;
+valorInput.placeholder = placeholders[nombre].valor;
 
-          cargarCaracteristicas();
-        });
+}
 
-      // Cancelar
-      accionesTd.querySelector(".btn-cancel-carac")
-        .addEventListener("click", () => {
-          cargarCaracteristicas();
-        });
-    })
-  );
+}
+
+document.getElementById("carac-tab").addEventListener("change",activarPlaceholder);
+
+
+/* =====================================
+PRODUCTO
+===================================== */
+
+const productoId = Number(
+document.getElementById("producto-detalle").dataset.id
+);
+
+
+async function obtenerProductoDetalle(){
+
+const res = await fetch(`${apiUrl}/productos/${productoId}/caracteristicas`);
+
+if(!res.ok) throw new Error("No se pudo cargar producto");
+
+return res.json();
+
 }
 
 
-  // =========================================
-  // 🔵 Eventos
-  // =========================================
-  document.addEventListener("DOMContentLoaded", () => {
-    cargarCaracteristicas();
+/* =====================================
+CARGAR CARACTERISTICAS
+===================================== */
 
-    document
-      .getElementById("form-carac")
-      .addEventListener("submit", async (e) => {
-        e.preventDefault();
+async function cargarCaracteristicas(){
 
-        const titulo = document.getElementById("carac-titulo").value.trim();
-        const valor = document.getElementById("carac-valor").value.trim();
-        if (!titulo || !valor) return;
+const tbody = document.querySelector("#tabla-caracteristicas tbody");
+const contador = document.getElementById("contador-carac");
 
-        const res = await fetch(
-          `${apiUrl}/productos/admin/${productoId}/caracteristicas`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ titulo, valor }),
-          }
-        );
+const prod = await obtenerProductoDetalle();
 
-        if (!res.ok) return alert("Error al agregar característica");
+if(!prod || prod.length===0){
 
-        document.getElementById("carac-titulo").value = "";
-        document.getElementById("carac-valor").value = "";
+contador.textContent="";
 
-        cargarCaracteristicas();
-      });
-  });
+tbody.innerHTML=`
+<tr>
+<td colspan="5" class="text-center py-4 text-muted">
+No hay características agregadas
+</td>
+</tr>
+`;
+
+return;
+
+}
+
+contador.textContent = `${prod.length} registradas`;
+
+tbody.innerHTML = prod.map(c=>`
+
+<tr data-id="${c.id_caracteristica}">
+
+<td class="carac-tipo">${c.tab?.nombre ?? "Tab"}</td>
+
+<td class="carac-orden">${c.orden ?? 0}</td>
+
+<td class="fw-semibold carac-titulo">${c.titulo}</td>
+
+<td class="carac-valor">${c.valor}</td>
+
+<td class="text-end">
+
+<button class="btn btn-sm btn-outline-primary btn-edit-carac">✏</button>
+
+<button class="btn btn-sm btn-danger btn-del-carac" data-id="${c.id_caracteristica}">✕</button>
+
+</td>
+
+</tr>
+
+`).join("");
+
+activarEliminar();
+activarEdicion();
+
+}
+
+
+/* =====================================
+ELIMINAR
+===================================== */
+
+function activarEliminar(){
+
+document.querySelectorAll(".btn-del-carac").forEach(btn=>{
+
+btn.addEventListener("click",async(e)=>{
+
+const idCarac = e.currentTarget.dataset.id;
+
+if(!confirm("¿Eliminar característica?")) return;
+
+await fetch(
+`${apiUrl}/productos/admin/${productoId}/caracteristicas/${idCarac}`,
+{method:"DELETE",credentials:"include"}
+);
+
+cargarCaracteristicas();
+
+});
+
+});
+
+}
+
+
+/* =====================================
+EDITAR
+===================================== */
+
+function activarEdicion(){
+
+document.querySelectorAll(".btn-edit-carac").forEach(btn=>{
+
+btn.addEventListener("click",e=>{
+
+const row = e.currentTarget.closest("tr");
+
+const tipoTd = row.querySelector(".carac-tipo");
+const ordenTd = row.querySelector(".carac-orden");
+const tituloTd = row.querySelector(".carac-titulo");
+const valorTd = row.querySelector(".carac-valor");
+
+const ordenActual = ordenTd.textContent.trim();
+const tituloActual = tituloTd.textContent.trim();
+const valorActual = valorTd.textContent.trim();
+
+tipoTd.innerHTML = `
+<select class="form-select form-select-sm edit-tab">
+${tabsCache.map(tab=>`
+<option value="${tab.id_tab}">
+${tab.nombre}
+</option>
+`).join("")}
+</select>
+`;
+
+ordenTd.innerHTML=`<input type="number" class="form-control form-control-sm edit-orden" value="${ordenActual}">`;
+
+tituloTd.innerHTML=`<input type="text" class="form-control form-control-sm edit-titulo" value="${tituloActual}">`;
+
+valorTd.innerHTML=`<input type="text" class="form-control form-control-sm edit-valor" value="${valorActual}">`;
+
+const accionesTd = row.querySelector("td.text-end");
+
+accionesTd.innerHTML=`
+<button class="btn btn-sm btn-success btn-save-carac">💾</button>
+<button class="btn btn-sm btn-secondary btn-cancel-carac">↩</button>
+`;
+
+accionesTd.querySelector(".btn-save-carac").addEventListener("click",async()=>{
+
+const nuevoTab = row.querySelector(".edit-tab").value;
+const nuevoOrden = row.querySelector(".edit-orden").value;
+const nuevoTitulo = row.querySelector(".edit-titulo").value.trim();
+const nuevoValor = row.querySelector(".edit-valor").value.trim();
+const idCarac = row.dataset.id;
+
+await fetch(
+`${apiUrl}/productos/admin/${productoId}/caracteristicas/${idCarac}`,
+{
+method:"PUT",
+headers:{ "Content-Type":"application/json" },
+credentials:"include",
+body:JSON.stringify({
+titulo:nuevoTitulo,
+valor:nuevoValor,
+tab_id:nuevoTab,
+orden:nuevoOrden
+})
+}
+);
+
+cargarCaracteristicas();
+
+});
+
+accionesTd.querySelector(".btn-cancel-carac")
+.addEventListener("click",cargarCaracteristicas);
+
+});
+
+});
+
+}
+
+
+/* =====================================
+CREAR
+===================================== */
+
+document.getElementById("form-carac")
+.addEventListener("submit",async e=>{
+
+e.preventDefault();
+
+const tab_id = document.getElementById("carac-tab").value;
+
+const titulo = tituloInput.value.trim();
+const valor = valorInput.value.trim();
+const orden = document.getElementById("carac-orden").value;
+
+await fetch(
+`${apiUrl}/productos/admin/${productoId}/caracteristicas`,
+{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+credentials:"include",
+body:JSON.stringify({
+titulo,
+valor,
+tab_id,
+orden
+})
+}
+);
+
+tituloInput.value="";
+valorInput.value="";
+document.getElementById("carac-orden").value=0;
+
+cargarCaracteristicas();
+
+});
+
+
+/* =====================================
+INIT
+===================================== */
+
+document.addEventListener("DOMContentLoaded",async()=>{
+
+await cargarTabs();
+await cargarCaracteristicas();
+
+});
+
 </script>
 
 

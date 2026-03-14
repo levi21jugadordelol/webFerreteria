@@ -38,58 +38,78 @@ async function cargarComprobantes() {
     container.innerHTML = `
       <table class="table table-striped">
         <thead>
-          <tr>
-            <th>ID</th>
-            <th>Pedido</th>
-            <th>Cliente</th>
-            <th>Dirección</th>
-            <th>Total</th>
-            <th>Imagen</th>
-            <th>Estado Pago</th>
-<th>Estado Pedido</th>
-
-            <th>Acciones</th>
-          </tr>
+<tr>
+  <th>ID</th>
+  <th>Pedido</th>
+  <th>Cliente</th>
+  <th>Dirección</th>
+  <th>Total</th>
+  <th>Enviado</th>
+  <th>Tiempo pendiente</th>
+  <th>Validado</th>
+  <th>Imagen</th>
+  <th>Estado Pago</th>
+  <th>Estado Pedido</th>
+  <th>Acciones</th>
+</tr>
         </thead>
         <tbody>
           ${data.map(c => `
-            <tr>
-              <td>${c.id_comprobante}</td>
-              <td>#${c.pedido.id_pedido}</td>
-              <td>${c.pedido.nombre_comprador}</td>
-              <td>${c.pedido.direccion_envio}</td>
-              <td>S/ ${c.pedido.total_pedido}</td>
-              <td>
-                <a href="http://localhost:3000${c.url_imagen}" target="_blank">
-                  Ver
-                </a>
-              </td>
-             <td>
-  <span class="badge bg-${
-    c.estado_validacion === "validado"
-      ? "success"
-      : c.estado_validacion === "rechazado"
-      ? "danger"
-      : "warning"
-  }">
-    ${c.estado_validacion}
-  </span>
-</td>
+       <tr>
+  <td>${c.id_comprobante}</td>
+  <td>#${c.pedido.id_pedido}</td>
+  <td>${c.pedido.nombre_comprador}</td>
+  <td>${c.pedido.direccion_envio}</td>
+  <td>S/ ${c.pedido.total_pedido}</td>
 
-<td>
-  <span class="badge bg-${
-    c.pedido.estado_pedido === "pagado"
-      ? "success"
-      : "secondary"
-  }">
-    ${c.pedido.estado_pedido}
-  </span>
+  <td>${c.fecha_envio}</td>
+<td class="${
+  c.estado_validacion === "vencido"
+    ? "text-danger fw-bold"
+    : c.estado_validacion === "pendiente"
+    ? "text-warning"
+    : ""
+}">
+  ${c.estado_validacion === "vencido"
+  ? "❌ vencido"
+  : c.tiempo_pendiente}
 </td>
+  <td>${c.fecha_validacion}</td>
 
-<td>
-  ${
-    c.estado_validacion === "pendiente"
-      ? `
+  <td>
+    <a href="http://localhost:3000${c.url_imagen}" target="_blank">
+      Ver
+    </a>
+  </td>
+
+  <td>
+    <span class="badge bg-${
+   c.estado_validacion === "validado"
+  ? "success"
+  : c.estado_validacion === "rechazado"
+  ? "danger"
+  : c.estado_validacion === "vencido"
+  ? "secondary"
+  : "warning"
+    }">
+      ${c.estado_validacion}
+    </span>
+  </td>
+
+  <td>
+    <span class="badge bg-${
+      c.pedido.estado_pedido === "pagado"
+        ? "success"
+        : "secondary"
+    }">
+      ${c.pedido.estado_pedido}
+    </span>
+  </td>
+
+  <td>
+    ${
+      c.estado_validacion === "pendiente"
+        ? `
         <button class="btn btn-success btn-sm"
           onclick="validar(${c.id_comprobante})">
           Validar
@@ -99,23 +119,21 @@ async function cargarComprobantes() {
           Rechazar
         </button>
       `
-      : c.estado_validacion === "validado"
-      ? `
+        : c.estado_validacion === "validado"
+        ? `
         <button class="btn btn-warning btn-sm"
           onclick="revertir(${c.id_comprobante})">
           Revertir
         </button>
       `
-      : `
+        : `
         <span class="text-muted fw-bold">
           Acción completada
         </span>
       `
-  }
-</td>
-
-
-            </tr>
+    }
+  </td>
+</tr>
           `).join("")}
         </tbody>
       </table>

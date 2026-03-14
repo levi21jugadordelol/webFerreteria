@@ -1,0 +1,393 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+---
+
+<AdminLayout title="Nueva página">
+
+<div class="card shadow-sm p-4">
+
+<form id="formPagina">
+
+  <div class="row">
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Título</label>
+      <input
+        id="titulo"
+        class="form-control"
+        name="titulo"
+        required
+      >
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Slug</label>
+      <input
+        id="slug"
+        class="form-control"
+        name="slug"
+        required
+      >
+    </div>
+
+  </div>
+
+  <hr>
+
+  <div class="mb-2 d-flex justify-content-between align-items-center">
+    <label class="form-label mb-0">Contenido</label>
+    <small id="wordcount" class="text-muted">0 palabras</small>
+  </div>
+
+  <div id="editor"></div>
+
+  <div id="uploadMensaje" class="mt-3"></div>
+
+  <div class="mt-4 d-flex gap-2">
+
+    <button id="btnGuardar" class="btn btn-success">
+      Guardar
+    </button>
+
+    <button
+      type="button"
+      id="previewBtn"
+      class="btn btn-outline-secondary"
+    >
+      Preview
+    </button>
+
+  </div>
+
+</form>
+
+<div id="mensaje" class="mt-3"></div>
+
+</div>
+
+</AdminLayout>
+
+<link
+  href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
+  rel="stylesheet"
+/>
+
+<script is:inline src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<style>
+#editor {
+  height: 350px;
+  background: white;
+}
+
+.ql-editor {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.ql-toolbar {
+  border-radius: 6px 6px 0 0;
+}
+
+.ql-container {
+  border-radius: 0 0 6px 6px;
+}
+
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+</style>
+
+<script is:client>
+window.addEventListener("DOMContentLoaded", () => {
+
+const API = "http://localhost:3000";
+
+/* --------------------------
+   VERIFICAR QUILL
+---------------------------*/
+if (!window.Quill) {
+  console.error("Quill no está cargado");
+  return;
+}
+
+/* --------------------------
+   INICIALIZAR EDITOR
+---------------------------*/
+const quill = new window.Quill("#editor", {
+  theme: "snow",
+  placeholder: "Escribe el contenido de la página...",
+  modules: {
+    toolbar: [
+      [{ header: [1,2,3,false] }],
+      ["bold","italic","underline"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link","image"],
+      ["clean"]
+    ]
+  }
+});
+
+/* --------------------------
+   ELEMENTOS DOM
+---------------------------*/
+const titulo = document.getElementById("titulo");
+const slug = document.getElementById("slug");
+const formPagina = document.getElementById("formPagina");
+const mensaje = document.getElementById("mensaje");
+const uploadMensaje = document.getElementById("uploadMensaje");
+const wordcount = document.getElementById("wordcount");
+const btnGuardar = document.getElementById("btnGuardar");
+const previewBtn = document.getElementById("previewBtn");
+
+/* --------------------------
+   MENSAJES
+---------------------------*/
+function mostrarMensaje(tipo, texto) {
+  mensaje.innerHTML = `<div class="alert alert-${tipo}">${texto}</div>`;
+}
+
+function limpiarMensaje() {
+  mensaje.innerHTML = "";
+}
+
+function mostrarUploadMensaje(tipo, texto) {
+  uploadMensaje.innerHTML = `<div class="alert alert-${tipo} py-2">${texto}</div>`;
+}
+
+function limpiarUploadMensaje() {
+  uploadMensaje.innerHTML = "";
+}
+
+/* --------------------------
+   SLUG AUTO
+---------------------------*/
+function generarSlug(texto) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+titulo.addEventListener("input", () => {
+  if (!slug.dataset.editado) {
+    slug.value = generarSlug(titulo.value);
+  }
+});
+
+slug.addEventListener("input", () => {
+  slug.dataset.editado = "true";
+});
+
+/* --------------------------
+   CONTADOR PALABRAS
+---------------------------*/
+quill.on("text-change", () => {
+  const text = quill.getText().trim();
+  const words = text ? text.split(/\s+/).length : 0;
+  wordcount.innerText = `${words} palabras`;
+});
+
+/* --------------------------
+   SUBIR IMAGEN
+---------------------------*/
+quill.getModule("toolbar").addHandler("image", () => {
+
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.click();
+
+  input.onchange = async () => {
+
+    const file = input.files?.[0];
+    if (!file) return;
+
+    limpiarUploadMensaje();
+
+    if (!file.type.startsWith("image/")) {
+      mostrarUploadMensaje("danger","Solo se permiten imágenes.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      mostrarUploadMensaje("danger","La imagen no puede superar 5MB.");
+      return;
+    }
+
+    try {
+
+      mostrarUploadMensaje("info","Subiendo imagen...");
+
+      const formData = new FormData();
+      formData.append("imagen", file);
+
+      const res = await fetch(API + "/api/uploads/editor", {
+        method:"POST",
+        body:formData,
+        credentials:"include"
+      });
+
+      if (!res.ok) {
+
+        let msg = "Error al subir imagen";
+
+        try {
+          const err = await res.json();
+          msg = err.msg || msg;
+        } catch {}
+
+        mostrarUploadMensaje("danger", msg);
+        return;
+      }
+
+      const data = await res.json();
+
+      const range = quill.getSelection(true);
+
+      quill.insertEmbed(range.index, "image", data.url);
+      quill.setSelection(range.index + 1);
+
+      mostrarUploadMensaje("success","Imagen subida correctamente");
+
+      setTimeout(limpiarUploadMensaje,1500);
+
+    } catch (error) {
+
+      console.error(error);
+      mostrarUploadMensaje("danger","No se pudo subir la imagen");
+
+    }
+
+  };
+
+});
+
+/* --------------------------
+   PREVIEW
+---------------------------*/
+previewBtn.addEventListener("click", () => {
+
+  const html = quill.root.innerHTML;
+  const pageTitle = titulo.value?.trim() || "Preview";
+
+  const win = window.open("", "_blank");
+
+  if (!win) {
+    mostrarMensaje("warning","El navegador bloqueó la ventana de preview.");
+    return;
+  }
+
+  win.document.write(`
+    <html>
+      <head>
+        <title>${pageTitle}</title>
+        <style>
+          body{
+            font-family:system-ui;
+            max-width:900px;
+            margin:auto;
+            padding:40px;
+            line-height:1.7;
+          }
+
+          img{
+            max-width:100%;
+            height:auto;
+            border-radius:8px;
+          }
+        </style>
+      </head>
+
+      <body>
+        <h1>${pageTitle}</h1>
+        ${html}
+      </body>
+    </html>
+  `);
+
+  win.document.close();
+
+});
+
+/* --------------------------
+   GUARDAR
+---------------------------*/
+formPagina.addEventListener("submit", async (e) => {
+
+  e.preventDefault();
+  limpiarMensaje();
+
+  const form = new FormData(formPagina);
+  const data = Object.fromEntries(form);
+
+  data.titulo = String(data.titulo || "").trim();
+  data.slug = String(data.slug || "").trim();
+  data.contenido = quill.root.innerHTML.trim();
+
+  if (!data.titulo) {
+    mostrarMensaje("danger","El título es obligatorio.");
+    return;
+  }
+
+  if (!data.slug) {
+    mostrarMensaje("danger","El slug es obligatorio.");
+    return;
+  }
+
+  if (!data.contenido || data.contenido === "<p><br></p>") {
+    mostrarMensaje("danger","El contenido no puede estar vacío.");
+    return;
+  }
+
+  btnGuardar.disabled = true;
+  btnGuardar.innerText = "Guardando...";
+
+  try {
+
+    const res = await fetch(API + "/api/paginas/admin", {
+      method:"POST",
+      body:JSON.stringify(data),
+      headers:{ "Content-Type":"application/json" },
+      credentials:"include"
+    });
+
+    if (!res.ok) {
+
+      let msg = "No se pudo guardar la página.";
+
+      try {
+        const err = await res.json();
+        msg = err.msg || msg;
+      } catch {}
+
+      mostrarMensaje("danger", msg);
+      return;
+    }
+
+    mostrarMensaje("success","Página guardada correctamente");
+
+    setTimeout(()=>{
+      window.location="/admin/paginas/lista";
+    },1200);
+
+  } catch (error) {
+
+    console.error(error);
+    mostrarMensaje("danger","Error de conexión al guardar");
+
+  } finally {
+
+    btnGuardar.disabled=false;
+    btnGuardar.innerText="Guardar";
+
+  }
+
+});
+
+});
+</script>

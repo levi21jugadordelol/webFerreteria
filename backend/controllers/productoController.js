@@ -5,13 +5,16 @@ import { Op } from "sequelize";
 import chalk from "chalk";
 
 import Producto from "../models/Producto.js";
-import Categoria from "../models/Categoria.js";
+import Categoria from "../src/modules/categories/category.model.js";
 import ProductoImagen from "../models/ProductoImagen.js";
 import ProductoCaracteristica from "../models/ProductoCaracteristica.js";
+import ProductoTab from "../models/ProductoTab.js";
 
 import { validationResult } from "express-validator";
 
 import ProductoService from "../services/ProductoService.js";
+
+import { getSiteSettings } from "../services/siteSettingService.js";
 
 /* -----------------------------
    Multer
@@ -210,19 +213,26 @@ export const eliminarImagenExtra = async (req, res) => {
 export const agregarCaracteristica = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, valor } = req.body;
+    const { titulo, valor, tab_id, orden } = req.body;
 
-    if (!titulo || !valor)
+    if (!titulo || !valor) {
       return res.status(400).json({ msg: "Datos incompletos" });
+    }
 
     const nueva = await ProductoCaracteristica.create({
       producto_id: id,
       titulo,
       valor,
+      tab_id,
+      orden: orden || 0,
     });
 
-    res.json({ msg: "Característica agregada", caracteristica: nueva });
+    res.json({
+      msg: "Característica agregada",
+      caracteristica: nueva,
+    });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ msg: "Error al agregar característica" });
   }
 };
@@ -234,21 +244,30 @@ export const agregarCaracteristica = async (req, res) => {
 export const actualizarCaracteristica = async (req, res) => {
   try {
     const { idCarac } = req.params;
-    const { titulo, valor } = req.body;
-
-    if (!titulo || !valor)
-      return res.status(400).json({ msg: "Datos incompletos" });
+    const { titulo, valor, tab_id, orden } = req.body;
 
     const carac = await ProductoCaracteristica.findByPk(idCarac);
 
-    if (!carac)
-      return res.status(404).json({ msg: "Característica no encontrada" });
+    if (!carac) {
+      return res.status(404).json({
+        msg: "Característica no encontrada",
+      });
+    }
 
-    await carac.update({ titulo, valor });
+    await carac.update({
+      titulo,
+      valor,
+      tab_id,
+      orden,
+    });
 
-    res.json({ msg: "Característica actualizada" });
+    res.json({
+      msg: "Característica actualizada",
+    });
   } catch (error) {
-    res.status(500).json({ msg: "Error al actualizar característica" });
+    res.status(500).json({
+      msg: "Error al actualizar característica",
+    });
   }
 };
 
@@ -400,5 +419,72 @@ export const listarProductosHome = async (req, res) => {
     res.json(productos);
   } catch (error) {
     res.status(500).json({ msg: error.message });
+  }
+};
+
+export const obtenerProductoCompleto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const producto = await ProductoService.obtenerPorId(id);
+
+    if (!producto) {
+      return res.status(404).json({
+        msg: "Producto no encontrado",
+      });
+    }
+
+    const relacionados = await Producto.findAll({
+      where: {
+        categoria_id: producto.categoria_id,
+        id_producto: { [Op.ne]: id },
+      },
+      limit: 6,
+    });
+
+    const settings = await getSiteSettings();
+
+    res.json({
+      producto,
+      relacionados,
+      settings,
+    });
+  } catch (error) {
+    console.error("❌ Error obtenerProductoCompleto", error);
+
+    res.status(500).json({
+      msg: "Error al cargar producto",
+    });
+  }
+};
+
+/* -----------------------------
+   Obtener características de un producto
+----------------------------- */
+export const obtenerCaracteristicas = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const caracteristicas = await ProductoCaracteristica.findAll({
+      where: { producto_id: id },
+
+      include: [
+        {
+          model: ProductoTab,
+          as: "tab",
+          attributes: ["id_tab", "nombre"],
+        },
+      ],
+
+      order: [["orden", "ASC"]],
+    });
+
+    res.json(caracteristicas);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      msg: "Error al obtener características",
+    });
   }
 };

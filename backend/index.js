@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-// 🚀 Dependencias principales
+// 🚀 Dependencias
 import express from "express";
 import chalk from "chalk";
 import cors from "cors";
@@ -10,83 +10,69 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// 🗃️ Base de datos y rutas
+// 🗃️ Base de datos
 import db from "./config/db.js";
 import "./models/index.js";
+
+// 📂 Rutas
 import admiRoutes from "./routes/administradorRouter.js";
 import productoRoutes from "./routes/productoRouters.js";
-import categoriaRoutes from "./routes/categoriaRouter.js"; // ✅ NUEVO
+//import categoriaRoutes from "./routes/categoriaRouter.js";
+import categoriaRoutes from "./src/modules/categories/category.routes.js";
+
 import marcaRoutes from "./routes/marcaRouter.js";
-import precioRoutes from "./routes/precioRouters.js"; // 👈 IMPORTA EL ARCHIVO
+import precioRoutes from "./routes/precioRouters.js";
 import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
 import heroRoutes from "./routes/HeroRoutes.js";
+import pedidoRouter from "./routes/PedidoRouter.js";
+import pagoRouter from "./routes/pagoRouter.js";
+import productoTabsRoutes from "./routes/productoTabsRoutes.js";
+import auditoriaRoutes from "./routes/auditoriaRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import paginaRoutes from "./routes/paginaRoutes.js";
 
-// 🧩 Rutas de pedidos y pagos
-import pedidoRouter from "./routes/PedidoRouter.js"; // Nueva ruta para pedidos
-import pagoRouter from "./routes/pagoRouter.js"; // Nueva ruta para pagos
+import "./helpers/pagosCron.js";
+
+import uploadRoutes from "./routes/uploadRoutes.js";
+
+import menuRoutes from "./routes/menuRoutes.js";
 
 const app = express();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 📂 Servir carpeta "uploads" (donde se guardan imágenes)
+// 📂 Servir uploads
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-// 🌐 Configurar CORS (para comunicación con Astro)
+// 📂 Archivos públicos
+app.use(express.static("public"));
+
+// 🌐 CORS
 app.use(
   cors({
     origin: "http://localhost:4321",
-    credentials: true, // permite envío de cookies
+    credentials: true,
   }),
 );
 
-// 🧰 Parseo de requests
+// 🧰 Parseo
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// 🔒 DESACTIVAR CACHE (AGREGAR ESTO AQUÍ)
-// 🔒 DESACTIVAR CACHE GLOBALMENTE
+// 🔒 DESACTIVAR CACHE
 app.use((req, res, next) => {
-  console.log(
-    chalk.blueBright("🛡️ Aplicando headers NO-CACHE a:"),
-    chalk.white(req.method),
-    chalk.yellow(req.originalUrl),
-  );
-
   res.setHeader(
     "Cache-Control",
     "no-store, no-cache, must-revalidate, private",
   );
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
-
-  // Confirmar headers antes de enviar
-  res.on("finish", () => {
-    console.log(
-      chalk.green("📦 Headers enviados para:"),
-      chalk.yellow(req.originalUrl),
-    );
-    console.log(chalk.gray("Cache-Control:"), res.getHeader("Cache-Control"));
-  });
-
   next();
 });
 
-// 📁 Servir archivos estáticos desde "public"
-app.use(express.static("public"));
-
-// 🧩 Conectar base de datos
-try {
-  await db.authenticate();
-  await db.sync(); // no borra tablas, solo sincroniza si faltan
-  console.log(chalk.greenBright("✅ Conexión correcta a la base de datos"));
-} catch (error) {
-  console.log(chalk.bgRed.white("❌ Error al conectar a la base de datos"));
-  console.error(chalk.red(error));
-}
-
-// 🪵 Middleware de logging unificado
+// 🪵 Logger simple
 app.use((req, res, next) => {
   const start = Date.now();
 
@@ -94,6 +80,7 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
+
     const color =
       res.statusCode < 400
         ? chalk.greenBright
@@ -103,7 +90,7 @@ app.use((req, res, next) => {
 
     console.log(
       color(
-        `📤 [RESPUESTA] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`,
+        `📤 ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`,
       ),
     );
   });
@@ -111,38 +98,53 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  console.log(
-    chalk.magentaBright(
-      `🌐 Request completa: ${req.method} ${req.originalUrl}`,
-    ),
-  );
-  next();
-});
+// 🧩 RUTAS
 
-// 🧭 Rutas principales
 app.use("/auth", admiRoutes);
 
-app.use("/productos", productoRoutes); // 👈 Correcto
-app.use("/productos/precio", precioRoutes); // 👈 Correcto
-
-// 🧩 API
-app.use("/api/site-settings", siteSettingsRoutes); // ✅ AQUÍ
-app.use("/api/pedidos", pedidoRouter);
-app.use("/api/pagos", pagoRouter);
-app.use("/api/hero", heroRoutes);
+app.use("/productos", productoRoutes);
+app.use("/productos/precio", precioRoutes);
 
 app.use("/categorias", categoriaRoutes);
 app.use("/marcas", marcaRoutes);
 
-// 💥 Middleware global de errores
+app.use("/producto-tabs", productoTabsRoutes);
+
+app.use("/api/site-settings", siteSettingsRoutes);
+app.use("/api/pedidos", pedidoRouter);
+app.use("/api/pagos", pagoRouter);
+app.use("/api/hero", heroRoutes);
+app.use("/api/auditoria", auditoriaRoutes);
+
+app.use("/api/dashboard", dashboardRoutes);
+
+app.use("/api/paginas", paginaRoutes);
+app.use("/api/menu", menuRoutes);
+app.use("/api/uploads", uploadRoutes);
+
+// 💥 Manejo global de errores
 app.use((err, req, res, next) => {
   console.error(chalk.bgRed.white("💥 Error detectado:"), err.message);
-  res.status(500).json({ error: "Error interno del servidor" });
+
+  res.status(500).json({
+    error: "Error interno del servidor",
+  });
 });
+
+// 🗃️ Conectar BD
+try {
+  await db.authenticate();
+  await db.sync();
+
+  console.log(chalk.greenBright("✅ Conexión correcta a la base de datos"));
+} catch (error) {
+  console.log(chalk.bgRed.white("❌ Error al conectar a la base de datos"));
+  console.error(chalk.red(error));
+}
 
 // 🚀 Iniciar servidor
 const port = process.env.PORT || 3000;
+
 app.listen(port, () => {
   console.log(chalk.cyanBright("🚀 Servidor corriendo en:"));
   console.log(chalk.yellowBright(`👉 http://localhost:${port}`));

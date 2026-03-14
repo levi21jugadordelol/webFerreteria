@@ -56,6 +56,7 @@ export const updateSiteSettings = async (req, res) => {
         key,
         value: JSON.stringify(data[key]),
       });
+      console.log(chalk.blue(`⚙️ Guardando setting → ${key}`), data[key]);
     }
 
     console.log(chalk.yellow(`📝 Site settings actualizados por admin`));

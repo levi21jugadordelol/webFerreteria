@@ -13,7 +13,7 @@ const ComprobantePago = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "pedidos", // 👈 solo el nombre de la tabla, no el modelo importado
+        model: "pedidos",
         key: "id_pedido",
       },
       onDelete: "CASCADE",
@@ -28,15 +28,21 @@ const ComprobantePago = db.define(
       defaultValue: DataTypes.NOW,
     },
     estado_validacion: {
-      type: DataTypes.ENUM("pendiente", "validado", "rechazado"),
+      type: DataTypes.ENUM("pendiente", "validado", "rechazado", "vencido"),
       allowNull: false,
       defaultValue: "pendiente",
+    },
+
+    // 👇 NUEVO
+    fecha_validacion_pago: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
   {
     tableName: "comprobantes_pago",
     timestamps: false,
-  }
+  },
 );
 
 export default ComprobantePago;
