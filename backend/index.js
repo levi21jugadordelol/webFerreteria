@@ -39,7 +39,8 @@ import "./helpers/pagosCron.js";
 
 import uploadRoutes from "./routes/uploadRoutes.js";
 
-import menuRoutes from "./routes/menuRoutes.js";
+//import menuRoutes from "./routes/menuRoutes.js";
+import menuRoutes from "./src/modules/menu/menu.routes.js";
 
 const app = express();
 

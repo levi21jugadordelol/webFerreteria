@@ -1,7 +1,7 @@
 import express from "express";
 import chalk from "chalk";
 
-import protegerRuta from "../middleware/protegerRuta.js";
+import protegerRuta from "../../../middleware/protegerRuta.js";
 
 import {
   obtenerMenu,
@@ -9,7 +9,7 @@ import {
   crearMenu,
   actualizarMenu,
   eliminarMenu,
-} from "../controllers/menuController.js";
+} from "../../modules/menu/menu.controller.js";
 
 const router = express.Router();
 

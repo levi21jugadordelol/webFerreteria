@@ -1,4 +1,4 @@
-import Menu from "../models/Menu.js";
+import Menu from "../../modules/menu/menu.model.js";
 import chalk from "chalk";
 
 /* -----------------------------
