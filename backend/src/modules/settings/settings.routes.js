@@ -1,12 +1,9 @@
 import express from "express";
 import chalk from "chalk";
 
-import {
-  getSiteSettings,
-  updateSiteSettings,
-} from "../controllers/siteSettingsController.js";
+import { getSiteSettings, updateSiteSettings } from "./settings.controller.js";
 
-import protegerRuta from "../middleware/protegerRuta.js";
+import protegerRuta from "../../../middleware/protegerRuta.js";
 
 const router = express.Router();
 

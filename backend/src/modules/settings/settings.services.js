@@ -1,4 +1,4 @@
-import SiteSetting from "../models/SiteSetting.js";
+import SiteSetting from "./settings.model.js";
 
 export async function getSiteSettings() {
   const settings = await SiteSetting.findAll({ raw: true });

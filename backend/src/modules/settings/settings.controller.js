@@ -1,6 +1,6 @@
 // controllers/siteSettings.controller.js
 import chalk from "chalk";
-import SiteSetting from "../models/SiteSetting.js";
+import SiteSetting from "../../modules/settings/settings.model.js";
 
 /* ──────────────────────────────
    🟢 GET /api/site-settings

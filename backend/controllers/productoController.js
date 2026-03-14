@@ -14,7 +14,7 @@ import { validationResult } from "express-validator";
 
 import ProductoService from "../services/ProductoService.js";
 
-import { getSiteSettings } from "../services/siteSettingService.js";
+import { getSiteSettings } from "../src/modules/settings/settings.services.js";
 
 /* -----------------------------
    Multer

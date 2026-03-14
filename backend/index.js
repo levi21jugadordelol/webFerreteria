@@ -24,7 +24,8 @@ import categoriaRoutes from "./src/modules/categories/category.routes.js";
 import marcaRoutes from "./src/modules/brands/marca.routes.js";
 
 import precioRoutes from "./routes/precioRouters.js";
-import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
+//import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
+import siteSettingsRoutes from "./src/modules/settings/settings.model.js";
 import heroRoutes from "./routes/HeroRoutes.js";
 import pedidoRouter from "./routes/PedidoRouter.js";
 import pagoRouter from "./routes/pagoRouter.js";
