@@ -1,4 +1,4 @@
-import Pagina from "../models/Pagina.js";
+import Pagina from "../../modules/pages/pagina.model.js";
 import chalk from "chalk";
 
 /* -----------------------------

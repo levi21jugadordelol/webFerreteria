@@ -33,7 +33,8 @@ import productoTabsRoutes from "./src/modules/productoTab/productoTab.routes.js"
 
 import auditoriaRoutes from "./routes/auditoriaRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
-import paginaRoutes from "./routes/paginaRoutes.js";
+
+import paginaRoutes from "./src/modules/pages/pagina.routes.js";
 
 import "./helpers/pagosCron.js";
 
