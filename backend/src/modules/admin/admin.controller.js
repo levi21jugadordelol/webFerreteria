@@ -3,7 +3,7 @@ import { check, validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import chalk from "chalk";
-import Administrador from "../models/Administrador.js";
+import Administrador from "./admin.model.js";
 
 //const JWT_SECRET = process.env.JWT_SECRET || "secreto_admin";
 dotenv.config(); // 🔥 Asegura que el .env se cargue aquí

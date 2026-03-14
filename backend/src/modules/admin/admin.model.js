@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import bcrypt from "bcrypt";
-import db from "../config/db.js";
+import db from "../../../src/config/db.js";
 
 const Administrador = db.define(
   "administradores", // nombre de la tabla
@@ -43,7 +43,7 @@ const Administrador = db.define(
         attributes: { exclude: ["hash"] },
       },
     },
-  }
+  },
 );
 
 // Método de instancia para verificar contraseñas

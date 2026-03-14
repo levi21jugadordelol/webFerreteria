@@ -1,6 +1,6 @@
 import express from "express";
 import chalk from "chalk";
-import protegerRuta from "../middleware/protegerRuta.js";
+import protegerRuta from "../../../middleware/protegerRuta.js";
 
 import {
   formularioLogin,
@@ -8,7 +8,7 @@ import {
   formularioRegistro,
   registrar,
   cerrarSesion,
-} from "../controllers/administradorController.js";
+} from "./admin.controller.js";
 
 const router = express.Router();
 

@@ -15,7 +15,7 @@ import db from "./config/db.js";
 import "./models/index.js";
 
 // 📂 Rutas
-import admiRoutes from "./routes/administradorRouter.js";
+import admiRoutes from "./src/modules/admin/admin.routes.js";
 import productoRoutes from "./routes/productoRouters.js";
 //import categoriaRoutes from "./routes/categoriaRouter.js";
 import categoriaRoutes from "./src/modules/categories/category.routes.js";

@@ -1,4 +1,4 @@
-import Administrador from "./Administrador.js";
+import Administrador from "../src/modules/admin/admin.model.js";
 import Producto from "./Producto.js";
 import Pedido from "./Pedido.js";
 import DetallePedido from "./DetallePedido.js";
