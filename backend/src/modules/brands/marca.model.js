@@ -1,6 +1,6 @@
 // 📦 models/Marca.js
 import { DataTypes } from "sequelize";
-import db from "../config/db.js";
+import db from "../../config/db.js";
 
 const Marca = db.define(
   "marca",
@@ -27,7 +27,7 @@ const Marca = db.define(
   {
     tableName: "marcas",
     timestamps: false,
-  }
+  },
 );
 
 export default Marca;

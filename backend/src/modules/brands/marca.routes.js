@@ -1,8 +1,8 @@
 // routes/marcaRouter.js
 import express from "express";
 import { body } from "express-validator";
-import protegerRuta from "../middleware/protegerRuta.js";
-import uploadMarca from "../middleware/uploadMarca.js";
+import protegerRuta from "../../../middleware/protegerRuta.js";
+import uploadMarca from "../../../middleware/uploadMarca.js";
 
 import {
   crearMarca,
@@ -11,7 +11,7 @@ import {
   actualizarMarca,
   eliminarMarca,
   subirLogoMarca,
-} from "../controllers/marcaController.js";
+} from "../../modules/brands/marca.controller.js";
 
 const router = express.Router();
 
@@ -26,7 +26,7 @@ router.post(
   body("nombre_marca")
     .notEmpty()
     .withMessage("El nombre de la marca es obligatorio"),
-  crearMarca
+  crearMarca,
 );
 
 router.put("/:id", protegerRuta, actualizarMarca);
@@ -37,7 +37,7 @@ router.post(
   "/subir-logo/:id",
   protegerRuta,
   uploadMarca.single("file"), // ✅ CORRECTO
-  subirLogoMarca
+  subirLogoMarca,
 );
 
 export default router;

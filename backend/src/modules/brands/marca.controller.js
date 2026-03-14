@@ -1,5 +1,5 @@
 // controllers/marcaController.js
-import Marca from "../models/Marca.js";
+import Marca from "../../modules/brands/marca.model.js";
 import { validationResult } from "express-validator";
 import fs from "fs";
 import path from "path";

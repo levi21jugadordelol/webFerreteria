@@ -20,7 +20,9 @@ import productoRoutes from "./routes/productoRouters.js";
 //import categoriaRoutes from "./routes/categoriaRouter.js";
 import categoriaRoutes from "./src/modules/categories/category.routes.js";
 
-import marcaRoutes from "./routes/marcaRouter.js";
+//import marcaRoutes from "./routes/marcaRouter.js";
+import marcaRoutes from "./src/modules/brands/marca.routes.js";
+
 import precioRoutes from "./routes/precioRouters.js";
 import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
 import heroRoutes from "./routes/HeroRoutes.js";

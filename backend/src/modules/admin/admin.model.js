@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import bcrypt from "bcrypt";
-import db from "../../../src/config/db.js";
+import db from "../../config/db.js";
 
 const Administrador = db.define(
   "administradores", // nombre de la tabla

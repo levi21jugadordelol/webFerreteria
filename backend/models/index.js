@@ -4,7 +4,8 @@ import Pedido from "./Pedido.js";
 import DetallePedido from "./DetallePedido.js";
 import ComprobantePago from "./Comprobante.js";
 import Categoria from "../src/modules/categories/category.model.js";
-import Marca from "./Marca.js";
+
+import Marca from "../src/modules/brands/marca.model.js";
 import ProductoCaracteristica from "./ProductoCaracteristica.js"; // 🆕
 import ProductoImagen from "./ProductoImagen.js"; // 🆕
 import ProductoTab from "./ProductoTab.js";
