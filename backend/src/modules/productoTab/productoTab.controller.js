@@ -1,4 +1,4 @@
-import ProductoTab from "../models/ProductoTab.js";
+import ProductoTab from "./productoTab.model.js";
 
 export const listarTabs = async (req, res) => {
   const tabs = await ProductoTab.findAll({

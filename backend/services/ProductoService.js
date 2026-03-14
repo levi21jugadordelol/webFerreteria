@@ -3,7 +3,7 @@ import Producto from "../models/Producto.js";
 import Categoria from "../src/modules/categories/category.model.js";
 import ProductoImagen from "../models/ProductoImagen.js";
 import ProductoCaracteristica from "../models/ProductoCaracteristica.js";
-import ProductoTab from "../models/ProductoTab.js";
+import ProductoTab from "../src/modules/productoTab/productoTab.model.js";
 
 class ProductoService {
   /* =====================================================

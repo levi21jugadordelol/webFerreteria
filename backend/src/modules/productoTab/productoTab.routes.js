@@ -1,5 +1,5 @@
 import express from "express";
-import { listarTabs } from "../controllers/productoTabController.js";
+import { listarTabs } from "../../modules/productoTab/productoTab.controller.js";
 
 const router = express.Router();
 

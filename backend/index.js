@@ -28,7 +28,9 @@ import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
 import heroRoutes from "./routes/HeroRoutes.js";
 import pedidoRouter from "./routes/PedidoRouter.js";
 import pagoRouter from "./routes/pagoRouter.js";
-import productoTabsRoutes from "./routes/productoTabsRoutes.js";
+
+import productoTabsRoutes from "./src/modules/productoTab/productoTab.routes.js";
+
 import auditoriaRoutes from "./routes/auditoriaRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import paginaRoutes from "./routes/paginaRoutes.js";

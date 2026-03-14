@@ -8,7 +8,8 @@ import Categoria from "../src/modules/categories/category.model.js";
 import Marca from "../src/modules/brands/marca.model.js";
 import ProductoCaracteristica from "./ProductoCaracteristica.js"; // 🆕
 import ProductoImagen from "./ProductoImagen.js"; // 🆕
-import ProductoTab from "./ProductoTab.js";
+//import ProductoTab from "./ProductoTab.js";
+import ProductoTab from "../src/modules/productoTab/productoTab.model.js";
 
 /* ──────────────────────────────
    ADMINISTRADOR ↔ PRODUCTO
