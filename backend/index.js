@@ -11,7 +11,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // 🗃️ Base de datos
-import db from "./config/db.js";
+import db from "./src/config/db.js";
 import "./models/index.js";
 
 // 📂 Rutas
@@ -37,7 +37,7 @@ import dashboardRoutes from "./src/modules/dashboard/dashboard.routes.js";
 
 import paginaRoutes from "./src/modules/pages/pagina.routes.js";
 
-import "./helpers/pagosCron.js";
+import "./src/jobs/pagosCron.js";
 
 import uploadRoutes from "./src/modules/uploads/upload.routes.js";
 

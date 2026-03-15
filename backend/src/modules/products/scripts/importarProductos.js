@@ -1,7 +1,7 @@
 import fs from "fs";
 import csv from "csv-parser";
-import Producto from "../models/Producto.js";
-import db from "../config/db.js";
+import Producto from "../producto.model.js";
+import db from "../../../config/db.js";
 
 async function importar() {
   await db.authenticate();

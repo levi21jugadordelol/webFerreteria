@@ -3,8 +3,8 @@ import ComprobantePago from "./payment.model.js";
 import Pedido from "../orders/order.model.js";
 import chalk from "chalk";
 import PagoService from "./payment.service.js";
-import { formatearFechaHora } from "../../../helpers/fechaHelper.js";
-import { tiempoPendiente } from "../../../helpers/tiempoHelper.js";
+import { formatearFechaHora } from "../../shared/helpers/fechaHelper.js";
+import { tiempoPendiente } from "../../shared/helpers/tiempoHelper.js";
 
 /* ---------------------------------
    Subir comprobante (cliente)
