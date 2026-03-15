@@ -33,7 +33,7 @@ import pagoRouter from "./src/modules/payments/payment.routes.js";
 
 import productoTabsRoutes from "./src/modules/productoTab/productoTab.routes.js";
 
-import auditoriaRoutes from "./routes/auditoriaRoutes.js";
+import auditoriaRoutes from "./src/modules/audit-payments/auditPayment.routes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 import paginaRoutes from "./src/modules/pages/pagina.routes.js";

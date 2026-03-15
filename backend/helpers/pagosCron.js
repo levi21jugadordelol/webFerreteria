@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { Op } from "sequelize";
 import ComprobantePago from "../src/modules/payments/payment.model.js";
-import PagoAuditoria from "../models/PagoAuditoria.js";
+import PagoAuditoria from "../src/modules/audit-payments/auditPayment.model.js";
 
 cron.schedule("*/10 * * * *", async () => {
   console.log("⏰ Revisando comprobantes vencidos...");
