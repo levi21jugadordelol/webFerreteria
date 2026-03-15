@@ -3,7 +3,7 @@ import db from "../config/db.js";
 import ComprobantePago from "../models/Comprobante.js";
 import Pedido from "../models/Pedido.js";
 import DetallePedido from "../models/DetallePedido.js";
-import Producto from "../models/Producto.js";
+import Producto from "../src/modules/products/producto.model.js";
 import PagoAuditoria from "../models/PagoAuditoria.js";
 import { Op } from "sequelize";
 

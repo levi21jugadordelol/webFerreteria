@@ -1,5 +1,5 @@
 import Administrador from "../src/modules/admin/admin.model.js";
-import Producto from "./Producto.js";
+import Producto from "../src/modules/products/producto.model.js";
 import Pedido from "./Pedido.js";
 import DetallePedido from "./DetallePedido.js";
 import ComprobantePago from "./Comprobante.js";
@@ -7,7 +7,8 @@ import Categoria from "../src/modules/categories/category.model.js";
 
 import Marca from "../src/modules/brands/marca.model.js";
 import ProductoCaracteristica from "./ProductoCaracteristica.js"; // 🆕
-import ProductoImagen from "./ProductoImagen.js"; // 🆕
+//import ProductoImagen from "./ProductoImagen.js"; // 🆕
+import ProductoImagen from "../src/modules/productImagen/productImg.model.js";
 //import ProductoTab from "./ProductoTab.js";
 import ProductoTab from "../src/modules/productoTab/productoTab.model.js";
 

@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import db from "../config/db.js";
+import db from "../../config/db.js";
 
 const ProductoImagen = db.define(
   "producto_imagen",
@@ -21,7 +21,7 @@ const ProductoImagen = db.define(
   {
     tableName: "producto_imagenes",
     timestamps: false,
-  }
+  },
 );
 
 export default ProductoImagen;

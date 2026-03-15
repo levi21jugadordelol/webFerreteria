@@ -4,17 +4,17 @@ import fs from "fs";
 import { Op } from "sequelize";
 import chalk from "chalk";
 
-import Producto from "../models/Producto.js";
-import Categoria from "../src/modules/categories/category.model.js";
-import ProductoImagen from "../models/ProductoImagen.js";
-import ProductoCaracteristica from "../models/ProductoCaracteristica.js";
-import ProductoTab from "../src/modules/productoTab/productoTab.model.js";
+import Producto from "./producto.model.js";
+import Categoria from "../categories/category.model.js";
+import ProductoImagen from "../productImagen/productImg.model.js";
+import ProductoCaracteristica from "../../../models/ProductoCaracteristica.js";
+import ProductoTab from "../productoTab/productoTab.model.js";
 
 import { validationResult } from "express-validator";
 
-import ProductoService from "../services/ProductoService.js";
+import ProductoService from "./producto.service.js";
 
-import { getSiteSettings } from "../src/modules/settings/settings.services.js";
+import { getSiteSettings } from "../settings/settings.services.js";
 
 /* -----------------------------
    Multer

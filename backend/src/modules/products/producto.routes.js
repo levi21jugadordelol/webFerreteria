@@ -1,7 +1,7 @@
 import express from "express";
 import { body } from "express-validator";
-import protegerRuta from "../middleware/protegerRuta.js";
-import uploadProducto from "../middleware/uploadProducto.js";
+import protegerRuta from "../../../middleware/protegerRuta.js";
+import uploadProducto from "../../../middleware/uploadProducto.js";
 import chalk from "chalk";
 
 import {
@@ -21,9 +21,9 @@ import {
   actualizarCaracteristica,
   obtenerProductoCompleto,
   obtenerCaracteristicas,
-} from "../controllers/productoController.js";
+} from "./producto.controller.js";
 
-import { filtrarPorPrecio } from "../controllers/precioController.js";
+import { filtrarPorPrecio } from "../../../controllers/precioController.js";
 
 const router = express.Router();
 

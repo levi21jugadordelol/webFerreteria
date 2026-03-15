@@ -16,7 +16,8 @@ import "./models/index.js";
 
 // 📂 Rutas
 import admiRoutes from "./src/modules/admin/admin.routes.js";
-import productoRoutes from "./routes/productoRouters.js";
+//import productoRoutes from "./routes/productoRouters.js";
+import productoRoutes from "./src/modules/products/producto.routes.js";
 //import categoriaRoutes from "./routes/categoriaRouter.js";
 import categoriaRoutes from "./src/modules/categories/category.routes.js";
 
@@ -39,7 +40,7 @@ import paginaRoutes from "./src/modules/pages/pagina.routes.js";
 
 import "./helpers/pagosCron.js";
 
-import uploadRoutes from "./routes/uploadRoutes.js";
+import uploadRoutes from "./src/modules/uploads/upload.routes.js";
 
 //import menuRoutes from "./routes/menuRoutes.js";
 import menuRoutes from "./src/modules/menu/menu.routes.js";
