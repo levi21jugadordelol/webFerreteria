@@ -1,7 +1,7 @@
 import express from "express";
 import { body } from "express-validator";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
-import uploadCategoria from "../../../middleware/uploadCategoria.js";
+import uploadCategoria from "../../shared/middleware/uploadCategoria.js";
 
 import {
   crearCategoria,

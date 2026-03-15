@@ -10,7 +10,7 @@ import {
 } from "./hero.controller.js";
 
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
-import uploadHero from "../../../middleware/uploadHero.js";
+import uploadHero from "../../shared/middleware/uploadHero.js";
 
 const router = express.Router();
 

@@ -1,4 +1,4 @@
-import { crearUpload } from "./upload.js";
+import { crearUpload } from "../../shared/middleware/upload.js";
 
 const uploadProducto = crearUpload("uploads/productos");
 

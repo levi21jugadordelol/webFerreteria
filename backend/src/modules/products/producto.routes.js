@@ -1,7 +1,7 @@
 import express from "express";
 import { body } from "express-validator";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
-import uploadProducto from "../../../middleware/uploadProducto.js";
+import uploadProducto from "../../shared/middleware/uploadProducto.js";
 import chalk from "chalk";
 
 import {

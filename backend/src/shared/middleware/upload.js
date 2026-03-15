@@ -2,9 +2,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-// 🧩 Factory reutilizable
 export function crearUpload(destino) {
-  const uploadDir = path.resolve(destino);
+  const uploadDir = path.join(process.cwd(), destino);
 
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -16,7 +15,9 @@ export function crearUpload(destino) {
     },
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+
       const ext = path.extname(file.originalname);
+
       cb(null, file.fieldname + "-" + uniqueSuffix + ext);
     },
   });
@@ -33,7 +34,7 @@ export function crearUpload(destino) {
     storage,
     fileFilter,
     limits: {
-      fileSize: 5 * 1024 * 1024, // 5MB
+      fileSize: 5 * 1024 * 1024,
     },
   });
 }

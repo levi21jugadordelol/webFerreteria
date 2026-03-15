@@ -2,7 +2,7 @@
 import express from "express";
 import chalk from "chalk";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
-import uploadComprobante from "../../../middleware/uploadComprobante.js";
+import uploadComprobante from "../../shared/middleware/uploadComprobante.js";
 
 import {
   subirComprobante,

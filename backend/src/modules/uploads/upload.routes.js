@@ -1,7 +1,7 @@
 import express from "express";
 import chalk from "chalk";
 
-import uploadEditor from "../../../middleware/uploadEditor.js";
+import uploadEditor from "../../shared/middleware/uploadEditor.js";
 import { subirImagenEditor } from "./upload.controller.js";
 
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
