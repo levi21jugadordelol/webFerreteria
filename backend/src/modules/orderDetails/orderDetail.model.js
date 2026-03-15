@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import db from "../config/db.js";
+import db from "../../config/db.js";
 
 const DetallePedido = db.define(
   "detalle_pedido",
@@ -40,7 +40,7 @@ const DetallePedido = db.define(
   {
     tableName: "detalles_pedido",
     timestamps: false,
-  }
+  },
 );
 
 export default DetallePedido;

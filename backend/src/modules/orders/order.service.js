@@ -2,7 +2,7 @@ import chalk from "chalk";
 import sequelize from "../../config/db.js";
 import { Op } from "sequelize";
 import Pedido from "../orders/order.model.js";
-import DetallePedido from "../../../models/DetallePedido.js";
+import DetallePedido from "../orderDetails/orderDetail.model.js";
 import Producto from "../products/producto.model.js";
 
 class PedidoService {

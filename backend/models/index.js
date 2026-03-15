@@ -1,7 +1,7 @@
 import Administrador from "../src/modules/admin/admin.model.js";
 import Producto from "../src/modules/products/producto.model.js";
 import Pedido from "../src/modules/orders/order.model.js";
-import DetallePedido from "./DetallePedido.js";
+import DetallePedido from "../src/modules/orderDetails/orderDetail.model.js";
 import ComprobantePago from "./Comprobante.js";
 import Categoria from "../src/modules/categories/category.model.js";
 
