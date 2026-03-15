@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import Administrador from "../src/modules/admin/admin.model.js";
+import Administrador from "../../modules/admin/admin.model.js";
 
 const protegerRuta = async (req, res, next) => {
   const token = req.cookies?._token;

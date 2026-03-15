@@ -4,7 +4,7 @@ import chalk from "chalk";
 import uploadEditor from "../../../middleware/uploadEditor.js";
 import { subirImagenEditor } from "./upload.controller.js";
 
-import protegerRuta from "../../../middleware/protegerRuta.js";
+import protegerRuta from "../../shared/middleware/protegerRuta.js";
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
 import express from "express";
 import chalk from "chalk";
 
-import protegerRuta from "../../../middleware/protegerRuta.js";
+import protegerRuta from "../../shared/middleware/protegerRuta.js";
 
 import {
   crearPagina,

@@ -3,7 +3,7 @@ import chalk from "chalk";
 
 import { getSiteSettings, updateSiteSettings } from "./settings.controller.js";
 
-import protegerRuta from "../../../middleware/protegerRuta.js";
+import protegerRuta from "../../shared/middleware/protegerRuta.js";
 
 const router = express.Router();
 
