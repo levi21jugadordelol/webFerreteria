@@ -29,7 +29,7 @@ import precioRoutes from "./routes/precioRouters.js";
 import siteSettingsRoutes from "./src/modules/settings/settings.model.js";
 import heroRoutes from "./src/modules/heroSlides/hero.routes.js";
 import pedidoRouter from "./src/modules/orders/order.routes.js";
-import pagoRouter from "./routes/pagoRouter.js";
+import pagoRouter from "./src/modules/payments/payment.routes.js";
 
 import productoTabsRoutes from "./src/modules/productoTab/productoTab.routes.js";
 

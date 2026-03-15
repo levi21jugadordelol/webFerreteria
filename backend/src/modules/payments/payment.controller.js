@@ -1,10 +1,10 @@
 // controllers/comprobantePagoController.js
-import ComprobantePago from "../models/Comprobante.js";
-import Pedido from "../src/modules/orders/order.model.js";
+import ComprobantePago from "./payment.model.js";
+import Pedido from "../orders/order.model.js";
 import chalk from "chalk";
-import PagoService from "../services/PagoService.js";
-import { formatearFechaHora } from "../helpers/fechaHelper.js";
-import { tiempoPendiente } from "../helpers/tiempoHelper.js";
+import PagoService from "./payment.service.js";
+import { formatearFechaHora } from "../../../helpers/fechaHelper.js";
+import { tiempoPendiente } from "../../../helpers/tiempoHelper.js";
 
 /* ---------------------------------
    Subir comprobante (cliente)

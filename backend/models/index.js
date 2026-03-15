@@ -2,7 +2,7 @@ import Administrador from "../src/modules/admin/admin.model.js";
 import Producto from "../src/modules/products/producto.model.js";
 import Pedido from "../src/modules/orders/order.model.js";
 import DetallePedido from "../src/modules/orderDetails/orderDetail.model.js";
-import ComprobantePago from "./Comprobante.js";
+import ComprobantePago from "../src/modules/payments/payment.model.js";
 import Categoria from "../src/modules/categories/category.model.js";
 
 import Marca from "../src/modules/brands/marca.model.js";

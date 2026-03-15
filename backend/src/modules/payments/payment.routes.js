@@ -1,8 +1,8 @@
 // routes/pagoRouter.js
 import express from "express";
 import chalk from "chalk";
-import protegerRuta from "../middleware/protegerRuta.js";
-import uploadComprobante from "../middleware/uploadComprobante.js";
+import protegerRuta from "../../../middleware/protegerRuta.js";
+import uploadComprobante from "../../../middleware/uploadComprobante.js";
 
 import {
   subirComprobante,
@@ -10,7 +10,7 @@ import {
   validarComprobante,
   rechazarComprobante,
   revertirComprobante,
-} from "../controllers/comprobantePagoController.js";
+} from "./payment.controller.js";
 
 const router = express.Router();
 
@@ -28,7 +28,7 @@ router.post(
     console.log(chalk.cyan("🧪 [MULTER] req.body =>"), req.body);
     next();
   },
-  subirComprobante
+  subirComprobante,
 );
 
 // 🔒 Admin

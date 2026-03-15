@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import { Op } from "sequelize";
-import ComprobantePago from "../models/Comprobante.js";
+import ComprobantePago from "../src/modules/payments/payment.model.js";
 import PagoAuditoria from "../models/PagoAuditoria.js";
 
 cron.schedule("*/10 * * * *", async () => {

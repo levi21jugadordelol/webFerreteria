@@ -1,6 +1,6 @@
 import Producto from "../src/modules/products/producto.model.js";
 import Pedido from "../src/modules/orders/order.model.js";
-import ComprobantePago from "../models/Comprobante.js";
+import ComprobantePago from "../src/modules/payments/payment.model.js";
 import PagoAuditoria from "../models/PagoAuditoria.js";
 
 export const estadisticasDashboard = async (req, res) => {
