@@ -26,7 +26,7 @@ import marcaRoutes from "./src/modules/brands/marca.routes.js";
 
 import precioRoutes from "./routes/precioRouters.js";
 //import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
-import siteSettingsRoutes from "./src/modules/settings/settings.model.js";
+import siteSettingsRoutes from "./src/modules/settings/settings.routes.js";
 import heroRoutes from "./src/modules/heroSlides/hero.routes.js";
 import pedidoRouter from "./src/modules/orders/order.routes.js";
 import pagoRouter from "./src/modules/payments/payment.routes.js";
@@ -34,7 +34,7 @@ import pagoRouter from "./src/modules/payments/payment.routes.js";
 import productoTabsRoutes from "./src/modules/productoTab/productoTab.routes.js";
 
 import auditoriaRoutes from "./src/modules/audit-payments/auditPayment.routes.js";
-import dashboardRoutes from "./routes/dashboardRoutes.js";
+import dashboardRoutes from "./src/modules/dashboard/dashboard.routes.js";
 
 import paginaRoutes from "./src/modules/pages/pagina.routes.js";
 
