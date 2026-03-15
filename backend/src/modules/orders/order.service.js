@@ -1,9 +1,9 @@
 import chalk from "chalk";
-import sequelize from "../config/db.js";
+import sequelize from "../../config/db.js";
 import { Op } from "sequelize";
-import Pedido from "../models/Pedido.js";
-import DetallePedido from "../models/DetallePedido.js";
-import Producto from "../src/modules/products/producto.model.js";
+import Pedido from "../orders/order.model.js";
+import DetallePedido from "../../../models/DetallePedido.js";
+import Producto from "../products/producto.model.js";
 
 class PedidoService {
   static async crear(data) {

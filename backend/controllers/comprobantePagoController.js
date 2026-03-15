@@ -1,6 +1,6 @@
 // controllers/comprobantePagoController.js
 import ComprobantePago from "../models/Comprobante.js";
-import Pedido from "../models/Pedido.js";
+import Pedido from "../src/modules/orders/order.model.js";
 import chalk from "chalk";
 import PagoService from "../services/PagoService.js";
 import { formatearFechaHora } from "../helpers/fechaHelper.js";

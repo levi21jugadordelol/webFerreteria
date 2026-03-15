@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import Producto from "./producto.model.js";
 import Categoria from "../categories/category.model.js";
 import ProductoImagen from "../productImagen/productImg.model.js";
-import ProductoCaracteristica from "../../../models/ProductoCaracteristica.js";
+import ProductoCaracteristica from "../productCaracteristica/productCarac.model.js";
 import ProductoTab from "../productoTab/productoTab.model.js";
 
 class ProductoService {

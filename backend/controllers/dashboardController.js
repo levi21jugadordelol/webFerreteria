@@ -1,5 +1,5 @@
 import Producto from "../src/modules/products/producto.model.js";
-import Pedido from "../models/Pedido.js";
+import Pedido from "../src/modules/orders/order.model.js";
 import ComprobantePago from "../models/Comprobante.js";
 import PagoAuditoria from "../models/PagoAuditoria.js";
 

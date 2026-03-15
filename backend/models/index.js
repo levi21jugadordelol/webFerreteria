@@ -1,12 +1,12 @@
 import Administrador from "../src/modules/admin/admin.model.js";
 import Producto from "../src/modules/products/producto.model.js";
-import Pedido from "./Pedido.js";
+import Pedido from "../src/modules/orders/order.model.js";
 import DetallePedido from "./DetallePedido.js";
 import ComprobantePago from "./Comprobante.js";
 import Categoria from "../src/modules/categories/category.model.js";
 
 import Marca from "../src/modules/brands/marca.model.js";
-import ProductoCaracteristica from "./ProductoCaracteristica.js"; // 🆕
+import ProductoCaracteristica from "../src/modules/productCaracteristica/productCarac.model.js"; // 🆕
 //import ProductoImagen from "./ProductoImagen.js"; // 🆕
 import ProductoImagen from "../src/modules/productImagen/productImg.model.js";
 //import ProductoTab from "./ProductoTab.js";

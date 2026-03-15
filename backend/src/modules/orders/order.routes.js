@@ -1,7 +1,7 @@
 // routes/pedidoRouter.js
 import express from "express";
 import chalk from "chalk";
-import { crearPedido } from "../controllers/pedidoController.js";
+import { crearPedido } from "./order.controller.js";
 
 const router = express.Router();
 
