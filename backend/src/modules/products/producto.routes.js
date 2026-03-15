@@ -23,7 +23,7 @@ import {
   obtenerCaracteristicas,
 } from "./producto.controller.js";
 
-import { filtrarPorPrecio } from "../../../controllers/precioController.js";
+import { filtrarPorPrecio } from "../price/price.controller.js";
 
 const router = express.Router();
 

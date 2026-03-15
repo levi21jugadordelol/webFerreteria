@@ -16,16 +16,15 @@ import "./models/index.js";
 
 // 📂 Rutas
 import admiRoutes from "./src/modules/admin/admin.routes.js";
-//import productoRoutes from "./routes/productoRouters.js";
+
 import productoRoutes from "./src/modules/products/producto.routes.js";
-//import categoriaRoutes from "./routes/categoriaRouter.js";
+
 import categoriaRoutes from "./src/modules/categories/category.routes.js";
 
-//import marcaRoutes from "./routes/marcaRouter.js";
 import marcaRoutes from "./src/modules/brands/marca.routes.js";
 
-import precioRoutes from "./routes/precioRouters.js";
-//import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
+import precioRoutes from "./src/modules/price/price.routes.js";
+
 import siteSettingsRoutes from "./src/modules/settings/settings.routes.js";
 import heroRoutes from "./src/modules/heroSlides/hero.routes.js";
 import pedidoRouter from "./src/modules/orders/order.routes.js";
@@ -42,7 +41,6 @@ import "./helpers/pagosCron.js";
 
 import uploadRoutes from "./src/modules/uploads/upload.routes.js";
 
-//import menuRoutes from "./routes/menuRoutes.js";
 import menuRoutes from "./src/modules/menu/menu.routes.js";
 
 const app = express();

@@ -1,5 +1,5 @@
 import express from "express";
-import { filtrarPorPrecio } from "../controllers/precioController.js";
+import { filtrarPorPrecio } from "./price.controller.js";
 
 const router = express.Router();
 

@@ -1,4 +1,4 @@
-import Producto from "../src/modules/products/producto.model.js";
+import Producto from "../products/producto.model.js";
 import { Op } from "sequelize";
 import chalk from "chalk";
 
