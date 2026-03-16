@@ -25,6 +25,11 @@ const ProductoTab = db.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+
+    activo: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
   },
   {
     tableName: "producto_tabs",

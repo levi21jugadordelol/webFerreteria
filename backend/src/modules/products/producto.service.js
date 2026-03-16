@@ -69,7 +69,7 @@ class ProductoService {
             {
               model: ProductoTab,
               as: "tab",
-              attributes: ["id_tab", "nombre", "slug", "orden"],
+              attributes: ["id_tab", "nombre", "slug", "orden", "activo"],
             },
           ],
 
@@ -87,13 +87,14 @@ class ProductoService {
     const tabs = {};
 
     for (const carac of data.caracteristicas) {
-      if (!carac.tab) continue; // ← AQUÍ VA
+      if (!carac.tab || !carac.tab.activo) continue; // ← AQUÍ VA
 
       const slug = carac.tab.slug;
 
       if (!tabs[slug]) {
         tabs[slug] = {
           nombre: carac.tab.nombre,
+          orden: carac.tab.orden,
           items: [],
         };
       }

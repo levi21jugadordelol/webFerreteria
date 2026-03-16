@@ -114,7 +114,7 @@ app.use("/productos/precio", precioRoutes);
 app.use("/categorias", categoriaRoutes);
 app.use("/marcas", marcaRoutes);
 
-app.use("/producto-tabs", productoTabsRoutes);
+app.use("/api/producto-tabs", productoTabsRoutes);
 
 app.use("/api/site-settings", siteSettingsRoutes);
 app.use("/api/pedidos", pedidoRouter);

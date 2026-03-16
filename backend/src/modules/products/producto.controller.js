@@ -213,18 +213,39 @@ export const eliminarImagenExtra = async (req, res) => {
 export const agregarCaracteristica = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titulo, valor, tab_id, orden } = req.body;
+    const { titulo, valor, tab_id } = req.body;
 
-    if (!titulo || !valor) {
-      return res.status(400).json({ msg: "Datos incompletos" });
+    if (!titulo || !valor || !tab_id) {
+      return res.status(400).json({
+        msg: "Datos incompletos",
+      });
     }
+
+    const tabId = Number(tab_id); // 🔴 FIX IMPORTANTE
+
+    /* =========================
+       OBTENER ÚLTIMO ORDEN
+    ========================= */
+
+    const ultimoOrden = await ProductoCaracteristica.max("orden", {
+      where: {
+        producto_id: id,
+        tab_id: tabId,
+      },
+    });
+
+    const nuevoOrden = (ultimoOrden ?? -1) + 1;
+
+    /* =========================
+       CREAR CARACTERÍSTICA
+    ========================= */
 
     const nueva = await ProductoCaracteristica.create({
       producto_id: id,
       titulo,
       valor,
-      tab_id,
-      orden: orden || 0,
+      tab_id: tabId, // 🔴 usar número
+      orden: nuevoOrden,
     });
 
     res.json({
@@ -233,7 +254,10 @@ export const agregarCaracteristica = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ msg: "Error al agregar característica" });
+
+    res.status(500).json({
+      msg: "Error al agregar característica",
+    });
   }
 };
 
