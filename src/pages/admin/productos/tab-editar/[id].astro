@@ -1,0 +1,85 @@
+---
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+
+const API_URL = "http://localhost:3000";
+
+interface Tab {
+  id_tab: number;
+  nombre: string;
+  slug: string;
+  orden: number;
+  activo: boolean;
+}
+
+const { id } = Astro.params;
+
+const res = await fetch(`${API_URL}/api/producto-tabs`, {
+  credentials: "include"
+});
+
+const tabs: Tab[] = await res.json();
+
+const tab = tabs.find((t: Tab) => t.id_tab === Number(id));
+
+if (!tab) {
+  throw new Error("Tab no encontrada");
+}
+---
+
+<AdminLayout title="Editar Tab">
+
+<h3 class="mb-4">Editar tab</h3>
+
+<form id="formTab">
+
+<input
+name="nombre"
+value={tab.nombre}
+class="form-control mb-3"
+/>
+
+<input
+name="slug"
+value={tab.slug}
+class="form-control mb-3"
+/>
+
+<input
+name="orden"
+type="number"
+value={tab.orden}
+class="form-control mb-3"
+/>
+
+<button class="btn btn-primary">
+Actualizar
+</button>
+
+</form>
+
+<script is:inline>
+
+const id = "{id}";
+
+document.getElementById("formTab").addEventListener("submit", async e => {
+
+e.preventDefault();
+
+const data = Object.fromEntries(new FormData(e.target));
+
+await fetch(`http://localhost:3000/api/producto-tabs/${id}`,{
+method:"PUT",
+credentials:"include",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(data)
+});
+
+window.location="/admin/productos/tabs";
+
+});
+
+</script>
+
+</AdminLayout>
