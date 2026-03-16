@@ -34,11 +34,10 @@ const settingsRes = await fetch(`${apiUrl}/api/site-settings`);
 const settings = await settingsRes.json();
 
 // TABS DINÁMICOS
-const caracteristicas: Caracteristica[] = producto.caracteristicas || [];
-
-const tiposTabs = [
-  ...new Set(caracteristicas.map(c => c.tipo || "especificaciones"))
-];
+const tabs = producto.tabs || {};
+const tiposTabs = Object.keys(tabs).sort(
+  (a, b) => (tabs[a].orden ?? 0) - (tabs[b].orden ?? 0)
+);
 
 // TAB ACTIVO
 const primerTab = tiposTabs.length > 0 ? tiposTabs[0] : null;
@@ -126,17 +125,17 @@ Agregar al carrito
 
 <ul class="nav nav-tabs" role="tablist">
 
-{tiposTabs.map((tipo, index) => (
+{tiposTabs.map((slug, index) => (
 
 <li class="nav-item">
 
 <button
 class={`nav-link ${index === 0 ? "active" : ""}`}
 data-bs-toggle="tab"
-data-bs-target={`#tab-${tipo}`}
+data-bs-target={`#tab-${slug}`}
 >
 
-{tipo.charAt(0).toUpperCase() + tipo.slice(1)}
+{tabs[slug].nombre}
 
 </button>
 
@@ -149,17 +148,16 @@ data-bs-target={`#tab-${tipo}`}
 
 <div class="tab-content border border-top-0 p-4">
 
-{tiposTabs.map((tipo, index) => {
+{tiposTabs.map((slug, index) => {
 
-const items = caracteristicas
-.filter(c => (c.tipo || "especificaciones") === tipo)
-.sort((a,b) => (a.orden ?? 0) - (b.orden ?? 0));
+const tab = tabs[slug];
+const items = tab?.items || [];
 
 return (
 
 <div
 class={`tab-pane fade ${index === 0 ? "show active" : ""}`}
-id={`tab-${tipo}`}
+id={`tab-${slug}`}
 >
 
 {items.length > 0 ? (
@@ -168,7 +166,7 @@ id={`tab-${tipo}`}
 
 <tbody>
 
-{items.map((c: Caracteristica) => (
+{items.map((c:any) => (
 
 <tr>
 

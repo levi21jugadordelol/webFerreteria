@@ -44,10 +44,7 @@ Subir
 <input type="text" id="carac-valor" class="form-control" required />
 </div>
 
-<div class="col-md-1">
-<label class="form-label fw-semibold">Orden</label>
-<input type="number" id="carac-orden" class="form-control" value="0" />
-</div>
+
 
 <div class="col-md-2">
 <button class="btn btn-primary w-100" type="submit">
@@ -93,7 +90,7 @@ CARGAR TABS
 
 async function cargarTabs(){
 
-const res = await fetch(`${apiUrl}/producto-tabs`);
+const res = await fetch(`${apiUrl}/api/producto-tabs`);
 tabsCache = await res.json();
 
 const select = document.getElementById("carac-tab");
@@ -210,11 +207,11 @@ return;
 
 contador.textContent = `${prod.length} registradas`;
 
-tbody.innerHTML = prod.map(c=>`
+tbody.innerHTML = prod.map(c => `
 
 <tr data-id="${c.id_caracteristica}">
 
-<td class="carac-tipo">${c.tab?.nombre ?? "Tab"}</td>
+<td class="carac-tipo">${c.tab?.nombre ?? "-"}</td>
 
 <td class="carac-orden">${c.orden ?? 0}</td>
 
@@ -358,7 +355,9 @@ document.getElementById("form-carac")
 
 e.preventDefault();
 
-const tab_id = document.getElementById("carac-tab").value;
+const tab_id = Number(
+document.getElementById("carac-tab").value
+);
 
 const titulo = tituloInput.value.trim();
 const valor = valorInput.value.trim();
@@ -373,8 +372,7 @@ credentials:"include",
 body:JSON.stringify({
 titulo,
 valor,
-tab_id,
-orden
+tab_id
 })
 }
 );
