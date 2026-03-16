@@ -27,6 +27,7 @@ class ProductoService {
       attributes: [
         "id_producto",
         "nombre_producto",
+        "slug",
         "descripcion",
         "precio",
         "url_imagen",
@@ -100,6 +101,78 @@ class ProductoService {
       }
 
       tabs[slug].items.push({
+        titulo: carac.titulo,
+        valor: carac.valor,
+        orden: carac.orden,
+      });
+    }
+
+    return {
+      ...data,
+      tabs,
+      agotado: producto.stock <= 0,
+      disponible: producto.stock > 0,
+    };
+  }
+
+  /* =====================================================
+   🟢 OBTENER PRODUCTO POR SLUG (PÚBLICO)
+   ===================================================== */
+  static async obtenerPorSlug(slug) {
+    const producto = await Producto.findOne({
+      where: { slug },
+
+      include: [
+        {
+          model: Categoria,
+          as: "categoria",
+          attributes: ["nombre_categoria"],
+        },
+
+        {
+          model: ProductoImagen,
+          as: "imagenes",
+        },
+
+        {
+          model: ProductoCaracteristica,
+          as: "caracteristicas",
+
+          include: [
+            {
+              model: ProductoTab,
+              as: "tab",
+              attributes: ["id_tab", "nombre", "slug", "orden", "activo"],
+            },
+          ],
+
+          order: [["orden", "ASC"]],
+        },
+      ],
+    });
+
+    if (!producto) {
+      throw new Error("Producto no encontrado");
+    }
+
+    const data = producto.toJSON();
+
+    const tabs = {};
+
+    for (const carac of data.caracteristicas) {
+      if (!carac.tab || !carac.tab.activo) continue;
+
+      const slugTab = carac.tab.slug;
+
+      if (!tabs[slugTab]) {
+        tabs[slugTab] = {
+          nombre: carac.tab.nombre,
+          orden: carac.tab.orden,
+          items: [],
+        };
+      }
+
+      tabs[slugTab].items.push({
         titulo: carac.titulo,
         valor: carac.valor,
         orden: carac.orden,

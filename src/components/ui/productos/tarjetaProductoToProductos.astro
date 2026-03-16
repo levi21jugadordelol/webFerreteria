@@ -1,8 +1,7 @@
 ---
-const { id, titulo, precio, imagen, agotado = false } = Astro.props;
+const { id, slug, titulo, precio, imagen, agotado = false } = Astro.props;
 const imgSrc = imagen?.src ?? "/img/no-image.png";
 ---
-
 
 <div
   class="card-simple"
@@ -11,38 +10,38 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
   data-nombre={titulo}
   data-precio={precio}
   data-imagen={imgSrc}
-  data-agotado={agotado}  
+  data-agotado={agotado}
 >
 
   <!-- Navegar -->
-  <a href={`/productos/${id}`} class="card-link">
-   <div class="card-img">
-  <img src={imgSrc} alt={titulo} />
+  <a href={`/productos/${slug}`} class="card-link">
 
-  {agotado && (
-    <span class="badge-agotado">
-      AGOTADO
-    </span>
-  )}
-</div>
+    <div class="card-img">
+      <img src={imgSrc} alt={titulo} />
 
+      {agotado && (
+        <span class="badge-agotado">
+          AGOTADO
+        </span>
+      )}
+    </div>
 
     <div class="card-info">
       <h3>{titulo}</h3>
       <p class="precio">S/ {precio}</p>
     </div>
+
   </a>
 
   <!-- Carrito -->
   <button
-  class="btn-add"
-  disabled={agotado}
->
-  {agotado ? "Sin stock" : "Agregar al carrito"}
-</button>
+    class="btn-add"
+    disabled={agotado}
+  >
+    {agotado ? "Sin stock" : "Agregar al carrito"}
+  </button>
 
-<!-- 🔥 NUEVO: mensaje dinámico -->
-<div class="card-msg hidden"></div>
+  <div class="card-msg hidden"></div>
 
 </div>
 

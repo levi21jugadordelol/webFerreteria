@@ -16,6 +16,8 @@ import ProductoService from "./producto.service.js";
 
 import { getSiteSettings } from "../settings/settings.services.js";
 
+import { generarSlugUnico } from "../../shared/helpers/generarSlugUnico.js";
+
 /* -----------------------------
    Multer
 ----------------------------- */
@@ -109,8 +111,11 @@ export const crearProducto = async (req, res) => {
 
     const imagen = req.file ? `productos/${req.file.filename}` : null;
 
+    const slug = await generarSlugUnico(nombre_producto);
+
     const producto = await Producto.create({
       nombre_producto,
+      slug,
       descripcion,
       precio,
       stock,
@@ -330,7 +335,7 @@ export const listarProductosPublicos = async (req, res) => {
 ----------------------------- */
 export const obtenerProducto = async (req, res) => {
   try {
-    const producto = await ProductoService.obtenerPorId(req.params.id);
+    const producto = await ProductoService.obtenerPorSlug(req.params.slug);
     res.json(producto);
   } catch (error) {
     res.status(404).json({ msg: error.message });
@@ -342,15 +347,18 @@ export const obtenerProducto = async (req, res) => {
 ----------------------------- */
 export const productosRelacionados = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { slug } = req.params;
 
-    const prod = await Producto.findByPk(id);
+    const prod = await Producto.findOne({
+      where: { slug },
+    });
+
     if (!prod) return res.status(404).json({ msg: "No existe" });
 
     const relacionados = await Producto.findAll({
       where: {
         categoria_id: prod.categoria_id,
-        id_producto: { [Op.ne]: id },
+        id_producto: { [Op.ne]: prod.id_producto },
       },
       limit: 6,
     });
@@ -383,12 +391,31 @@ export const actualizarProducto = async (req, res) => {
   try {
     const producto = await Producto.findByPk(req.params.id);
 
-    if (!producto) return res.status(404).json({ msg: "No encontrado" });
+    if (!producto) {
+      return res.status(404).json({ msg: "No encontrado" });
+    }
 
-    await producto.update(req.body);
+    const data = { ...req.body };
 
-    res.json({ msg: "Producto actualizado" });
+    if (
+      data.nombre_producto &&
+      data.nombre_producto.trim() !== "" &&
+      data.nombre_producto !== producto.nombre_producto
+    ) {
+      data.slug = await generarSlugUnico(
+        data.nombre_producto,
+        producto.id_producto,
+      );
+    }
+
+    await producto.update(data);
+
+    res.json({
+      msg: "Producto actualizado",
+      producto,
+    });
   } catch (error) {
+    console.error("❌ Error actualizarProducto:", error);
     res.status(500).json({ msg: "Error al actualizar" });
   }
 };
@@ -448,9 +475,9 @@ export const listarProductosHome = async (req, res) => {
 
 export const obtenerProductoCompleto = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { slug } = req.params;
 
-    const producto = await ProductoService.obtenerPorId(id);
+    const producto = await ProductoService.obtenerPorSlug(slug);
 
     if (!producto) {
       return res.status(404).json({
@@ -461,7 +488,7 @@ export const obtenerProductoCompleto = async (req, res) => {
     const relacionados = await Producto.findAll({
       where: {
         categoria_id: producto.categoria_id,
-        id_producto: { [Op.ne]: id },
+        id_producto: { [Op.ne]: producto.id_producto },
       },
       limit: 6,
     });
@@ -510,5 +537,14 @@ export const obtenerCaracteristicas = async (req, res) => {
     res.status(500).json({
       msg: "Error al obtener características",
     });
+  }
+};
+
+export const obtenerProductoAdmin = async (req, res) => {
+  try {
+    const producto = await ProductoService.obtenerPorId(req.params.id);
+    res.json(producto);
+  } catch (error) {
+    res.status(404).json({ msg: error.message });
   }
 };

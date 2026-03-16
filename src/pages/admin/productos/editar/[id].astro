@@ -6,8 +6,6 @@ const { id } = Astro.params;
 ---
 
 <AdminLayout title={`Editar producto #${id}`}>
-  <section id="producto-detalle" data-id={id}>
-    <ProductoDetalleAdmin id={Number(id)} />
-  </section>
+  <ProductoDetalleAdmin id={Number(id)} />
 </AdminLayout>
 

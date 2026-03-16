@@ -114,7 +114,7 @@ contenedor.querySelectorAll(".btn-avanzado").forEach((btn) =>
           const card = e.target.closest(".card");
           const id = card.dataset.id;
 
-          const res = await fetch(`${apiUrl}/productos/${id}`, { credentials: "include" });
+         const res = await fetch(`${apiUrl}/productos/admin/${id}`, { credentials: "include" });
           const producto = await res.json();
 
           // 📌 Llenar datos en el modal
@@ -149,7 +149,7 @@ contenedor.querySelectorAll(".btn-avanzado").forEach((btn) =>
           stock: document.getElementById("edit-stock").value
         };
 
-        const resUpdate = await fetch(`${apiUrl}/productos/${id}`, {
+        const resUpdate = await fetch(`${apiUrl}/productos/admin/${id}`, {
           method: "PUT",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -167,7 +167,7 @@ contenedor.querySelectorAll(".btn-avanzado").forEach((btn) =>
           const formData = new FormData();
           formData.append("file", fileInput.files[0]);
 
-          const resImg = await fetch(`${apiUrl}/productos/${id}/imagen`, {
+          const resImg = await fetch(`${apiUrl}/productos/admin/${id}/imagen`, {
             method: "POST",
             credentials: "include",
             body: formData,

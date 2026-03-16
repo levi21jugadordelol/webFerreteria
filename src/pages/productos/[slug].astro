@@ -15,10 +15,10 @@ interface Caracteristica {
 }
 
 const apiUrl = "http://localhost:3000";
-const { id } = Astro.params;
+const { slug } = Astro.params;
 
 // PRODUCTO
-const res = await fetch(`${apiUrl}/productos/${id}`);
+const res = await fetch(`${apiUrl}/productos/${slug}`);
 const producto = await res.json();
 
 if (!producto || !producto.id_producto) {
@@ -26,7 +26,7 @@ if (!producto || !producto.id_producto) {
 }
 
 // RELACIONADOS
-const relRes = await fetch(`${apiUrl}/productos/${id}/relacionados`);
+const relRes = await fetch(`${apiUrl}/productos/${slug}/relacionados`);
 const relacionados = await relRes.json();
 
 // SETTINGS
@@ -224,7 +224,7 @@ Productos relacionados
 {relacionados.map((p: any) => (
 
 <a
-href={`/productos/${p.id_producto}`}
+href={`/productos/${p.slug}`}
 class="relacionado-card"
 >
 

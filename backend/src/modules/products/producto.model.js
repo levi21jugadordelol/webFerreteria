@@ -14,6 +14,15 @@ const Producto = db.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    slug: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true,
+    },
+    descripcion: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     descripcion: {
       type: DataTypes.TEXT,
       allowNull: true,

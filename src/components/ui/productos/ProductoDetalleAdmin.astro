@@ -3,6 +3,8 @@ const { id } = Astro.props;
 const apiUrl = "http://localhost:3000";
 ---
 
+<div id="producto-detalle" data-id={id}>
+
 <section class="bg-white p-4 shadow rounded mb-4">
 
 <h3 class="fw-semibold mb-3">Imágenes adicionales</h3>
@@ -163,13 +165,15 @@ PRODUCTO
 ===================================== */
 
 const productoId = Number(
-document.getElementById("producto-detalle").dataset.id
+  document.getElementById("producto-detalle").dataset.id
 );
 
 
 async function obtenerProductoDetalle(){
 
-const res = await fetch(`${apiUrl}/productos/${productoId}/caracteristicas`);
+const res = await fetch(`${apiUrl}/productos/admin/${productoId}/caracteristicas`, {
+  credentials: "include"
+});
 
 if(!res.ok) throw new Error("No se pudo cargar producto");
 
@@ -361,7 +365,7 @@ document.getElementById("carac-tab").value
 
 const titulo = tituloInput.value.trim();
 const valor = valorInput.value.trim();
-const orden = document.getElementById("carac-orden").value;
+
 
 await fetch(
 `${apiUrl}/productos/admin/${productoId}/caracteristicas`,
@@ -379,7 +383,7 @@ tab_id
 
 tituloInput.value="";
 valorInput.value="";
-document.getElementById("carac-orden").value=0;
+
 
 cargarCaracteristicas();
 
@@ -398,6 +402,7 @@ await cargarCaracteristicas();
 });
 
 </script>
+</div>
 
 
 

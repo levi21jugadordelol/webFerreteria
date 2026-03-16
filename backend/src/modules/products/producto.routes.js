@@ -9,6 +9,7 @@ import {
   listarProductosAdmin,
   crearProducto,
   obtenerProducto,
+  obtenerProductoAdmin,
   actualizarProducto,
   eliminarProducto,
   subirImagen,
@@ -37,11 +38,14 @@ router.use((req, res, next) => {
 -------------------- */
 router.get("/home", listarProductosHome);
 router.get("/precio", filtrarPorPrecio);
-router.get("/:id/relacionados", productosRelacionados);
-router.get("/:id/full", obtenerProductoCompleto);
+
+router.get("/:slug/relacionados", productosRelacionados);
+router.get("/:slug/full", obtenerProductoCompleto);
+router.get("/:slug/caracteristicas", obtenerCaracteristicas);
+
 router.get("/", listarProductosPublicos);
-router.get("/:id/caracteristicas", obtenerCaracteristicas);
-router.get("/:id", obtenerProducto);
+
+router.get("/:slug", obtenerProducto);
 
 /* --------------------
    🔒 ADMIN
@@ -49,12 +53,14 @@ router.get("/:id", obtenerProducto);
 router.use("/admin", protegerRuta);
 
 router.get("/admin/lista", listarProductosAdmin);
+router.get("/admin/:id", obtenerProductoAdmin);
+router.get("/admin/:id/caracteristicas", obtenerCaracteristicas);
 
 router.post(
   "/admin",
   uploadProducto.single("imagen"),
   body("nombre_producto").notEmpty(),
-  body("descripcion").optional(), // 👈 AQUÍ
+  body("descripcion").optional(),
   body("precio").isNumeric(),
   body("stock").isNumeric(),
   crearProducto,
