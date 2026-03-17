@@ -1,16 +1,8 @@
 import carritoStore from "/src/store/carritoStore.js";
 
-async function getStock(id) {
-  try {
-    const res = await fetch(`http://localhost:3000/productos/${id}`);
-    const data = await res.json();
-    return data.stock ?? 0;
-  } catch (err) {
-    console.error("❌ Error obteniendo stock:", err);
-    return 0;
-  }
-}
-
+/* ===============================
+   Mostrar mensaje en tarjeta
+================================= */
 function showCardMessage(card, message) {
   let msg = card.querySelector(".card-msg");
 
@@ -27,7 +19,31 @@ function showCardMessage(card, message) {
   }, 2500);
 }
 
-document.addEventListener("click", async (e) => {
+/* ===============================
+   Marcar producto como agotado
+================================= */
+function marcarAgotado(card, btn) {
+  btn.disabled = true;
+  btn.textContent = "Sin stock";
+
+  const imgBox = card.querySelector(".card-img");
+
+  if (imgBox) {
+    imgBox.style.position = "relative";
+
+    if (!card.querySelector(".badge-agotado")) {
+      const badge = document.createElement("span");
+      badge.className = "badge-agotado";
+      badge.textContent = "AGOTADO";
+      imgBox.appendChild(badge);
+    }
+  }
+}
+
+/* ===============================
+   Click global agregar carrito
+================================= */
+document.addEventListener("click", (e) => {
   const btn = e.target.closest(".btn-add");
   if (!btn) return;
 
@@ -37,36 +53,32 @@ document.addEventListener("click", async (e) => {
   if (!card) return;
 
   const id = Number(card.dataset.id);
+  const stock = Number(card.dataset.stock);
 
-  // 🔥 Obtener stock real del backend
-  const stock = await getStock(id);
+  if (!id || isNaN(stock)) {
+    console.warn("⚠ Producto inválido en tarjeta");
+    return;
+  }
 
-  // 🔥 Obtener carrito actual
+  /* ===============================
+     Obtener carrito actual
+  ================================= */
   const carrito = carritoStore.get();
   const item = carrito.find((p) => p.id === id);
   const cantidadActual = item ? item.cantidad : 0;
 
-  // 🔥 Validar contra stock real
-  if (cantidadActual + 1 > stock) {
+  /* ===============================
+     Validar stock disponible
+  ================================= */
+  if (cantidadActual >= stock) {
     showCardMessage(card, `Solo quedan ${stock} unidades`);
-
-    btn.disabled = true;
-    btn.textContent = "Sin stock";
-
-    const imgBox = card.querySelector(".card-img");
-    imgBox.style.position = "relative";
-
-    if (!card.querySelector(".badge-agotado")) {
-      const badge = document.createElement("span");
-      badge.className = "badge-agotado";
-      badge.textContent = "AGOTADO";
-      imgBox.appendChild(badge);
-    }
-
+    marcarAgotado(card, btn);
     return;
   }
 
-  // ✅ Agregar normalmente
+  /* ===============================
+     Agregar producto al carrito
+  ================================= */
   const producto = {
     id: id,
     nombre: card.dataset.nombre,
@@ -76,4 +88,14 @@ document.addEventListener("click", async (e) => {
   };
 
   carritoStore.add(producto);
+
+  /* ===============================
+     Verificar si ahora se agotó
+  ================================= */
+  const nuevoCarrito = carritoStore.get();
+  const nuevoItem = nuevoCarrito.find((p) => p.id === id);
+
+  if (nuevoItem && nuevoItem.cantidad >= stock) {
+    marcarAgotado(card, btn);
+  }
 });
