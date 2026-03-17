@@ -1,5 +1,5 @@
 ---
-const { id, slug, titulo, precio, imagen, agotado = false } = Astro.props;
+const { id, slug, titulo, precio, imagen, stock = 0, agotado = false } = Astro.props;
 const imgSrc = imagen?.src ?? "/img/no-image.png";
 ---
 
@@ -7,8 +7,10 @@ const imgSrc = imagen?.src ?? "/img/no-image.png";
   class="card-simple"
   data-producto
   data-id={id}
+  data-slug={slug}
   data-nombre={titulo}
   data-precio={precio}
+  data-stock={stock}
   data-imagen={imgSrc}
   data-agotado={agotado}
 >
