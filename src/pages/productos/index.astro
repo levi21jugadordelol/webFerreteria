@@ -84,11 +84,12 @@ const productos: Producto[] = Array.isArray(data) ? data : [];
       {productos.length > 0 && (
         <div class="product-grid">
           {productos.map((p) => (
-        <ProductoCardSimpleBtn
+    <ProductoCardSimpleBtn
   id={p.id_producto}
   slug={p.slug}
   titulo={p.nombre_producto}
   precio={p.precio}
+  stock={p.stock}
   agotado={p.stock <= 0}
   imagen={{
     src: p.url_imagen
