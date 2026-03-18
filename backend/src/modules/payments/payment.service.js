@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import db from "../../config/db.js";
 import ComprobantePago from "./payment.model.js";
 import Pedido from "../orders/order.model.js";
@@ -6,6 +5,7 @@ import DetallePedido from "../orderDetails/orderDetail.model.js";
 import Producto from "../products/producto.model.js";
 import PagoAuditoria from "../audit-payments/auditPayment.model.js";
 import { Op } from "sequelize";
+import logger from "../../shared/logger/logger.js";
 
 class PagoService {
   /* ---------------------------------
@@ -18,9 +18,7 @@ class PagoService {
         lock: t.LOCK.UPDATE,
       });
 
-      if (!comprobante) {
-        throw new Error("Comprobante no encontrado");
-      }
+      if (!comprobante) throw new Error("Comprobante no encontrado");
 
       if (comprobante.estado_validacion === "validado") {
         throw new Error("Este comprobante ya fue validado");
@@ -31,9 +29,7 @@ class PagoService {
         lock: t.LOCK.UPDATE,
       });
 
-      if (!pedido) {
-        throw new Error("Pedido no encontrado");
-      }
+      if (!pedido) throw new Error("Pedido no encontrado");
 
       const detalles = await DetallePedido.findAll({
         where: { pedido_id: pedido.id_pedido },
@@ -57,7 +53,6 @@ class PagoService {
         }
 
         producto.stock -= d.cantidad;
-
         await producto.save({ transaction: t });
       }
 
@@ -66,7 +61,6 @@ class PagoService {
 
       comprobante.estado_validacion = "validado";
       comprobante.fecha_validacion_pago = new Date();
-
       await comprobante.save({ transaction: t });
 
       await PagoAuditoria.create(
@@ -80,7 +74,11 @@ class PagoService {
         { transaction: t },
       );
 
-      console.log(chalk.green(`✔ Pago ${id} validado`));
+      logger.info({
+        message: "Payment validated",
+        id,
+        admin: admin?.nombre || admin,
+      });
 
       return true;
     });
@@ -96,9 +94,7 @@ class PagoService {
         lock: t.LOCK.UPDATE,
       });
 
-      if (!comprobante) {
-        throw new Error("Comprobante no encontrado");
-      }
+      if (!comprobante) throw new Error("Comprobante no encontrado");
 
       if (comprobante.estado_validacion !== "validado") {
         throw new Error("Solo se pueden revertir pagos validados");
@@ -109,9 +105,7 @@ class PagoService {
         lock: t.LOCK.UPDATE,
       });
 
-      if (!pedido) {
-        throw new Error("Pedido no encontrado");
-      }
+      if (!pedido) throw new Error("Pedido no encontrado");
 
       const detalles = await DetallePedido.findAll({
         where: { pedido_id: pedido.id_pedido },
@@ -129,7 +123,6 @@ class PagoService {
         }
 
         producto.stock += d.cantidad;
-
         await producto.save({ transaction: t });
       }
 
@@ -138,7 +131,6 @@ class PagoService {
 
       comprobante.estado_validacion = "pendiente";
       comprobante.fecha_validacion_pago = null;
-
       await comprobante.save({ transaction: t });
 
       await PagoAuditoria.create(
@@ -152,14 +144,18 @@ class PagoService {
         { transaction: t },
       );
 
-      console.log(chalk.yellow(`↩ Pago ${id} revertido`));
+      logger.info({
+        message: "Payment reverted",
+        id,
+        admin: admin?.nombre || admin,
+      });
 
       return true;
     });
   }
 
   static async expirarComprobantes() {
-    const limite = new Date(Date.now() - 3 * 60 * 60 * 1000); // 3 horas
+    const limite = new Date(Date.now() - 3 * 60 * 60 * 1000);
 
     const comprobantes = await ComprobantePago.findAll({
       where: {
@@ -172,7 +168,6 @@ class PagoService {
 
     for (const c of comprobantes) {
       c.estado_validacion = "vencido";
-
       await c.save();
 
       await PagoAuditoria.create({
@@ -184,7 +179,10 @@ class PagoService {
       });
     }
 
-    console.log(`⏰ ${comprobantes.length} comprobantes vencidos`);
+    logger.info({
+      message: "Expired payment proofs",
+      total: comprobantes.length,
+    });
   }
 }
 

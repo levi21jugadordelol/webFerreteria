@@ -1,19 +1,20 @@
-// controllers/comprobantePagoController.js
 import ComprobantePago from "./payment.model.js";
 import Pedido from "../orders/order.model.js";
-import chalk from "chalk";
 import PagoService from "./payment.service.js";
 import { formatearFechaHora } from "../../shared/helpers/fechaHelper.js";
 import { tiempoPendiente } from "../../shared/helpers/tiempoHelper.js";
+import logger from "../../shared/logger/logger.js";
 
 /* ---------------------------------
    Subir comprobante (cliente)
 --------------------------------- */
 export const subirComprobante = async (req, res) => {
-  console.log(chalk.cyan("📦 BODY:"), req.body);
-  console.log(chalk.green("📁 FILE:"), req.file);
-
   try {
+    logger.info({
+      message: "Uploading payment proof",
+      body: req.body,
+    });
+
     const { pedido_id } = req.body;
 
     if (!req.file) {
@@ -38,15 +39,22 @@ export const subirComprobante = async (req, res) => {
       estado_validacion: "pendiente",
     });
 
-    console.log(chalk.greenBright("✅ Comprobante creado"));
+    logger.info({
+      message: "Payment proof created",
+      id: comprobante.id_comprobante,
+    });
 
-    res.status(201).json({
+    return res.status(201).json({
       msg: "Comprobante subido correctamente",
       comprobante,
     });
   } catch (error) {
-    console.error(chalk.red("❌ Error al subir comprobante"), error);
-    res.status(500).json({ msg: "Error al subir comprobante" });
+    logger.error({
+      message: "Error uploading payment proof",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al subir comprobante" });
   }
 };
 
@@ -55,6 +63,10 @@ export const subirComprobante = async (req, res) => {
 --------------------------------- */
 export const listarComprobantes = async (req, res) => {
   try {
+    logger.info({
+      message: "Fetching payment proofs",
+    });
+
     const comprobantes = await ComprobantePago.findAll({
       include: [
         {
@@ -74,11 +86,8 @@ export const listarComprobantes = async (req, res) => {
 
     const data = comprobantes.map((c) => ({
       ...c.toJSON(),
-
       fecha_envio: formatearFechaHora(c.fecha_hora),
-
       fecha_validacion: formatearFechaHora(c.fecha_validacion_pago),
-
       tiempo_pendiente:
         c.estado_validacion === "pendiente"
           ? tiempoPendiente(c.fecha_hora)
@@ -96,10 +105,14 @@ export const listarComprobantes = async (req, res) => {
       return prioridad[a.estado_validacion] - prioridad[b.estado_validacion];
     });
 
-    res.json(data);
+    return res.json(data);
   } catch (error) {
-    console.error("🔥 Error al listar comprobantes:", error);
-    res.status(500).json({ msg: "Error al listar comprobantes" });
+    logger.error({
+      message: "Error fetching payment proofs",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al listar comprobantes" });
   }
 };
 
@@ -108,10 +121,22 @@ export const listarComprobantes = async (req, res) => {
 --------------------------------- */
 export const validarComprobante = async (req, res) => {
   try {
+    logger.info({
+      message: "Validating payment proof",
+      id: req.params.id,
+      admin: req.admin?.id_administrador,
+    });
+
     await PagoService.validarComprobante(req.params.id, req.admin);
-    res.json({ msg: "Pago validado, stock actualizado" });
+
+    return res.json({ msg: "Pago validado, stock actualizado" });
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    logger.error({
+      message: "Error validating payment proof",
+      error: error.message,
+    });
+
+    return res.status(400).json({ msg: error.message });
   }
 };
 
@@ -122,6 +147,11 @@ export const rechazarComprobante = async (req, res) => {
   try {
     const { id } = req.params;
 
+    logger.info({
+      message: "Rejecting payment proof",
+      id,
+    });
+
     const comprobante = await ComprobantePago.findByPk(id);
     if (!comprobante) {
       return res.status(404).json({ msg: "Comprobante no encontrado" });
@@ -130,10 +160,14 @@ export const rechazarComprobante = async (req, res) => {
     comprobante.estado_validacion = "rechazado";
     await comprobante.save();
 
-    // ❗ El pedido sigue en pendiente
-    res.json({ msg: "Comprobante rechazado" });
+    return res.json({ msg: "Comprobante rechazado" });
   } catch (error) {
-    res.status(500).json({ msg: "Error al rechazar comprobante" });
+    logger.error({
+      message: "Error rejecting payment proof",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al rechazar comprobante" });
   }
 };
 
@@ -142,9 +176,21 @@ export const rechazarComprobante = async (req, res) => {
 --------------------------------- */
 export const revertirComprobante = async (req, res) => {
   try {
+    logger.info({
+      message: "Reverting payment proof",
+      id: req.params.id,
+      admin: req.admin?.id_administrador,
+    });
+
     await PagoService.revertirComprobante(req.params.id, req.admin);
-    res.json({ msg: "Pago revertido y stock restaurado" });
+
+    return res.json({ msg: "Pago revertido y stock restaurado" });
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    logger.error({
+      message: "Error reverting payment proof",
+      error: error.message,
+    });
+
+    return res.status(400).json({ msg: error.message });
   }
 };

@@ -1,6 +1,4 @@
-// routes/pagoRouter.js
 import express from "express";
-import chalk from "chalk";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 import uploadComprobante from "../../shared/middleware/uploadComprobante.js";
 
@@ -14,22 +12,8 @@ import {
 
 const router = express.Router();
 
-router.use((req, res, next) => {
-  console.log(chalk.bgBlue.white(`📥 [ROUTE] /pagos ${req.method} ${req.url}`));
-  next();
-});
-
 // 🟢 Cliente
-router.post(
-  "/comprobante",
-  uploadComprobante.single("file"),
-  (req, res, next) => {
-    console.log(chalk.cyan("🧪 [MULTER] req.file =>"), req.file);
-    console.log(chalk.cyan("🧪 [MULTER] req.body =>"), req.body);
-    next();
-  },
-  subirComprobante,
-);
+router.post("/comprobante", uploadComprobante.single("file"), subirComprobante);
 
 // 🔒 Admin
 router.get("/admin/lista", protegerRuta, listarComprobantes);
