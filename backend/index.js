@@ -1,10 +1,10 @@
 // 🚀 Dependencias
 import express from "express";
-import chalk from "chalk";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
+import logger from "./src/shared/logger/logger.js";
 
 // 🔧 Config
 import { env } from "./src/config/env.js";
@@ -72,23 +72,22 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   const start = Date.now();
 
-  console.log(chalk.yellow(`➡️ ${req.method} ${req.url}`));
+  logger.info({
+    message: "Incoming request",
+    method: req.method,
+    url: req.originalUrl,
+  });
 
   res.on("finish", () => {
     const duration = Date.now() - start;
 
-    const color =
-      res.statusCode < 400
-        ? chalk.greenBright
-        : res.statusCode < 500
-          ? chalk.yellowBright
-          : chalk.redBright;
-
-    console.log(
-      color(
-        `📤 ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`,
-      ),
-    );
+    logger.info({
+      message: "Request completed",
+      method: req.method,
+      url: req.originalUrl,
+      status: res.statusCode,
+      duration: `${duration}ms`,
+    });
   });
 
   next();
@@ -120,7 +119,10 @@ app.use("/api/uploads", uploadRoutes);
 
 // 💥 Manejo global de errores (luego lo reemplazamos)
 app.use((err, req, res, next) => {
-  console.error(chalk.bgRed.white("💥 Error detectado:"), err.message);
+  logger.error({
+    message: "Unhandled error",
+    error: err.message,
+  });
 
   res.status(500).json({
     error: "Error interno del servidor",
@@ -132,16 +134,17 @@ try {
   await db.authenticate();
   await db.sync();
 
-  console.log(chalk.greenBright("✅ Conexión correcta a la base de datos"));
+  logger.info("Database connected successfully");
 } catch (error) {
-  console.log(chalk.bgRed.white("❌ Error al conectar a la base de datos"));
-  console.error(chalk.red(error));
+  logger.error({
+    message: "Database connection failed",
+    error: error.message,
+  });
 }
 
 // 🚀 Iniciar servidor
 const port = env.PORT;
 
 app.listen(port, () => {
-  console.log(chalk.cyanBright("🚀 Servidor corriendo en:"));
-  console.log(chalk.yellowBright(`👉 ${env.BACKEND_URL}:${port}`));
+  logger.info(`Server running at ${env.BACKEND_URL}:${port}`);
 });
