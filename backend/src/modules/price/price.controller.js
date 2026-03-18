@@ -1,10 +1,16 @@
 import Producto from "../products/producto.model.js";
 import { Op } from "sequelize";
-import chalk from "chalk";
+import logger from "../../shared/logger/logger.js";
 
 export const filtrarPorPrecio = async (req, res) => {
   try {
     const { min, max } = req.query;
+
+    logger.info({
+      message: "Filtering products by price",
+      min,
+      max,
+    });
 
     const where = {};
 
@@ -27,16 +33,24 @@ export const filtrarPorPrecio = async (req, res) => {
         "descripcion",
         "precio",
         "url_imagen",
-        "stock", // 👈 AGREGA ESTO
+        "stock",
       ],
     });
 
-    res.json(productos);
-    console.log(
-      chalk.cyan(`📦 Productos por precio devueltos: ${productos.length}`),
-    );
+    logger.info({
+      message: "Products filtered by price",
+      total: productos.length,
+    });
+
+    return res.json(productos);
   } catch (error) {
-    console.error("❌ Error al filtrar productos por precio:", error);
-    res.status(500).json({ msg: "Error al filtrar productos por precio" });
+    logger.error({
+      message: "Error filtering products by price",
+      error: error.message,
+    });
+
+    return res.status(500).json({
+      msg: "Error al filtrar productos por precio",
+    });
   }
 };
