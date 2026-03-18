@@ -7,6 +7,7 @@ import {
   autenticar,
   formularioRegistro,
   registrar,
+  listarAdmins,
   cerrarSesion,
 } from "./admin.controller.js";
 
@@ -67,6 +68,14 @@ router.get("/validar", protegerRuta, (req, res) => {
       rol: req.admin.rol,
     },
   });
+});
+
+/* =========================
+   LISTAR ADMINS (DEBUG)
+========================= */
+router.get("/admins", (req, res) => {
+  console.log(chalk.blue("📥 GET /auth/admins recibido"));
+  listarAdmins(req, res);
 });
 
 /* =========================

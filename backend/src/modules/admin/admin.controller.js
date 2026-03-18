@@ -15,8 +15,8 @@ const formularioLogin = (req, res) => {
 
 // 🟢 Autenticar administrador
 const autenticar = async (req, res) => {
-  console.log(chalk.yellow("🚪 Entrando a autenticar()"));
-  console.log(chalk.gray("📥 Datos recibidos:"), req.body);
+  console.log("🚪 Entrando a autenticar()");
+  console.log("📥 Datos recibidos:", req.body);
 
   try {
     await check("correo").isEmail().run(req);
@@ -29,22 +29,27 @@ const autenticar = async (req, res) => {
 
     const { correo, password } = req.body;
 
-    const admin = await Administrador.findOne({ where: { correo } });
+    const admin = await Administrador.findOne({
+      where: { correo },
+      order: [["id_administrador", "DESC"]], // 🔥 trae el último
+    });
 
     if (!admin) {
       return res.status(404).json({ msg: "El administrador no existe" });
     }
 
-    const esValido = await bcrypt.compare(password, admin.hash);
+    console.log("👉 HASH DB:", admin.hash);
+
+    // 🔥 LIMPIAMOS password igual que en registro
+    const cleanPassword = password.trim();
+
+    const esValido = await bcrypt.compare(cleanPassword, admin.hash);
+
+    console.log("👉 RESULTADO BCRYPT:", esValido);
 
     if (!esValido) {
       return res.status(401).json({ msg: "La contraseña es incorrecta" });
     }
-
-    // 🔥 Lee el secret en el momento de usarlo
-    const secret = process.env.JWT_SECRET;
-
-    console.log(chalk.cyan("SECRET BACKEND:"), secret);
 
     const token = jwt.sign(
       {
@@ -52,11 +57,9 @@ const autenticar = async (req, res) => {
         nombre: admin.nombre,
         rol: admin.rol,
       },
-      secret,
+      process.env.JWT_SECRET,
       { expiresIn: "1d" },
     );
-
-    console.log(chalk.green("TOKEN GENERADO BACKEND:"), token);
 
     res.cookie("_token", token, {
       httpOnly: true,
@@ -69,10 +72,7 @@ const autenticar = async (req, res) => {
       msg: "Inicio de sesión exitoso",
     });
   } catch (error) {
-    console.error(
-      chalk.bgRed.white("💥 Error en autenticar():"),
-      error.message,
-    );
+    console.error("💥 Error en autenticar():", error.message);
     res.status(500).json({ msg: "Error interno del servidor" });
   }
 };
@@ -84,38 +84,61 @@ const formularioRegistro = (req, res) => {
 
 // 🟢 Registrar administrador
 const registrar = async (req, res) => {
-  console.log(chalk.cyan("🛠️ Entrando en registrar() con datos:"), req.body);
+  console.log("🛠️ Entrando en registrar()", req.body);
 
   try {
     await check("nombre").notEmpty().run(req);
     await check("correo").isEmail().run(req);
     await check("password").isLength({ min: 6 }).run(req);
-    console.log(chalk.yellow("✅ Validaciones ejecutadas"));
 
     const resultado = validationResult(req);
     if (!resultado.isEmpty()) {
-      console.log(chalk.red("❌ Errores de validación:"), resultado.array());
       return res.status(400).json({ errores: resultado.array() });
     }
 
     const { nombre, correo, password } = req.body;
 
+    // 🔥 ESTE ES EL LOG CLAVE
+    console.log("👉 PASSWORD REAL QUE SE GUARDA:", JSON.stringify(password));
+
     const existeAdmin = await Administrador.findOne({ where: { correo } });
+
     if (existeAdmin) {
-      console.log(chalk.red("⚠️ El correo ya está registrado"));
       return res.status(400).json({ msg: "El correo ya está registrado" });
     }
 
-    console.log(chalk.green("💾 Creando nuevo administrador..."));
-    await Administrador.create({ nombre, correo, hash: password });
+    // 🔥 LIMPIAMOS el password (extra seguridad)
+    const cleanPassword = password.trim();
 
-    console.log(chalk.greenBright("🎉 Administrador creado correctamente"));
+    const hash = await bcrypt.hash(cleanPassword, 10);
+
+    console.log("👉 HASH GENERADO:", hash);
+
+    await Administrador.create({
+      nombre,
+      correo,
+      hash,
+    });
+
     return res.status(201).json({
-      msg: "Administrador registrado correctamente. Ya puedes iniciar sesión.",
+      msg: "Administrador registrado correctamente",
     });
   } catch (error) {
-    console.error(chalk.bgRed.white("💥 Error en registrar():"), error.message);
+    console.error("💥 Error en registrar():", error.message);
     res.status(500).json({ msg: "Error interno del servidor" });
+  }
+};
+
+const listarAdmins = async (req, res) => {
+  try {
+    const admins = await Administrador.findAll({
+      attributes: ["id_administrador", "nombre", "correo", "hash"],
+    });
+
+    return res.json(admins);
+  } catch (error) {
+    console.error("💥 Error listando admins:", error.message);
+    return res.status(500).json({ msg: "Error al obtener administradores" });
   }
 };
 
@@ -140,5 +163,6 @@ export {
   autenticar,
   formularioRegistro,
   registrar,
+  listarAdmins,
   cerrarSesion,
 };

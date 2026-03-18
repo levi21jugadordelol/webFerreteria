@@ -1,9 +1,8 @@
 import { DataTypes } from "sequelize";
-import bcrypt from "bcrypt";
 import db from "../../config/db.js";
 
 const Administrador = db.define(
-  "administradores", // nombre de la tabla
+  "administradores",
   {
     id_administrador: {
       type: DataTypes.INTEGER,
@@ -28,16 +27,13 @@ const Administrador = db.define(
     },
     rol: {
       type: DataTypes.STRING,
-      defaultValue: "admin", // por defecto, ya que no hay otros roles
+      defaultValue: "admin",
     },
   },
   {
-    hooks: {
-      beforeCreate: async (admin) => {
-        const salt = await bcrypt.genSalt(10);
-        admin.hash = await bcrypt.hash(admin.hash, salt);
-      },
-    },
+    timestamps: true,
+
+    // ✅ SIN hooks (IMPORTANTE)
     scopes: {
       sinHash: {
         attributes: { exclude: ["hash"] },
@@ -45,10 +41,5 @@ const Administrador = db.define(
     },
   },
 );
-
-// Método de instancia para verificar contraseñas
-Administrador.prototype.verificarPassword = function (password) {
-  return bcrypt.compareSync(password, this.hash);
-};
 
 export default Administrador;
