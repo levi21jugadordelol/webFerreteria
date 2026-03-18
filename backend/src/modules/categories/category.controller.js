@@ -1,6 +1,6 @@
-import Categoria from "../../../src/modules/categories/category.model.js";
+import Categoria from "./category.model.js";
 import { validationResult } from "express-validator";
-import chalk from "chalk";
+import logger from "../../shared/logger/logger.js";
 import fs from "fs";
 import path from "path";
 
@@ -27,14 +27,21 @@ export const crearCategoria = async (req, res) => {
       url_imagen: req.file ? `categorias/${req.file.filename}` : null,
     });
 
-    console.log(chalk.green(`✅ Categoría creada: ${nueva.nombre_categoria}`));
+    logger.info({
+      message: "Categoría creada",
+      id: nueva.id_categoria,
+      nombre: nueva.nombre_categoria,
+    });
 
     res.status(201).json({
       msg: "✅ Categoría creada correctamente",
       categoria: nueva,
     });
   } catch (error) {
-    console.error(chalk.bgRed("❌ Error al crear categoría:"), error);
+    logger.error({
+      message: "Error al crear categoría",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error interno del servidor" });
   }
 };
@@ -47,7 +54,10 @@ export const listarCategorias = async (req, res) => {
     });
     res.json(categorias);
   } catch (error) {
-    console.error("❌ Error al listar categorías:", error);
+    logger.error({
+      message: "Error al listar categorías",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error al obtener categorías" });
   }
 };
@@ -60,7 +70,10 @@ export const obtenerCategoria = async (req, res) => {
       return res.status(404).json({ msg: "Categoría no encontrada" });
     res.json(categoria);
   } catch (error) {
-    console.error("❌ Error al obtener categoría:", error);
+    logger.error({
+      message: "Error al obtener categoría",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error al obtener categoría" });
   }
 };
@@ -68,27 +81,22 @@ export const obtenerCategoria = async (req, res) => {
 // 🟠 Actualizar categoría
 export const actualizarCategoria = async (req, res) => {
   try {
-    console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-    console.log(chalk.cyan("✏️  ACTUALIZAR CATEGORÍA"));
-
-    console.log(chalk.blue("📥 ID recibido:"), chalk.yellow(req.params.id));
-
-    console.log(
-      chalk.blue("📦 BODY recibido:"),
-      chalk.yellow(JSON.stringify(req.body, null, 2)),
-    );
+    logger.info({
+      message: "Actualizar categoría",
+      id: req.params.id,
+      body: req.body,
+    });
 
     const categoria = await Categoria.findByPk(req.params.id);
 
     if (!categoria) {
-      console.log(chalk.red("❌ Categoría NO encontrada"));
       return res.status(404).json({ msg: "Categoría no encontrada" });
     }
 
-    console.log(
-      chalk.magenta("📌 ANTES de actualizar:"),
-      chalk.white(JSON.stringify(categoria.toJSON(), null, 2)),
-    );
+    logger.debug({
+      message: "Estado antes de actualizar categoría",
+      categoria: categoria.toJSON(),
+    });
 
     const { nombre_categoria, descripcion } = req.body;
 
@@ -97,20 +105,21 @@ export const actualizarCategoria = async (req, res) => {
       descripcion,
     });
 
-    console.log(
-      chalk.green("✅ DESPUÉS de actualizar:"),
-      chalk.white(JSON.stringify(categoria.toJSON(), null, 2)),
-    );
-
-    console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
+    logger.debug({
+      message: "Estado después de actualizar categoría",
+      categoria: categoria.toJSON(),
+    });
 
     res.json({
-      msg: "✅ Categoría actualizada correctamente",
+      msg: "Categoría actualizada correctamente",
       categoria,
     });
   } catch (error) {
-    console.log(chalk.red("💥 ERROR en actualizarCategoria"));
-    console.error(chalk.red(error));
+    logger.error({
+      message: "Error al actualizar categoría",
+      error: error.message,
+    });
+
     res.status(500).json({ msg: "Error al actualizar categoría" });
   }
 };
@@ -128,12 +137,16 @@ export const eliminarCategoria = async (req, res) => {
     }
 
     await categoria.destroy();
-    console.log(
-      chalk.redBright(`🗑️ Categoría eliminada: ${categoria.nombre_categoria}`),
-    );
+    logger.info({
+      message: "Categoría eliminada",
+      nombre: categoria.nombre_categoria,
+    });
     res.json({ msg: "✅ Categoría eliminada correctamente" });
   } catch (error) {
-    console.error("❌ Error al eliminar categoría:", error);
+    logger.error({
+      message: "Error al eliminar categoría",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error al eliminar categoría" });
   }
 };
@@ -158,18 +171,20 @@ export const subirImagenCategoria = async (req, res) => {
 
     await categoria.save();
 
-    console.log(
-      chalk.greenBright(
-        `🖼️ Imagen subida: http://localhost:3000/uploads/${categoria.url_imagen}`,
-      ),
-    );
+    logger.info({
+      message: "Imagen de categoría subida",
+      url: categoria.url_imagen,
+    });
 
     res.json({
       msg: "✅ Imagen subida correctamente",
       url_imagen: categoria.url_imagen,
     });
   } catch (error) {
-    console.error("❌ Error al subir imagen:", error);
+    logger.error({
+      message: "Error al subir imagen de categoría",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error al subir imagen" });
   }
 };
