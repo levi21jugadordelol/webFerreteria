@@ -1,12 +1,9 @@
-import dotenv from "dotenv";
 import { check, validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import chalk from "chalk";
+import { env } from "../../config/env.js";
 import Administrador from "./admin.model.js";
-
-//const JWT_SECRET = process.env.JWT_SECRET || "secreto_admin";
-dotenv.config(); // 🔥 Asegura que el .env se cargue aquí
+import logger from "../../shared/logger/logger.js";
 
 // 🟢 Endpoint de prueba (verifica conexión del login)
 const formularioLogin = (req, res) => {
@@ -15,8 +12,10 @@ const formularioLogin = (req, res) => {
 
 // 🟢 Autenticar administrador
 const autenticar = async (req, res) => {
-  console.log("🚪 Entrando a autenticar()");
-  console.log("📥 Datos recibidos:", req.body);
+  logger.info({
+    message: "Entering autenticar",
+    body: req.body,
+  });
 
   try {
     await check("correo").isEmail().run(req);
@@ -38,14 +37,20 @@ const autenticar = async (req, res) => {
       return res.status(404).json({ msg: "El administrador no existe" });
     }
 
-    console.log("👉 HASH DB:", admin.hash);
+    logger.debug({
+      message: "Hash from DB",
+      hash: admin.hash,
+    });
 
     // 🔥 LIMPIAMOS password igual que en registro
     const cleanPassword = password.trim();
 
     const esValido = await bcrypt.compare(cleanPassword, admin.hash);
 
-    console.log("👉 RESULTADO BCRYPT:", esValido);
+    logger.debug({
+      message: "Password comparison result",
+      valid: esValido,
+    });
 
     if (!esValido) {
       return res.status(401).json({ msg: "La contraseña es incorrecta" });
@@ -72,7 +77,10 @@ const autenticar = async (req, res) => {
       msg: "Inicio de sesión exitoso",
     });
   } catch (error) {
-    console.error("💥 Error en autenticar():", error.message);
+    logger.error({
+      message: "Error in autenticar",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error interno del servidor" });
   }
 };
@@ -84,7 +92,10 @@ const formularioRegistro = (req, res) => {
 
 // 🟢 Registrar administrador
 const registrar = async (req, res) => {
-  console.log("🛠️ Entrando en registrar()", req.body);
+  logger.info({
+    message: "Entering registrar",
+    body: req.body,
+  });
 
   try {
     await check("nombre").notEmpty().run(req);
@@ -99,7 +110,9 @@ const registrar = async (req, res) => {
     const { nombre, correo, password } = req.body;
 
     // 🔥 ESTE ES EL LOG CLAVE
-    console.log("👉 PASSWORD REAL QUE SE GUARDA:", JSON.stringify(password));
+    logger.debug({
+      message: "Password received for hashing",
+    });
 
     const existeAdmin = await Administrador.findOne({ where: { correo } });
 
@@ -112,7 +125,9 @@ const registrar = async (req, res) => {
 
     const hash = await bcrypt.hash(cleanPassword, 10);
 
-    console.log("👉 HASH GENERADO:", hash);
+    logger.debug({
+      message: "Password hashed successfully",
+    });
 
     await Administrador.create({
       nombre,
@@ -124,7 +139,10 @@ const registrar = async (req, res) => {
       msg: "Administrador registrado correctamente",
     });
   } catch (error) {
-    console.error("💥 Error en registrar():", error.message);
+    logger.error({
+      message: "Error in registrar",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error interno del servidor" });
   }
 };
@@ -137,7 +155,10 @@ const listarAdmins = async (req, res) => {
 
     return res.json(admins);
   } catch (error) {
-    console.error("💥 Error listando admins:", error.message);
+    logger.error({
+      message: "Error listing admins",
+      error: error.message,
+    });
     return res.status(500).json({ msg: "Error al obtener administradores" });
   }
 };

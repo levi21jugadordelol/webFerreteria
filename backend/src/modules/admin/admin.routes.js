@@ -1,6 +1,6 @@
 import express from "express";
-import chalk from "chalk";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
+import logger from "../../shared/logger/logger.js";
 
 import {
   formularioLogin,
@@ -17,47 +17,38 @@ const router = express.Router();
    LOGIN
 ========================= */
 router.get("/login", (req, res) => {
-  console.log(chalk.blue("📥 GET /auth/login recibido"));
+  logger.info({ message: "GET /auth/login" });
   formularioLogin(req, res);
 });
 
-router.post("/login", async (req, res) => {
-  console.log(chalk.magenta("📤 POST /auth/login recibido"));
-  console.log(chalk.gray("📦 Body recibido:"), req.body);
+router.post("/login", (req, res, next) => {
+  logger.info({
+    message: "POST /auth/login",
+    body: req.body,
+  });
 
-  try {
-    await autenticar(req, res);
-  } catch (err) {
-    console.error(chalk.bgRed.white("💥 Error en ruta /login:"), err.message);
-    res.status(500).json({ msg: "Error interno en /login" });
-  }
+  autenticar(req, res, next);
 });
 
 /* =========================
-   REGISTRO (solo admin)
+   REGISTRO
 ========================= */
 router.get("/registro", (req, res) => {
-  console.log(chalk.blue("📥 GET /auth/registro recibido"));
+  logger.info({ message: "GET /auth/registro" });
   formularioRegistro(req, res);
 });
 
-router.post("/registro", async (req, res) => {
-  console.log(chalk.magenta("📤 POST /auth/registro recibido"));
-  console.log(chalk.gray("📦 Body recibido:"), req.body);
+router.post("/registro", (req, res, next) => {
+  logger.info({
+    message: "POST /auth/registro",
+    body: req.body,
+  });
 
-  try {
-    await registrar(req, res);
-  } catch (err) {
-    console.error(
-      chalk.bgRed.white("💥 Error en ruta /registro:"),
-      err.message,
-    );
-    res.status(500).json({ msg: "Error interno en /registro" });
-  }
+  registrar(req, res, next);
 });
 
 /* =========================
-   VALIDAR SESIÓN (🔥 CLAVE)
+   VALIDAR SESIÓN
 ========================= */
 router.get("/validar", protegerRuta, (req, res) => {
   res.status(200).json({
@@ -71,10 +62,10 @@ router.get("/validar", protegerRuta, (req, res) => {
 });
 
 /* =========================
-   LISTAR ADMINS (DEBUG)
+   LISTAR ADMINS
 ========================= */
 router.get("/admins", (req, res) => {
-  console.log(chalk.blue("📥 GET /auth/admins recibido"));
+  logger.info({ message: "GET /auth/admins" });
   listarAdmins(req, res);
 });
 
