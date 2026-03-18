@@ -1,7 +1,3 @@
-// 📦 Variables de entorno
-import dotenv from "dotenv";
-dotenv.config();
-
 // 🚀 Dependencias
 import express from "express";
 import chalk from "chalk";
@@ -10,38 +6,32 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// 🔧 Config
+import { env } from "./src/config/env.js";
+
 // 🗃️ Base de datos
 import db from "./src/config/db.js";
 import "./models/index.js";
 
 // 📂 Rutas
 import admiRoutes from "./src/modules/admin/admin.routes.js";
-
 import productoRoutes from "./src/modules/products/producto.routes.js";
-
 import categoriaRoutes from "./src/modules/categories/category.routes.js";
-
 import marcaRoutes from "./src/modules/brands/marca.routes.js";
-
 import precioRoutes from "./src/modules/price/price.routes.js";
-
 import siteSettingsRoutes from "./src/modules/settings/settings.routes.js";
 import heroRoutes from "./src/modules/heroSlides/hero.routes.js";
 import pedidoRouter from "./src/modules/orders/order.routes.js";
 import pagoRouter from "./src/modules/payments/payment.routes.js";
-
 import productoTabsRoutes from "./src/modules/productoTab/productoTab.routes.js";
-
 import auditoriaRoutes from "./src/modules/audit-payments/auditPayment.routes.js";
 import dashboardRoutes from "./src/modules/dashboard/dashboard.routes.js";
-
 import paginaRoutes from "./src/modules/pages/pagina.routes.js";
-
-import "./src/jobs/pagosCron.js";
-
 import uploadRoutes from "./src/modules/uploads/upload.routes.js";
-
 import menuRoutes from "./src/modules/menu/menu.routes.js";
+
+// ⏰ Jobs
+import "./src/jobs/pagosCron.js";
 
 const app = express();
 
@@ -57,7 +47,7 @@ app.use(express.static("public"));
 // 🌐 CORS
 app.use(
   cors({
-    origin: "http://localhost:4321",
+    origin: env.FRONTEND_URL,
     credentials: true,
   }),
 );
@@ -78,7 +68,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🪵 Logger simple
+// 🪵 Logger simple (LO CAMBIAREMOS DESPUÉS)
 app.use((req, res, next) => {
   const start = Date.now();
 
@@ -128,7 +118,7 @@ app.use("/api/paginas", paginaRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/uploads", uploadRoutes);
 
-// 💥 Manejo global de errores
+// 💥 Manejo global de errores (luego lo reemplazamos)
 app.use((err, req, res, next) => {
   console.error(chalk.bgRed.white("💥 Error detectado:"), err.message);
 
@@ -149,9 +139,9 @@ try {
 }
 
 // 🚀 Iniciar servidor
-const port = process.env.PORT || 3000;
+const port = env.PORT;
 
 app.listen(port, () => {
   console.log(chalk.cyanBright("🚀 Servidor corriendo en:"));
-  console.log(chalk.yellowBright(`👉 http://localhost:${port}`));
+  console.log(chalk.yellowBright(`👉 ${env.BACKEND_URL}:${port}`));
 });
