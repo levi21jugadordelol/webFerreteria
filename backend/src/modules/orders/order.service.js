@@ -1,15 +1,15 @@
-import chalk from "chalk";
 import sequelize from "../../config/db.js";
-import { Op } from "sequelize";
 import Pedido from "../orders/order.model.js";
 import DetallePedido from "../orderDetails/orderDetail.model.js";
 import Producto from "../products/producto.model.js";
+import logger from "../../shared/logger/logger.js";
 
 class PedidoService {
   static async crear(data) {
-    console.log(
-      chalk.blueBright("🧾 [PedidoService] Iniciando creación de pedido"),
-    );
+    logger.info({
+      message: "Starting order creation",
+      data,
+    });
 
     const transaction = await sequelize.transaction();
 
@@ -21,73 +21,51 @@ class PedidoService {
         throw new Error("El carrito está vacío");
       }
 
-      console.log(chalk.gray("📦 Carrito original:"), carrito);
-
-      // 🔥 1️⃣ AGRUPAR PRODUCTOS REPETIDOS
+      // 🔥 AGRUPAR PRODUCTOS
       const agrupado = {};
 
       for (const item of carrito) {
-        if (!agrupado[item.id]) {
-          agrupado[item.id] = 0;
-        }
+        if (!agrupado[item.id]) agrupado[item.id] = 0;
         agrupado[item.id] += item.cantidad;
       }
 
-      console.log(chalk.gray("📦 Carrito agrupado:"), agrupado);
+      logger.debug({
+        message: "Grouped cart",
+        agrupado,
+      });
 
-      // 🔥 2️⃣ VALIDAR Y DESCONTAR STOCK
+      // 🔥 VALIDAR STOCK
       for (const id in agrupado) {
         const cantidadTotal = agrupado[id];
 
-        console.log(
-          chalk.yellow(
-            `🔍 Validando producto ID=${id}, cantidad total=${cantidadTotal}`,
-          ),
-        );
-
         const producto = await Producto.findByPk(id, {
           transaction,
-          lock: true, // 🔐 bloquea la fila
+          lock: true,
         });
 
         if (!producto) {
           throw new Error(`Producto ${id} no existe`);
         }
 
-        console.log(
-          chalk.yellow(
-            `ANTES → Producto ${producto.id_producto} stock=${producto.stock}`,
-          ),
-        );
-
         if (producto.stock < cantidadTotal) {
-          throw {
-            type: "STOCK_ERROR",
-            message: `Stock insuficiente para ${producto.nombre_producto}`,
-            producto_id: producto.id_producto,
-            stock_disponible: producto.stock,
-          };
+          const error = new Error(
+            `Stock insuficiente para ${producto.nombre_producto}`,
+          );
 
+          error.type = "STOCK_ERROR";
           error.producto_id = producto.id_producto;
           error.stock_disponible = producto.stock;
 
           throw error;
         }
 
-        // 🔥 Descontar stock correctamente
         await producto.decrement("stock", {
           by: cantidadTotal,
           transaction,
         });
-
-        console.log(
-          chalk.magenta(
-            `📉 Stock descontado correctamente para producto ${producto.id_producto}`,
-          ),
-        );
       }
 
-      // 🔥 3️⃣ CREAR PEDIDO
+      // 🔥 CREAR PEDIDO
       const estadoInicial =
         metodo_pago === "contra" ? "entregado" : "pendiente";
 
@@ -103,11 +81,12 @@ class PedidoService {
         { transaction },
       );
 
-      console.log(
-        chalk.greenBright("✅ Pedido creado con ID:", pedido.id_pedido),
-      );
+      logger.info({
+        message: "Order created",
+        id: pedido.id_pedido,
+      });
 
-      // 🔥 4️⃣ CREAR DETALLES (usar carrito original)
+      // 🔥 DETALLES
       for (const item of carrito) {
         await DetallePedido.create(
           {
@@ -120,21 +99,22 @@ class PedidoService {
         );
       }
 
-      console.log(chalk.green("💾 HACIENDO COMMIT"));
-
-      // 🔥 5️⃣ CONFIRMAR TRANSACCIÓN
       await transaction.commit();
 
-      console.log(
-        chalk.blueBright("🏁 PedidoService finalizado correctamente"),
-      );
+      logger.info({
+        message: "Transaction committed",
+        orderId: pedido.id_pedido,
+      });
 
       return pedido;
     } catch (error) {
-      console.log(chalk.red("⛔ HACIENDO ROLLBACK"));
       await transaction.rollback();
 
-      console.log(chalk.red("❌ Error en PedidoService:", error.message));
+      logger.error({
+        message: "Transaction rollback - error creating order",
+        error: error.message,
+        type: error.type || "GENERAL",
+      });
 
       throw error;
     }
