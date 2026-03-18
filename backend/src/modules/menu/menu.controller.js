@@ -1,45 +1,79 @@
 import Menu from "../../modules/menu/menu.model.js";
-import chalk from "chalk";
+import logger from "../../shared/logger/logger.js";
 
 /* -----------------------------
    Menu público
 ----------------------------- */
 export const obtenerMenu = async (req, res) => {
-  const menu = await Menu.findAll({
-    where: { activo: true },
-    order: [["orden", "ASC"]],
-  });
+  try {
+    logger.info({
+      message: "Fetching public menu",
+    });
 
-  res.json(menu);
+    const menu = await Menu.findAll({
+      where: { activo: true },
+      order: [["orden", "ASC"]],
+    });
+
+    return res.json(menu);
+  } catch (error) {
+    logger.error({
+      message: "Error fetching public menu",
+      error: error.message,
+    });
+
+    return res.status(500).json({
+      msg: "Error al obtener menú",
+    });
+  }
 };
 
 /* -----------------------------
    Listar menu ADMIN
 ----------------------------- */
 export const listarMenuAdmin = async (req, res) => {
-  console.log(chalk.blue("📄 Listando menu admin"));
+  try {
+    logger.info({
+      message: "Fetching admin menu",
+    });
 
-  const menu = await Menu.findAll({
-    order: [["orden", "ASC"]],
-  });
+    const menu = await Menu.findAll({
+      order: [["orden", "ASC"]],
+    });
 
-  res.json(menu);
+    return res.json(menu);
+  } catch (error) {
+    logger.error({
+      message: "Error fetching admin menu",
+      error: error.message,
+    });
+
+    return res.status(500).json({
+      msg: "Error al listar menú",
+    });
+  }
 };
 
 /* -----------------------------
    Crear enlace menu
 ----------------------------- */
 export const crearMenu = async (req, res) => {
-  console.log(chalk.blue("📥 Crear menu"), req.body);
-
   try {
+    logger.info({
+      message: "Creating menu item",
+      body: req.body,
+    });
+
     const menu = await Menu.create(req.body);
 
-    res.status(201).json(menu);
+    return res.status(201).json(menu);
   } catch (error) {
-    console.log(chalk.red("❌ Error crearMenu"), error);
+    logger.error({
+      message: "Error creating menu",
+      error: error.message,
+    });
 
-    res.status(500).json({
+    return res.status(500).json({
       msg: "Error al crear enlace",
     });
   }
@@ -52,6 +86,12 @@ export const actualizarMenu = async (req, res) => {
   const { id } = req.params;
 
   try {
+    logger.info({
+      message: "Updating menu item",
+      id,
+      body: req.body,
+    });
+
     const menu = await Menu.findByPk(id);
 
     if (!menu) {
@@ -62,11 +102,16 @@ export const actualizarMenu = async (req, res) => {
 
     await menu.update(req.body);
 
-    res.json({
+    return res.json({
       msg: "Enlace actualizado",
     });
   } catch (error) {
-    res.status(500).json({
+    logger.error({
+      message: "Error updating menu",
+      error: error.message,
+    });
+
+    return res.status(500).json({
       msg: "Error al actualizar",
     });
   }
@@ -79,6 +124,11 @@ export const eliminarMenu = async (req, res) => {
   const { id } = req.params;
 
   try {
+    logger.info({
+      message: "Deleting menu item",
+      id,
+    });
+
     const menu = await Menu.findByPk(id);
 
     if (!menu) {
@@ -89,11 +139,16 @@ export const eliminarMenu = async (req, res) => {
 
     await menu.destroy();
 
-    res.json({
+    return res.json({
       msg: "Enlace eliminado",
     });
   } catch (error) {
-    res.status(500).json({
+    logger.error({
+      message: "Error deleting menu",
+      error: error.message,
+    });
+
+    return res.status(500).json({
       msg: "Error al eliminar",
     });
   }

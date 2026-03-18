@@ -1,6 +1,4 @@
 import express from "express";
-import chalk from "chalk";
-
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 
 import {
@@ -12,11 +10,6 @@ import {
 } from "../../modules/menu/menu.controller.js";
 
 const router = express.Router();
-
-router.use((req, res, next) => {
-  console.log(chalk.bgCyan.black(`📥 [ROUTE] /menu ${req.method} ${req.url}`));
-  next();
-});
 
 /* -----------------------------
    PUBLICO
