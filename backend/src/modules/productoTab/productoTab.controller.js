@@ -1,6 +1,6 @@
 import ProductoTab from "./productoTab.model.js";
 import logger from "../../shared/logger/logger.js";
-import { generarSlugUnico } from "../../shared/helpers/generarSlug.js";
+import { generarSlugUnico } from "../../shared/helpers/generarSlugUnico.js";
 
 /* ===============================
    LISTAR TABS
