@@ -1,5 +1,5 @@
 // controllers/siteSettings.controller.js
-import chalk from "chalk";
+import logger from "../../shared/logger/logger.js";
 import SiteSetting from "../../modules/settings/settings.model.js";
 
 /* ──────────────────────────────
@@ -15,21 +15,24 @@ export const getSiteSettings = async (req, res) => {
       try {
         settings[record.key] = JSON.parse(record.value);
       } catch (err) {
-        console.error(
-          chalk.red(`❌ Error parsing site_setting: ${record.key}`),
-        );
+        logger.warn({
+          message: "Error parsing site_setting",
+          key: record.key,
+        });
       }
     });
 
-    console.log(
-      chalk.green(
-        `⚙️ Site settings enviados (${Object.keys(settings).length})`,
-      ),
-    );
+    logger.info({
+      message: "Site settings enviados",
+      total: Object.keys(settings).length,
+    });
 
     return res.json(settings);
   } catch (error) {
-    console.error(chalk.red("❌ Error obteniendo site settings"), error);
+    logger.error({
+      message: "Error obteniendo site settings",
+      error: error.message,
+    });
 
     return res.status(500).json({
       msg: "Error al cargar configuración del sitio",
@@ -56,16 +59,24 @@ export const updateSiteSettings = async (req, res) => {
         key,
         value: JSON.stringify(data[key]),
       });
-      console.log(chalk.blue(`⚙️ Guardando setting → ${key}`), data[key]);
+      logger.info({
+        message: "Guardando setting",
+        key,
+      });
     }
 
-    console.log(chalk.yellow(`📝 Site settings actualizados por admin`));
+    logger.info({
+      message: "Site settings actualizados",
+    });
 
     return res.json({
       msg: "Configuración actualizada correctamente",
     });
   } catch (error) {
-    console.error(chalk.red("❌ Error actualizando site settings"), error);
+    logger.error({
+      message: "Error actualizando site settings",
+      error: error.message,
+    });
 
     return res.status(500).json({
       msg: "Error al actualizar configuración",
