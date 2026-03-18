@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import logger from "../../shared/logger/logger.js";
 
 export const subirImagenEditor = async (req, res) => {
   try {
@@ -9,14 +9,19 @@ export const subirImagenEditor = async (req, res) => {
     }
 
     const baseUrl = `${req.protocol}://${req.get("host")}`;
-
     const url = `${baseUrl}/uploads/editor/${req.file.filename}`;
 
-    console.log(chalk.green("🖼️ Imagen subida editor:"), url);
+    logger.info({
+      message: "Imagen subida editor",
+      url,
+    });
 
     res.json({ url });
   } catch (error) {
-    console.error("❌ Error subir imagen editor:", error);
+    logger.error({
+      message: "Error subir imagen editor",
+      error: error.message,
+    });
 
     res.status(500).json({
       msg: "Error al subir imagen",
