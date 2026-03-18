@@ -1,13 +1,16 @@
 import Pagina from "../../modules/pages/pagina.model.js";
-import chalk from "chalk";
+import logger from "../../shared/logger/logger.js";
 
 /* -----------------------------
    Crear página
 ----------------------------- */
 export const crearPagina = async (req, res) => {
-  console.log(chalk.blue("📥 [PAGINA] crearPagina"), req.body);
-
   try {
+    logger.info({
+      message: "Creating page",
+      body: req.body,
+    });
+
     let { titulo, slug, contenido } = req.body;
 
     if (!titulo || !slug || !contenido) {
@@ -38,13 +41,19 @@ export const crearPagina = async (req, res) => {
       activo: true,
     });
 
-    console.log(chalk.green("✅ Página creada:"), chalk.yellow(pagina.slug));
+    logger.info({
+      message: "Page created",
+      slug: pagina.slug,
+    });
 
-    res.status(201).json(pagina);
+    return res.status(201).json(pagina);
   } catch (error) {
-    console.log(chalk.red("❌ Error crearPagina"), error);
+    logger.error({
+      message: "Error creating page",
+      error: error.message,
+    });
 
-    res.status(500).json({
+    return res.status(500).json({
       msg: "Error al crear página",
     });
   }
@@ -54,18 +63,23 @@ export const crearPagina = async (req, res) => {
    Listar páginas ADMIN
 ----------------------------- */
 export const listarPaginasAdmin = async (req, res) => {
-  console.log(chalk.blue("📄 [PAGINA] listarPaginasAdmin"));
-
   try {
+    logger.info({
+      message: "Fetching admin pages",
+    });
+
     const paginas = await Pagina.findAll({
       order: [["createdAt", "DESC"]],
     });
 
-    res.json(paginas);
+    return res.json(paginas);
   } catch (error) {
-    console.log(chalk.red("❌ Error listarPaginasAdmin"), error);
+    logger.error({
+      message: "Error listing admin pages",
+      error: error.message,
+    });
 
-    res.status(500).json({
+    return res.status(500).json({
       msg: "Error al listar páginas",
     });
   }
@@ -77,9 +91,12 @@ export const listarPaginasAdmin = async (req, res) => {
 export const obtenerPagina = async (req, res) => {
   const { slug } = req.params;
 
-  console.log(chalk.blue("📄 Buscando página:"), slug);
-
   try {
+    logger.info({
+      message: "Fetching public page",
+      slug,
+    });
+
     const pagina = await Pagina.findOne({
       where: { slug, activo: true },
     });
@@ -90,11 +107,14 @@ export const obtenerPagina = async (req, res) => {
       });
     }
 
-    res.json(pagina);
+    return res.json(pagina);
   } catch (error) {
-    console.log(chalk.red("❌ Error obtenerPagina"), error);
+    logger.error({
+      message: "Error fetching public page",
+      error: error.message,
+    });
 
-    res.status(500).json({
+    return res.status(500).json({
       msg: "Error al obtener página",
     });
   }
@@ -115,9 +135,14 @@ export const obtenerPaginaAdmin = async (req, res) => {
       });
     }
 
-    res.json(pagina);
+    return res.json(pagina);
   } catch (error) {
-    res.status(500).json({
+    logger.error({
+      message: "Error fetching page by id (admin)",
+      error: error.message,
+    });
+
+    return res.status(500).json({
       msg: "Error al obtener página",
     });
   }
@@ -129,9 +154,13 @@ export const obtenerPaginaAdmin = async (req, res) => {
 export const actualizarPagina = async (req, res) => {
   const { id } = req.params;
 
-  console.log(chalk.yellow("✏️ Actualizando página"), id);
-
   try {
+    logger.info({
+      message: "Updating page",
+      id,
+      body: req.body,
+    });
+
     const pagina = await Pagina.findByPk(id);
 
     if (!pagina) {
@@ -142,13 +171,16 @@ export const actualizarPagina = async (req, res) => {
 
     await pagina.update(req.body);
 
-    res.json({
+    return res.json({
       msg: "Página actualizada",
     });
   } catch (error) {
-    console.log(chalk.red("❌ Error actualizarPagina"), error);
+    logger.error({
+      message: "Error updating page",
+      error: error.message,
+    });
 
-    res.status(500).json({
+    return res.status(500).json({
       msg: "Error al actualizar página",
     });
   }
@@ -158,20 +190,25 @@ export const actualizarPagina = async (req, res) => {
    Listar páginas públicas
 ----------------------------- */
 export const listarPaginas = async (req, res) => {
-  console.log(chalk.blue("📄 [PAGINA] listarPaginas"));
-
   try {
+    logger.info({
+      message: "Fetching public pages list",
+    });
+
     const paginas = await Pagina.findAll({
       where: { activo: true },
       attributes: ["titulo", "slug"],
       order: [["titulo", "ASC"]],
     });
 
-    res.json(paginas);
+    return res.json(paginas);
   } catch (error) {
-    console.log(chalk.red("❌ Error listarPaginas"), error);
+    logger.error({
+      message: "Error listing public pages",
+      error: error.message,
+    });
 
-    res.status(500).json({
+    return res.status(500).json({
       msg: "Error al listar páginas",
     });
   }
@@ -183,9 +220,12 @@ export const listarPaginas = async (req, res) => {
 export const eliminarPagina = async (req, res) => {
   const { id } = req.params;
 
-  console.log(chalk.red("🗑️ Eliminando página"), id);
-
   try {
+    logger.info({
+      message: "Deleting page",
+      id,
+    });
+
     const pagina = await Pagina.findByPk(id);
 
     if (!pagina) {
@@ -196,13 +236,16 @@ export const eliminarPagina = async (req, res) => {
 
     await pagina.destroy();
 
-    res.json({
+    return res.json({
       msg: "Página eliminada",
     });
   } catch (error) {
-    console.log(chalk.red("❌ Error eliminarPagina"), error);
+    logger.error({
+      message: "Error deleting page",
+      error: error.message,
+    });
 
-    res.status(500).json({
+    return res.status(500).json({
       msg: "Error al eliminar página",
     });
   }
