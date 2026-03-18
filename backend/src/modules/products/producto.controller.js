@@ -2,7 +2,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { Op } from "sequelize";
-import chalk from "chalk";
+import logger from "../../shared/logger/logger.js";
 
 import Producto from "./producto.model.js";
 import Categoria from "../categories/category.model.js";
@@ -35,10 +35,13 @@ const upload = multer({ storage });
    Crear Producto
 ----------------------------- */
 export const crearProducto = async (req, res) => {
-  console.log(chalk.bgYellow.black("🚨 crearProducto INVOCADO"));
+  logger.info("crearProducto invoked");
 
-  console.log("🟡 req.file =>", req.file);
-  console.log("🟡 req.body =>", req.body);
+  logger.debug({
+    message: "Request data",
+    body: req.body,
+    hasFile: !!req.file,
+  });
 
   const errores = validationResult(req);
   if (!errores.isEmpty()) {
@@ -134,7 +137,10 @@ export const crearProducto = async (req, res) => {
       producto,
     });
   } catch (error) {
-    console.error("❌ Error crearProducto:", error);
+    logger.error({
+      message: "Error crearProducto",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error al crear producto" });
   }
 };
@@ -185,7 +191,10 @@ export const subirImagenExtra = async (req, res) => {
 
     res.json({ msg: "Imagen guardada", imagen: nueva });
   } catch (error) {
-    console.error(error);
+    logger.error({
+      message: "Error subirImagenExtra",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error al guardar imagen extra" });
   }
 };
@@ -258,7 +267,10 @@ export const agregarCaracteristica = async (req, res) => {
       caracteristica: nueva,
     });
   } catch (error) {
-    console.error(error);
+    logger.error({
+      message: "Error agregarCaracteristica",
+      error: error.message,
+    });
 
     res.status(500).json({
       msg: "Error al agregar característica",
@@ -415,7 +427,10 @@ export const actualizarProducto = async (req, res) => {
       producto,
     });
   } catch (error) {
-    console.error("❌ Error actualizarProducto:", error);
+    logger.error({
+      message: "Error actualizarProducto",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error al actualizar" });
   }
 };
@@ -501,7 +516,10 @@ export const obtenerProductoCompleto = async (req, res) => {
       settings,
     });
   } catch (error) {
-    console.error("❌ Error obtenerProductoCompleto", error);
+    logger.error({
+      message: "Error obtenerProductoCompleto",
+      error: error.message,
+    });
 
     res.status(500).json({
       msg: "Error al cargar producto",
@@ -532,7 +550,10 @@ export const obtenerCaracteristicas = async (req, res) => {
 
     res.json(caracteristicas);
   } catch (error) {
-    console.error(error);
+    logger.error({
+      message: "Error obtenerCaracteristicas",
+      error: error.message,
+    });
 
     res.status(500).json({
       msg: "Error al obtener características",

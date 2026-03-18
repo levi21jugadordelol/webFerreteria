@@ -80,7 +80,9 @@ class ProductoService {
     });
 
     if (!producto) {
-      throw new Error("Producto no encontrado");
+      const error = new Error("Producto no encontrado");
+      error.status = 404;
+      throw error;
     }
 
     const data = producto.toJSON();

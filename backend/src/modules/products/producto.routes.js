@@ -2,7 +2,6 @@ import express from "express";
 import { body } from "express-validator";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 import uploadProducto from "../../shared/middleware/uploadProducto.js";
-import chalk from "chalk";
 
 import {
   listarProductosPublicos,
@@ -28,11 +27,6 @@ import { filtrarPorPrecio } from "../price/price.controller.js";
 
 const router = express.Router();
 
-router.use((req, res, next) => {
-  console.log(chalk.bgBlue.white(`📥 [ROUTE] /productos${req.url}`));
-  next();
-});
-
 /* --------------------
    🟢 PÚBLICAS
 -------------------- */
@@ -44,7 +38,6 @@ router.get("/:slug/full", obtenerProductoCompleto);
 router.get("/:slug/caracteristicas", obtenerCaracteristicas);
 
 router.get("/", listarProductosPublicos);
-
 router.get("/:slug", obtenerProducto);
 
 /* --------------------
@@ -83,7 +76,6 @@ router.delete("/admin/:id/imagenes/:idImg", eliminarImagenExtra);
 /* Características */
 router.post("/admin/:id/caracteristicas", agregarCaracteristica);
 router.put("/admin/:id/caracteristicas/:idCarac", actualizarCaracteristica);
-
 router.delete("/admin/:id/caracteristicas/:idCarac", eliminarCaracteristica);
 
 export default router;
