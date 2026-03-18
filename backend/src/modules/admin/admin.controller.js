@@ -57,7 +57,7 @@ const autenticar = async (req, res) => {
         nombre: admin.nombre,
         rol: admin.rol,
       },
-      process.env.JWT_SECRET,
+      env.JWT_SECRET,
       { expiresIn: "1d" },
     );
 
@@ -147,7 +147,7 @@ const listarAdmins = async (req, res) => {
 const cerrarSesion = (req, res) => {
   res.clearCookie("_token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
   });
