@@ -1,10 +1,16 @@
 import ProductoTab from "./productoTab.model.js";
+import logger from "../../shared/logger/logger.js";
+import { generarSlugUnico } from "../../shared/helpers/generarSlug.js";
 
 /* ===============================
    LISTAR TABS
 ================================ */
 export const listarTabs = async (req, res) => {
   try {
+    logger.info({
+      message: "Fetching product tabs",
+    });
+
     const tabs = await ProductoTab.findAll({
       order: [
         ["orden", "ASC"],
@@ -12,9 +18,14 @@ export const listarTabs = async (req, res) => {
       ],
     });
 
-    res.json(tabs);
+    return res.json(tabs);
   } catch (error) {
-    res.status(500).json({ msg: "Error al listar tabs" });
+    logger.error({
+      message: "Error listing product tabs",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al listar tabs" });
   }
 };
 
@@ -25,23 +36,20 @@ export const crearTab = async (req, res) => {
   try {
     let { nombre, slug, orden } = req.body;
 
+    logger.info({
+      message: "Creating product tab",
+      body: req.body,
+    });
+
     if (!nombre) {
       return res.status(400).json({
         msg: "Nombre es obligatorio",
       });
     }
 
-    /* ======================
-       GENERAR SLUG SI NO EXISTE
-    ====================== */
-
     if (!slug) {
-      slug = generarSlug(nombre);
+      slug = await generarSlugUnico(nombre);
     }
-
-    /* ======================
-       EVITAR DUPLICADOS
-    ====================== */
 
     const existe = await ProductoTab.findOne({
       where: { slug },
@@ -53,10 +61,6 @@ export const crearTab = async (req, res) => {
       });
     }
 
-    /* ======================
-       CREAR TAB
-    ====================== */
-
     const nueva = await ProductoTab.create({
       nombre,
       slug,
@@ -64,14 +68,22 @@ export const crearTab = async (req, res) => {
       activo: true,
     });
 
-    res.json({
+    logger.info({
+      message: "Product tab created",
+      id: nueva.id_tab,
+    });
+
+    return res.json({
       msg: "Tab creada",
       tab: nueva,
     });
   } catch (error) {
-    console.error(error);
+    logger.error({
+      message: "Error creating product tab",
+      error: error.message,
+    });
 
-    res.status(500).json({
+    return res.status(500).json({
       msg: "Error al crear tab",
     });
   }
@@ -84,6 +96,12 @@ export const actualizarTab = async (req, res) => {
   try {
     const { id } = req.params;
     const { nombre, slug, orden } = req.body;
+
+    logger.info({
+      message: "Updating product tab",
+      id,
+      body: req.body,
+    });
 
     const tab = await ProductoTab.findByPk(id);
 
@@ -99,11 +117,16 @@ export const actualizarTab = async (req, res) => {
       orden,
     });
 
-    res.json({
+    return res.json({
       msg: "Tab actualizada",
     });
   } catch (error) {
-    res.status(500).json({
+    logger.error({
+      message: "Error updating product tab",
+      error: error.message,
+    });
+
+    return res.status(500).json({
       msg: "Error al actualizar tab",
     });
   }
@@ -116,6 +139,11 @@ export const toggleTab = async (req, res) => {
   try {
     const { id } = req.params;
 
+    logger.info({
+      message: "Toggling product tab",
+      id,
+    });
+
     const tab = await ProductoTab.findByPk(id);
 
     if (!tab) {
@@ -125,14 +153,18 @@ export const toggleTab = async (req, res) => {
     }
 
     tab.activo = !tab.activo;
-
     await tab.save();
 
-    res.json({
+    return res.json({
       msg: "Estado actualizado",
     });
   } catch (error) {
-    res.status(500).json({ msg: "Error al cambiar estado" });
+    logger.error({
+      message: "Error toggling product tab",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al cambiar estado" });
   }
 };
 
@@ -142,6 +174,11 @@ export const toggleTab = async (req, res) => {
 export const eliminarTab = async (req, res) => {
   try {
     const { id } = req.params;
+
+    logger.info({
+      message: "Deleting product tab",
+      id,
+    });
 
     const tab = await ProductoTab.findByPk(id);
 
@@ -153,10 +190,15 @@ export const eliminarTab = async (req, res) => {
 
     await tab.destroy();
 
-    res.json({
+    return res.json({
       msg: "Tab eliminada",
     });
   } catch (error) {
-    res.status(500).json({ msg: "Error al eliminar tab" });
+    logger.error({
+      message: "Error deleting product tab",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al eliminar tab" });
   }
 };
