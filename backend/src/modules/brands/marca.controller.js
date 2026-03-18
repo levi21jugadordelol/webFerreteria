@@ -3,7 +3,7 @@ import Marca from "../../modules/brands/marca.model.js";
 import { validationResult } from "express-validator";
 import fs from "fs";
 import path from "path";
-import chalk from "chalk";
+import logger from "../../shared/logger/logger.js";
 
 // 🟢 Crear marca
 export const crearMarca = async (req, res) => {
@@ -26,14 +26,21 @@ export const crearMarca = async (req, res) => {
       url_logo: "",
     });
 
-    console.log(chalk.green(`🏷️ Marca creada: ${nueva.nombre_marca}`));
+    logger.info({
+      message: "Marca creada",
+      nombre: nueva.nombre_marca,
+      id: nueva.id_marca,
+    });
 
     res.status(201).json({
       msg: "Marca creada correctamente",
       marca: nueva,
     });
   } catch (error) {
-    console.error("❌ Error al crear marca:", error);
+    logger.error({
+      message: "Error al crear marca",
+      error: error.message,
+    });
     res.status(500).json({ msg: "Error interno del servidor" });
   }
 };
@@ -46,7 +53,10 @@ export const listarMarcas = async (req, res) => {
     });
     res.json(marcas);
   } catch (err) {
-    console.error("❌ Error al listar marcas:", err);
+    logger.error({
+      message: "Error al listar marcas",
+      error: err.message,
+    });
     res.status(500).json({ msg: "Error al obtener marcas" });
   }
 };
@@ -58,7 +68,10 @@ export const obtenerMarca = async (req, res) => {
     if (!marca) return res.status(404).json({ msg: "Marca no encontrada" });
     res.json(marca);
   } catch (err) {
-    console.error("❌ Error al obtener marca:", err);
+    logger.error({
+      message: "Error al obtener marca",
+      error: err.message,
+    });
     res.status(500).json({ msg: "Error al obtener marca" });
   }
 };
@@ -72,7 +85,10 @@ export const actualizarMarca = async (req, res) => {
     await marca.update(req.body);
     res.json({ msg: "Marca actualizada correctamente", marca });
   } catch (err) {
-    console.error("❌ Error al actualizar marca:", err);
+    logger.error({
+      message: "Error al actualizar marca",
+      error: err.message,
+    });
     res.status(500).json({ msg: "Error al actualizar marca" });
   }
 };
@@ -91,7 +107,10 @@ export const eliminarMarca = async (req, res) => {
     await marca.destroy();
     res.json({ msg: "Marca eliminada correctamente" });
   } catch (err) {
-    console.error("❌ Error al eliminar marca:", err);
+    logger.error({
+      message: "Error al eliminar marca",
+      error: err.message,
+    });
     res.status(500).json({ msg: "Error al eliminar marca" });
   }
 };
@@ -120,7 +139,10 @@ export const subirLogoMarca = async (req, res) => {
       url_logo: marca.url_logo,
     });
   } catch (err) {
-    console.error("❌ Error al subir logo:", err);
+    logger.error({
+      message: "Error al subir logo de marca",
+      error: err.message,
+    });
     res.status(500).json({ msg: "Error al subir logo" });
   }
 };
