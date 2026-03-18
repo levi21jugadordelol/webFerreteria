@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import Administrador from "../../modules/admin/admin.model.js";
+import { env } from "../../config/env.js";
 
 const protegerRuta = async (req, res, next) => {
   const token = req.cookies?._token;
@@ -22,7 +23,7 @@ const protegerRuta = async (req, res, next) => {
   try {
     /* ───────── VERIFICAR TOKEN ───────── */
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, env.JWT_SECRET);
 
     /* ───────── BUSCAR ADMIN ───────── */
 
