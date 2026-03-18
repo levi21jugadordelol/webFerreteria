@@ -1,21 +1,24 @@
-import Producto from "../../modules/products/producto.model.js";
 import { generarSlug } from "./generarSlug.js";
 
-export async function generarSlugUnico(nombreProducto, excludeId = null) {
-  const baseSlug = generarSlug(nombreProducto);
+export async function generarSlugUnico({
+  modelo,
+  campo = "slug",
+  valor,
+  excludeId = null,
+  idCampo = "id",
+}) {
+  const baseSlug = generarSlug(valor);
   let slug = baseSlug;
   let contador = 1;
 
   while (true) {
-    const where = { slug };
+    const where = { [campo]: slug };
 
-    const productoExistente = await Producto.findOne({ where });
+    const existente = await modelo.findOne({ where });
 
-    if (!productoExistente) {
-      return slug;
-    }
+    if (!existente) return slug;
 
-    if (excludeId && productoExistente.id_producto === Number(excludeId)) {
+    if (excludeId && existente[idCampo] === Number(excludeId)) {
       return slug;
     }
 
