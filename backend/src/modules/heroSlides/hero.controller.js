@@ -1,29 +1,29 @@
 import HeroSlide from "./hero.model.js";
-import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { Op } from "sequelize";
+import logger from "../../shared/logger/logger.js";
 
 /* ──────────────────────────────
    🟢 GET PUBLICO
 ────────────────────────────── */
 export const getHeroSlides = async (req, res) => {
   try {
-    console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-    console.log(chalk.blue("🎯 LISTAR HERO SLIDES"));
-
     const { type } = req.query;
+
+    logger.info({
+      message: "Fetching hero slides",
+      type: type || "all",
+    });
 
     let where = { activo: true };
 
-    // 🔹 hero carrusel
     if (type === "carousel") {
       where.tipo_layout = {
         [Op.in]: ["banner", "text-left", "text-right", "centered"],
       };
     }
 
-    // 🔹 banners promocionales
     if (type === "triple") {
       where.tipo_layout = "triple";
     }
@@ -33,17 +33,19 @@ export const getHeroSlides = async (req, res) => {
       order: [["orden", "ASC"]],
     });
 
-    console.log(chalk.green(`✅ Slides encontrados: ${slides.length}`));
-
-    res.json(slides);
+    return res.json(slides);
   } catch (error) {
-    console.error(chalk.bgRed.white("❌ Error en getHeroSlides:"), error);
-    res.status(500).json({ msg: "Error al obtener hero slides" });
+    logger.error({
+      message: "Error fetching hero slides",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al obtener hero slides" });
   }
 };
 
 /* ──────────────────────────────
-   🟢 GET POR ID (ADMIN)
+   🟢 GET POR ID
 ────────────────────────────── */
 export const getHeroById = async (req, res) => {
   try {
@@ -57,10 +59,14 @@ export const getHeroById = async (req, res) => {
       });
     }
 
-    res.json(slide);
+    return res.json(slide);
   } catch (error) {
-    console.error("❌ Error en getHeroById:", error);
-    res.status(500).json({
+    logger.error({
+      message: "Error fetching hero by id",
+      error: error.message,
+    });
+
+    return res.status(500).json({
       msg: "Error al obtener hero slide",
     });
   }
@@ -70,18 +76,11 @@ export const getHeroById = async (req, res) => {
    🔒 CREAR SLIDE
 ────────────────────────────── */
 export const createHeroSlide = async (req, res) => {
-  console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-  console.log(chalk.blue("📥 BODY RECIBIDO"));
-
-  console.log(chalk.yellow("tipo_layout:"), req.body.tipo_layout);
-  console.log(chalk.yellow("link_url:"), req.body.link_url);
-  console.log(chalk.yellow("boton_url:"), req.body.boton_url);
-  console.log(chalk.yellow("activo:"), req.body.activo);
-
-  console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
   try {
-    console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-    console.log(chalk.yellow("🆕 CREAR HERO SLIDE"));
+    logger.info({
+      message: "Creating hero slide",
+      body: req.body,
+    });
 
     const {
       titulo1,
@@ -94,21 +93,14 @@ export const createHeroSlide = async (req, res) => {
     } = req.body;
 
     let url = boton_url;
-
-    if (Array.isArray(url)) {
-      url = url[0];
-    }
+    if (Array.isArray(url)) url = url[0];
 
     const activo = req.body.activo === "on";
     const mostrar_boton = req.body.mostrar_boton === "on";
 
     if (!req.file) {
-      return res.status(400).json({
-        msg: "Debe subir una imagen",
-      });
+      return res.status(400).json({ msg: "Debe subir una imagen" });
     }
-
-    /* LIMITE SOLO PARA TRIPLE */
 
     if (tipo_layout === "triple") {
       const totalTriple = await HeroSlide.count({
@@ -122,8 +114,6 @@ export const createHeroSlide = async (req, res) => {
       }
     }
 
-    /* VALIDACIÓN TEXTO */
-
     if (tipo_layout !== "banner" && tipo_layout !== "triple") {
       if (!titulo1 && !titulo2) {
         return res.status(400).json({
@@ -131,8 +121,6 @@ export const createHeroSlide = async (req, res) => {
         });
       }
     }
-
-    /* VALIDAR BOTÓN */
 
     if (mostrar_boton) {
       if (!boton_texto || !url) {
@@ -147,27 +135,30 @@ export const createHeroSlide = async (req, res) => {
       titulo2: titulo2 || null,
       imagen: `hero/${req.file.filename}`,
       tipo_layout: tipo_layout || "banner",
-
       mostrar_boton,
       boton_texto: mostrar_boton ? boton_texto : null,
       boton_url: mostrar_boton ? url : null,
-
-      // 🔗 SOLO PARA TRIPLE
       link_url: tipo_layout === "triple" ? link_url : null,
-
       orden: Number(orden) || 0,
       activo,
     });
 
-    console.log(chalk.green(`✅ Slide creado ID: ${slide.id_hero}`));
+    logger.info({
+      message: "Hero slide created",
+      id: slide.id_hero,
+    });
 
-    res.status(201).json({
+    return res.status(201).json({
       msg: "Hero slide creado correctamente",
       slide,
     });
   } catch (error) {
-    console.error(chalk.bgRed.white("❌ Error en createHeroSlide:"), error);
-    res.status(500).json({ msg: "Error al crear hero slide" });
+    logger.error({
+      message: "Error creating hero slide",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al crear hero slide" });
   }
 };
 
@@ -175,17 +166,12 @@ export const createHeroSlide = async (req, res) => {
    🔒 ACTUALIZAR SLIDE
 ────────────────────────────── */
 export const updateHeroSlide = async (req, res) => {
-  console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-  console.log(chalk.yellow("✏️ ACTUALIZAR HERO SLIDE"));
-  console.log(chalk.blue("📦 BODY RECIBIDO →"), req.body);
-
-  console.log(chalk.magenta("🔗 LINK_URL →"), req.body.link_url);
-  console.log(chalk.magenta("🎨 LAYOUT →"), req.body.tipo_layout);
-  console.log(chalk.magenta("🟢 ACTIVO →"), req.body.activo);
-
-  console.log(chalk.cyan("━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
   try {
-    console.log(chalk.yellow("✏️ ACTUALIZAR HERO SLIDE"));
+    logger.info({
+      message: "Updating hero slide",
+      id: req.params.id,
+      body: req.body,
+    });
 
     const { id } = req.params;
     const slide = await HeroSlide.findByPk(id);
@@ -193,8 +179,6 @@ export const updateHeroSlide = async (req, res) => {
     if (!slide) {
       return res.status(404).json({ msg: "Hero slide no encontrado" });
     }
-
-    /* VALIDAR LIMITE TRIPLE */
 
     if (req.body.tipo_layout === "triple" && slide.tipo_layout !== "triple") {
       const totalTriple = await HeroSlide.count({
@@ -208,14 +192,10 @@ export const updateHeroSlide = async (req, res) => {
       }
     }
 
-    /* CAMBIO IMAGEN */
-
     if (req.file) {
       if (slide.imagen) {
         const ruta = path.join("uploads", slide.imagen);
-        if (fs.existsSync(ruta)) {
-          fs.unlinkSync(ruta);
-        }
+        if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
       }
 
       slide.imagen = `hero/${req.file.filename}`;
@@ -238,7 +218,6 @@ export const updateHeroSlide = async (req, res) => {
       ? (req.body.boton_url ?? slide.boton_url)
       : null;
 
-    // 🔗 LINK PARA TRIPLE
     slide.link_url =
       slide.tipo_layout === "triple"
         ? (req.body.link_url ?? slide.link_url)
@@ -251,14 +230,23 @@ export const updateHeroSlide = async (req, res) => {
       req.body.activo !== undefined ? req.body.activo === "on" : slide.activo;
 
     await slide.save();
-    console.log(chalk.green("✅ LINK GUARDADO →"), slide.link_url);
-    res.json({
+
+    logger.info({
+      message: "Hero slide updated",
+      id: slide.id_hero,
+    });
+
+    return res.json({
       msg: "Hero slide actualizado correctamente",
       slide,
     });
   } catch (error) {
-    console.error(chalk.bgRed.white("❌ Error en updateHeroSlide:"), error);
-    res.status(500).json({ msg: "Error al actualizar hero slide" });
+    logger.error({
+      message: "Error updating hero slide",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al actualizar hero slide" });
   }
 };
 
@@ -267,7 +255,10 @@ export const updateHeroSlide = async (req, res) => {
 ────────────────────────────── */
 export const updateHeroOrden = async (req, res) => {
   try {
-    console.log(chalk.yellow("🔄 ACTUALIZAR ORDEN HERO"));
+    logger.info({
+      message: "Updating hero order",
+      count: req.body.slides?.length,
+    });
 
     const { slides } = req.body;
 
@@ -284,12 +275,14 @@ export const updateHeroOrden = async (req, res) => {
       ),
     );
 
-    console.log(chalk.green("✅ Orden actualizado"));
-
-    res.json({ msg: "Orden actualizado" });
+    return res.json({ msg: "Orden actualizado" });
   } catch (error) {
-    console.error(chalk.bgRed.white("❌ Error en updateHeroOrden:"), error);
-    res.status(500).json({ msg: "Error al actualizar orden" });
+    logger.error({
+      message: "Error updating hero order",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al actualizar orden" });
   }
 };
 
@@ -307,18 +300,23 @@ export const deleteHeroSlide = async (req, res) => {
 
     if (slide.imagen) {
       const ruta = path.join("uploads", slide.imagen);
-      if (fs.existsSync(ruta)) {
-        fs.unlinkSync(ruta);
-      }
+      if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
     }
 
     await slide.destroy();
 
-    console.log(chalk.redBright(`🗑️ Slide eliminado ID: ${id}`));
+    logger.info({
+      message: "Hero slide deleted",
+      id,
+    });
 
-    res.json({ msg: "Hero slide eliminado correctamente" });
+    return res.json({ msg: "Hero slide eliminado correctamente" });
   } catch (error) {
-    console.error(chalk.bgRed.white("❌ Error en deleteHeroSlide:"), error);
-    res.status(500).json({ msg: "Error al eliminar hero slide" });
+    logger.error({
+      message: "Error deleting hero slide",
+      error: error.message,
+    });
+
+    return res.status(500).json({ msg: "Error al eliminar hero slide" });
   }
 };
