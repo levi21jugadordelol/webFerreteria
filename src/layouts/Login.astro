@@ -1,8 +1,6 @@
 ---
 import Formulario from "../components/shared/Form.astro";
-
-// 🔗 Backend
-const API_URL = "http://localhost:3000";
+import { getSiteSettings } from "../libs/api/site.api";
 
 // 🧠 Defaults seguros
 let siteContent = {
@@ -12,18 +10,15 @@ let siteContent = {
 
 let image = undefined;
 
-// 🌐 Fetch site settings
+// 🌐 Fetch desde lib
 try {
-  const res = await fetch(`${API_URL}/api/site-settings`);
-  if (res.ok) {
-    const settings = await res.json();
+  const settings = await getSiteSettings();
 
-    if (settings.site_content) {
-      siteContent = {
-        ...siteContent,
-        ...settings.site_content,
-      };
-    }
+  if (settings.site_content) {
+    siteContent = {
+      ...siteContent,
+      ...settings.site_content,
+    };
   }
 } catch (error) {
   console.error("❌ Error cargando site-settings:", error);
@@ -69,7 +64,6 @@ const description = siteContent.description;
   </head>
 
   <body>
-    <!-- ✅ AQUÍ debe ir el formulario -->
     <Formulario />
 
     <!-- Bootstrap JS -->

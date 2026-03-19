@@ -45,40 +45,29 @@ let error = "";
 
 
 
-    <script>
-      const form = document.getElementById("loginForm");
-      if (form) {
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const target = e.target as HTMLFormElement;
-          const correo = (target.querySelector("#correo") as HTMLInputElement).value;
-          const password = (target.querySelector("#password") as HTMLInputElement).value;
+    <script type="module">
+  import { loginRequest } from "/src/libs/api/auth.api.ts";
 
-          console.log("📤 Enviando datos al backend:", { correo, password });
+  const form = document.getElementById("loginForm");
 
-          try {
-            const response = await fetch("/auth/login", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ correo, password }),
-  credentials: "include",
-});
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-if (response.ok) {
-  console.log("✅ Login exitoso, redirigiendo...");
-  window.location.replace("/admin/panel-admin");
-  return;
-}
+      const correo = document.getElementById("correo").value;
+      const password = document.getElementById("password").value;
 
-const data = await response.json();
-alert(data.msg || "⚠️ Credenciales incorrectas.");
+      try {
+        await loginRequest({ correo, password });
 
-          } catch (err) {
-            console.error("💥 Error al conectar con el servidor:", err);
-            alert("Error al conectar con el servidor.");
-          }
-        });
+        console.log("✅ Login exitoso");
+        window.location.replace("/admin/panel-admin");
+
+      } catch (error) {
+        alert(error.message);
       }
-    </script>
+    });
+  }
+</script>
   </body>
 </html>
