@@ -1,16 +1,22 @@
 ---
 import ModalEditCategoria from "../../ui/categoria/ModalEditCategoria.astro"
 ---
-const apiUrl = "http://localhost:3000";
----
 
 <div class="container my-4">
-  <h3 class="fw-bold mb-3">Lista de Categorías</h3>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="/admin/categoria-nueva" class="btn btn-primary">
+      ➕ Nueva Categoría
+    </a>
+  </div>
+
   <p id="contador" class="text-muted">Cargando categorías...</p>
 
+  <!-- 🔥 ESTE DIV ES CLAVE -->
   <div id="lista-categorias" class="d-flex flex-column gap-3 mt-3">
-    <p class="text-center text-muted">Cargando categorías...</p>
+    <p class="text-muted">Cargando...</p>
   </div>
+
 </div>
 
 <!-- 🔥 MODAL DE EDICIÓN -->
