@@ -121,6 +121,8 @@ async function cargarActividad(){
 
  if(data.length===0){
 
+   console.log(data)
+
   cont.innerHTML = `
    <div class="alert alert-info">
     No hay actividad reciente
@@ -133,6 +135,7 @@ async function cargarActividad(){
   <ul class="list-group">
 
   ${
+
    data.map(a=>`
 
     <li class="list-group-item d-flex justify-content-between">

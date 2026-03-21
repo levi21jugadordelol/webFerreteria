@@ -1,116 +1,111 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
+import "../../../styles/admin/menu.css"; // 🔥 IMPORTANTE
 ---
 
 <AdminLayout title="Menú del sitio">
 
 <div class="mb-3">
- <a href="/admin/menu/nuevo" class="btn btn-primary">
-  Nuevo enlace
- </a>
+  <a href="/admin/menu/nuevo" class="btn btn-primary">
+    Nuevo enlace
+  </a>
 </div>
 
-<div id="tabla-menu"></div>
+<div id="menuList" class="menuList"></div>
 
 </AdminLayout>
 
-<script is:client>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-const API = "http://localhost:3000"
+<script is:inline>
+document.addEventListener("DOMContentLoaded", async function () {
 
-async function cargarMenu(){
+  const API = "http://localhost:3000"
 
- const res = await fetch(
-  API + "/api/menu/admin/lista",
-  { credentials:"include" }
- )
+  async function cargarMenu(){
 
- const data = await res.json()
+    const res = await fetch(
+      API + "/api/menu/admin/lista",
+      { credentials:"include" }
+    )
 
- const cont = document.getElementById("tabla-menu")
+    const data = await res.json()
 
- cont.innerHTML = `
-  <table class="table table-striped">
+    const cont = document.getElementById("menuList")
 
-   <thead>
-    <tr>
-     <th>ID</th>
-     <th>Título</th>
-     <th>URL</th>
-     <th>Tipo</th>
-     <th>Orden</th>
-     <th>Activo</th>
-     <th>Acciones</th>
-    </tr>
-   </thead>
+    cont.innerHTML = data.map(m => `
+      <div class="menu-row" data-id="${m.id_menu}">
 
-   <tbody>
+        <div class="drag-handle">☰</div>
 
-   ${
-    data.map(m=>`
+        <div class="menu-info">
+          <strong>${m.titulo}</strong>
+          <small>${m.url} | ${m.tipo}</small>
+        </div>
 
-     <tr>
+        <div class="menu-actions">
+          <a href="/admin/menu/editar/${m.id_menu}" class="btn btn-sm btn-warning">✏</a>
+          <button class="btn btn-sm btn-danger btn-delete" data-id="${m.id_menu}">🗑</button>
+        </div>
 
-      <td>${m.id_menu}</td>
-
-      <td>${m.titulo}</td>
-
-      <td>${m.url}</td>
-
-      <td>${m.tipo}</td>
-
-      <td>${m.orden}</td>
-
-      <td>
-       <span class="badge ${m.activo ? "bg-success":"bg-secondary"}">
-        ${m.activo ? "Activo":"Inactivo"}
-       </span>
-      </td>
-
-      <td>
-
-       <a
-        href="/admin/menu/editar/${m.id_menu}"
-        class="btn btn-sm btn-warning"
-       >
-        Editar
-       </a>
-
-       <button
-        onclick="eliminarMenu(${m.id_menu})"
-        class="btn btn-sm btn-danger"
-       >
-        Eliminar
-       </button>
-
-      </td>
-
-     </tr>
-
+      </div>
     `).join("")
-   }
 
-   </tbody>
-
-  </table>
- `
-}
-
-async function eliminarMenu(id){
-
- if(!confirm("¿Eliminar este enlace del menú?")) return
-
- await fetch(
-  API + "/api/menu/admin/" + id,
-  {
-   method:"DELETE",
-   credentials:"include"
+    initSortable()
+    initEliminar()
   }
- )
 
- cargarMenu()
-}
+  function initSortable(){
 
-cargarMenu()
+    const menuList = document.getElementById("menuList")
 
+    new Sortable(menuList, {
+      animation: 200,
+      handle: ".drag-handle",
+      ghostClass: "drag-ghost",
+      chosenClass: "drag-chosen",
+
+      onEnd: async function () {
+
+        const items = [...menuList.children]
+
+        const menus = items.map((el, index) => ({
+          id_menu: el.dataset.id,
+          orden: index + 1
+        }))
+
+        await fetch(API + "/api/menu/admin/orden", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ menus })
+        })
+
+      }
+    })
+  }
+
+  function initEliminar(){
+
+    document.querySelectorAll(".btn-delete").forEach(btn => {
+
+      btn.addEventListener("click", async function () {
+
+        const id = this.dataset.id
+
+        if (!confirm("¿Eliminar este enlace del menú?")) return
+
+        await fetch(API + "/api/menu/admin/" + id, {
+          method:"DELETE",
+          credentials:"include"
+        })
+
+        cargarMenu()
+      })
+    })
+  }
+
+  cargarMenu()
+
+})
 </script>

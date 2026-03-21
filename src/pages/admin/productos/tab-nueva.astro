@@ -6,8 +6,6 @@ const API_URL="http://localhost:3000";
 
 <AdminLayout title="Nueva Tab">
 
-<h3 class="mb-4">Crear nueva tab</h3>
-
 <form id="formTab">
 
 <input
@@ -37,13 +35,19 @@ Guardar
 
 </form>
 
+<!-- 🔥 PASAR API -->
 <script is:inline>
+  window.API_URL = "http://localhost:3000";
+</script>
+
+<script is:inline>
+
+const API_URL = window.API_URL;
 
 const nombreInput = document.getElementById("tab-nombre");
 const slugInput = document.getElementById("tab-slug");
 
 function generarSlug(texto){
-
 return texto
 .toLowerCase()
 .trim()
@@ -52,13 +56,10 @@ return texto
 .replace(/[^a-z0-9\s-]/g,"")
 .replace(/\s+/g,"-")
 .replace(/-+/g,"-");
-
 }
 
 nombreInput.addEventListener("input",()=>{
-
 slugInput.value = generarSlug(nombreInput.value);
-
 });
 
 document.getElementById("formTab").addEventListener("submit", async e => {
@@ -73,21 +74,32 @@ slug: form.get("slug"),
 orden: Number(form.get("orden"))
 };
 
-await fetch(`${API_URL}/api/producto-tabs`,{
+try {
+  const res = await fetch(`${API_URL}/api/producto-tabs`, {
+    method:"POST",
+    credentials:"include",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify(data)
+  });
 
-method:"POST",
+  const result = await res.json();
 
-credentials:"include",
+  if(!res.ok){
+    throw new Error(result.msg || "Error al crear tab");
+  }
 
-headers:{
-"Content-Type":"application/json"
-},
+  // ✅ ÉXITO
+  alert("✅ Tab creado correctamente");
 
-body:JSON.stringify(data)
+  // limpiar
+  e.target.reset();
 
-});
-
-window.location="/admin/productos/tabs";
+} catch(err){
+  console.error(err);
+  alert("❌ " + err.message);
+}
 
 });
 

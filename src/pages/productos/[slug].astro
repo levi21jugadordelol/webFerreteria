@@ -291,20 +291,13 @@ justify-content:center;
 }
 
 .zoom-container{
-width:100%;
-max-height:600px;
-padding:30px;
-background:linear-gradient(
-180deg,
-var(--color-bg),
-var(--color-card)
-);
-border:1px solid var(--color-border);
-border-radius:16px;
-display:flex;
-align-items:center;
-justify-content:center;
-overflow:hidden;
+  width:100%;
+  height:500px; /* o la altura que quieras */
+  padding:0; /* opcional si quieres que la imagen pegue al borde */
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
 }
 
 .precio-producto{
@@ -325,9 +318,9 @@ color:inherit;
 }
 
 #img-principal{
-max-width:100%;
-max-height:520px;
-object-fit:contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* o contain dependiendo de lo que quieras */
 }
 
 </style>

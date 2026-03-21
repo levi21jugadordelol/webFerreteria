@@ -6,34 +6,53 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 
 <form id="formMenu">
 
-<div class="mb-3">
-<label>Título</label>
-<input class="form-control" name="titulo" required>
+  <!-- Título -->
+  <div class="mb-3">
+    <label>Título</label>
+    <input class="form-control" name="titulo" required>
+  </div>
+
+  <div class="mb-3">
+  <label>Menú padre</label>
+  <select id="parentSelect" class="form-control">
+    <option value="">Sin padre (nivel principal)</option>
+  </select>
 </div>
 
-<div class="mb-3">
-<label>Página</label>
-<select id="paginaSelect" class="form-control">
-<option value="">Seleccionar página</option>
-</select>
-</div>
+  <!-- Tipo -->
+  <div class="mb-3">
+    <label>Tipo de enlace</label>
+    <select id="tipoSelect" class="form-control">
+      <option value="pagina">Página CMS</option>
+      <option value="ruta">Ruta manual</option>
+    </select>
+  </div>
 
-<div class="mb-3">
-<label>Orden</label>
-<input class="form-control" name="orden" type="number" value="0">
-</div>
+  <!-- Página -->
+  <div class="mb-3" id="grupoPagina">
+    <label>Página</label>
+    <select id="paginaSelect" class="form-control">
+      <option value="">Seleccionar página</option>
+    </select>
+  </div>
 
-<div class="form-check mb-3">
-<input type="checkbox" class="form-check-input" name="activo" checked>
-<label class="form-check-label">Activo</label>
-</div>
+  <!-- Ruta -->
+  <div class="mb-3 d-none" id="grupoRuta">
+    <label>Ruta</label>
+    <input id="rutaInput" class="form-control" placeholder="/productos">
+  </div>
 
-<button class="btn btn-success">
-Guardar
-</button>
+  <!-- Activo -->
+  <div class="form-check mb-3">
+    <input type="checkbox" class="form-check-input" name="activo" checked>
+    <label class="form-check-label">Activo</label>
+  </div>
+
+  <button class="btn btn-success">
+    Guardar
+  </button>
 
 </form>
-
 
 <div id="mensaje" class="mt-3"></div>
 
@@ -44,41 +63,52 @@ Guardar
 const API = "http://localhost:3000"
 
 const select = document.getElementById("paginaSelect")
+const tipoSelect = document.getElementById("tipoSelect")
+const grupoPagina = document.getElementById("grupoPagina")
+const grupoRuta = document.getElementById("grupoRuta")
+const rutaInput = document.getElementById("rutaInput")
 
 /* --------------------------
    CARGAR PAGINAS
 ---------------------------*/
-
 async function cargarPaginas(){
+  try{
+    const res = await fetch(API + "/api/paginas")
+    const paginas = await res.json()
 
- try{
+    paginas.forEach(p=>{
+      const option = document.createElement("option")
+      option.value = p.slug
+      option.textContent = p.titulo
+      select.appendChild(option)
+    })
 
-  const res = await fetch(API + "/api/paginas")
-
-  const paginas = await res.json()
-
-  paginas.forEach(p=>{
-
-   const option = document.createElement("option")
-
-   option.value = p.slug
-   option.textContent = p.titulo
-
-   select.appendChild(option)
-
-  })
-
- }catch(err){
-  console.error("Error cargando páginas",err)
- }
-
+  }catch(err){
+    console.error("Error cargando páginas",err)
+  }
 }
 
 cargarPaginas()
 
+/* --------------------------
+   CAMBIO DE TIPO
+---------------------------*/
+tipoSelect.addEventListener("change", () => {
 
+  if(tipoSelect.value === "pagina"){
+    grupoPagina.classList.remove("d-none")
+    grupoRuta.classList.add("d-none")
+  }else{
+    grupoPagina.classList.add("d-none")
+    grupoRuta.classList.remove("d-none")
+  }
+
+})
+
+/* --------------------------
+   MENSAJES
+---------------------------*/
 function mostrarMensaje(tipo, texto){
-
   const msg = document.getElementById("mensaje")
 
   if(!msg) return
@@ -93,74 +123,115 @@ function mostrarMensaje(tipo, texto){
 /* --------------------------
    FORMULARIO
 ---------------------------*/
-
 document
 .getElementById("formMenu")
 .addEventListener("submit", async (e) => {
 
   e.preventDefault()
 
-  // 🔹 DESACTIVAR BOTÓN
   const btn = e.target.querySelector("button")
   btn.disabled = true
   btn.innerText = "Guardando..."
 
   const form = new FormData(e.target)
-
   const data = Object.fromEntries(form)
 
-  data.url = select.value
-  data.activo = form.get("activo") ? 1 : 0
-  data.orden = Number(data.orden || 0)
+  /* --------------------------
+     DATA
+  ---------------------------*/
+
+  if(tipoSelect.value === "pagina"){
+    data.url = select.value
+  }else{
+    data.url = rutaInput.value.trim()
+  }
+
+  data.tipo = tipoSelect.value
+data.activo = form.get("activo") ? 1 : 0
+data.parent_id = parentSelect.value || null
+
+  /* --------------------------
+     VALIDACIONES
+  ---------------------------*/
 
   if(!data.url){
-    mostrarMensaje("danger","Debe seleccionar una página")
+    mostrarMensaje("danger","Debe seleccionar una página o ingresar una ruta")
 
-    // 🔹 REACTIVAR BOTÓN
     btn.disabled = false
     btn.innerText = "Guardar"
-
     return
   }
 
+  if(data.tipo === "ruta" && !data.url.startsWith("/")){
+    mostrarMensaje("danger","La ruta debe empezar con '/'")
+
+    btn.disabled = false
+    btn.innerText = "Guardar"
+    return
+  }
+
+  /* --------------------------
+     REQUEST
+  ---------------------------*/
   try{
 
-  const res = await fetch(
-    API + "/api/menu/admin",
-    {
+    const res = await fetch(API + "/api/menu/admin", {
       method:"POST",
       body:JSON.stringify(data),
       headers:{ "Content-Type":"application/json" },
       credentials:"include"
-    }
-  )
+    })
 
-  if(!res.ok){
-    mostrarMensaje("danger","No se pudo crear el enlace")
+    if(!res.ok){
+      mostrarMensaje("danger","No se pudo crear el enlace")
+
+      btn.disabled = false
+      btn.innerText = "Guardar"
+      return
+    }
+
+    mostrarMensaje("success","Enlace creado correctamente")
+
+    setTimeout(()=>{
+      window.location="/admin/menu/lista"
+    },1200)
+
+  }catch(err){
+
+    console.error(err)
+
+    mostrarMensaje("danger","Error de conexión")
 
     btn.disabled = false
     btn.innerText = "Guardar"
 
-    return
   }
 
-  mostrarMensaje("success","Enlace creado correctamente")
+})
 
-  setTimeout(()=>{
-    window.location="/admin/menu/lista"
-  },1200)
 
-}catch(err){
+const parentSelect = document.getElementById("parentSelect")
 
-  console.error(err)
+async function cargarPadres(){
+  try{
+    const res = await fetch(API + "/api/menu/admin/lista", {
+      credentials:"include"
+    })
 
-  mostrarMensaje("danger","Error de conexión")
+    const menus = await res.json()
 
-  btn.disabled = false
-  btn.innerText = "Guardar"
+    menus.forEach(m=>{
+      const option = document.createElement("option")
+      option.value = m.id_menu
+      option.textContent = m.titulo
+      parentSelect.appendChild(option)
+    })
 
+  }catch(err){
+    console.error("Error cargando padres", err)
+  }
 }
 
-})
+cargarPadres()
 
 </script>

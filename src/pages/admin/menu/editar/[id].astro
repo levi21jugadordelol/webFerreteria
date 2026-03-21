@@ -8,29 +8,35 @@ const { id } = Astro.params;
 
 <form id="formMenu">
 
-<div class="mb-3">
-<label>Título</label>
-<input class="form-control" name="titulo" id="titulo">
-</div>
+  <!-- Título -->
+  <div class="mb-3">
+    <label>Título</label>
+    <input class="form-control" name="titulo" id="titulo">
+  </div>
 
-<div class="mb-3">
-<label>URL</label>
-<input class="form-control" name="url" id="url">
-</div>
+  <!-- URL -->
+  <div class="mb-3">
+    <label>URL</label>
+    <input class="form-control" name="url" id="url">
+  </div>
 
-<div class="mb-3">
-<label>Orden</label>
-<input class="form-control" name="orden" id="orden" type="number">
-</div>
+  <!-- 🔥 MENÚ PADRE -->
+  <div class="mb-3">
+    <label>Menú padre</label>
+    <select id="parentSelect" class="form-control">
+      <option value="">Sin padre (nivel principal)</option>
+    </select>
+  </div>
 
-<div class="form-check mb-3">
-<input type="checkbox" class="form-check-input" id="activo">
-<label class="form-check-label">Activo</label>
-</div>
+  <!-- Activo -->
+  <div class="form-check mb-3">
+    <input type="checkbox" class="form-check-input" id="activo">
+    <label class="form-check-label">Activo</label>
+  </div>
 
-<button class="btn btn-success">
-Guardar cambios
-</button>
+  <button class="btn btn-success">
+    Guardar cambios
+  </button>
 
 </form>
 
@@ -38,12 +44,38 @@ Guardar cambios
 
 <script is:client>
 
+const API = "http://localhost:3000"
 const id = window.location.pathname.split("/").pop()
 
+const parentSelect = document.getElementById("parentSelect")
+
+/* --------------------------
+   CARGAR PADRES
+---------------------------*/
+async function cargarPadres(){
+  const res = await fetch(API + "/api/menu/admin/lista", {
+    credentials:"include"
+  })
+
+  const menus = await res.json()
+
+  menus.forEach(m=>{
+    if(m.id_menu == id) return // evitar auto padre
+
+    const option = document.createElement("option")
+    option.value = m.id_menu
+    option.textContent = m.titulo
+    parentSelect.appendChild(option)
+  })
+}
+
+/* --------------------------
+   CARGAR MENU
+---------------------------*/
 async function cargar(){
 
  const res = await fetch(
-  "http://localhost:3000/api/menu/"+id,
+  API + "/api/menu/admin/" + id,
   { credentials:"include" }
  )
 
@@ -51,26 +83,31 @@ async function cargar(){
 
  document.getElementById("titulo").value = m.titulo
  document.getElementById("url").value = m.url
- document.getElementById("orden").value = m.orden
  document.getElementById("activo").checked = m.activo
+
+ // 🔥 setear padre
+ parentSelect.value = m.parent_id || ""
 
 }
 
+/* --------------------------
+   SUBMIT
+---------------------------*/
 document
 .getElementById("formMenu")
-.addEventListener("submit",async(e)=>{
+.addEventListener("submit", async (e)=>{
 
  e.preventDefault()
 
  const data = {
   titulo:document.getElementById("titulo").value,
   url:document.getElementById("url").value,
-  orden:document.getElementById("orden").value,
-  activo:document.getElementById("activo").checked
+  activo:document.getElementById("activo").checked,
+  parent_id: parentSelect.value || null
  }
 
  await fetch(
-  "http://localhost:3000/api/menu/"+id,
+  API + "/api/menu/admin/" + id, // ✅ CORREGIDO
   {
    method:"PUT",
    headers:{ "Content-Type":"application/json" },
@@ -83,6 +120,14 @@ document
 
 })
 
-cargar()
+/* --------------------------
+   INIT
+---------------------------*/
+async function init(){
+  await cargarPadres()
+  await cargar()
+}
+
+init()
 
 </script>
