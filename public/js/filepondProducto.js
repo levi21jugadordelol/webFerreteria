@@ -1,31 +1,32 @@
 document.addEventListener("DOMContentLoaded", () => {
   const apiUrl = window.API_URL;
+
   const form = document.getElementById("formProducto");
   const inputImagen = document.getElementById("imagen");
 
   if (!form || !inputImagen) return;
 
-  // ✅ GUARDA la instancia
-  const pond = FilePond.create(inputImagen, {
-    allowMultiple: false,
-    instantUpload: false,
-    acceptedFileTypes: ["image/*"],
-    labelIdle: "Arrastra o haz clic para seleccionar una imagen",
-  });
+  /* =========================
+     FILEPOND
+  ========================= */
+  const pond = FilePond.create(inputImagen);
 
+  /* =========================
+     🔥 LLAMADAS AQUÍ
+  ========================= */
+  cargarCategorias();
+  cargarMarcas();
+
+  /* =========================
+     SUBMIT
+  ========================= */
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const formData = new FormData(form);
 
-    // 🔥 LÍNEA CLAVE (AQUÍ ESTABA EL BUG)
     if (pond.getFiles().length > 0) {
       formData.set("imagen", pond.getFiles()[0].file);
-    }
-
-    console.log("📤 Enviando producto a /productos/admin");
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
     }
 
     try {
@@ -36,18 +37,65 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
-      console.log("📥 Respuesta backend:", data);
 
       if (!res.ok) {
-        alert(data.msg || "Error al crear producto");
+        alert(data.msg || "Error");
         return;
       }
 
-      alert("✅ Producto creado correctamente");
       window.location.href = `/admin/productos/editar/${data.producto.id_producto}`;
     } catch (err) {
-      console.error("❌ Error submit:", err);
+      console.error(err);
       alert("Error de conexión");
     }
   });
 });
+
+async function cargarCategorias() {
+  const select = document.getElementById("categoriaSelect");
+  if (!select) return;
+
+  try {
+    const res = await fetch(`${window.API_URL}/categorias`, {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    select.innerHTML = data.length
+      ? data
+          .map(
+            (c) =>
+              `<option value="${c.id_categoria}">${c.nombre_categoria}</option>`,
+          )
+          .join("")
+      : `<option value="">No hay categorías</option>`;
+  } catch (err) {
+    console.error("Error cargando categorías", err);
+    select.innerHTML = `<option value="">Error al cargar</option>`;
+  }
+}
+
+async function cargarMarcas() {
+  const select = document.getElementById("marcaSelect");
+  if (!select) return;
+
+  try {
+    const res = await fetch(`${window.API_URL}/marcas`, {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    select.innerHTML = data.length
+      ? data
+          .map(
+            (m) => `<option value="${m.id_marca}">${m.nombre_marca}</option>`,
+          )
+          .join("")
+      : `<option value="">No hay marcas</option>`;
+  } catch (err) {
+    console.error("Error cargando marcas", err);
+    select.innerHTML = `<option value="">Error al cargar</option>`;
+  }
+}
