@@ -114,7 +114,10 @@ export const crearProducto = async (req, res) => {
 
     const imagen = req.file ? `productos/${req.file.filename}` : null;
 
-    const slug = await generarSlugUnico(nombre_producto);
+    const slug = await generarSlugUnico({
+      modelo: Producto,
+      valor: nombre_producto,
+    });
 
     const producto = await Producto.create({
       nombre_producto,
@@ -414,10 +417,11 @@ export const actualizarProducto = async (req, res) => {
       data.nombre_producto.trim() !== "" &&
       data.nombre_producto !== producto.nombre_producto
     ) {
-      data.slug = await generarSlugUnico(
-        data.nombre_producto,
-        producto.id_producto,
-      );
+      data.slug = await generarSlugUnico({
+        modelo: Producto,
+        valor: data.nombre_producto,
+        excludeId: producto.id_producto,
+      });
     }
 
     await producto.update(data);

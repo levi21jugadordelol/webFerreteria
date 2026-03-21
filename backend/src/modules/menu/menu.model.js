@@ -21,8 +21,13 @@ const Menu = db.define(
     },
 
     tipo: {
-      type: DataTypes.STRING,
-      defaultValue: "interno",
+      type: DataTypes.ENUM("pagina", "ruta"),
+      allowNull: false,
+    },
+
+    parent_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
 
     orden: {

@@ -7,6 +7,8 @@ import {
   crearMenu,
   actualizarMenu,
   eliminarMenu,
+  actualizarOrdenMenu,
+  obtenerMenuPorId,
 } from "../../modules/menu/menu.controller.js";
 
 const router = express.Router();
@@ -23,7 +25,11 @@ router.get("/", obtenerMenu);
 
 router.get("/admin/lista", protegerRuta, listarMenuAdmin);
 
+router.get("/admin/:id", protegerRuta, obtenerMenuPorId); // ✅ NUEVO
+
 router.post("/admin", protegerRuta, crearMenu);
+
+router.put("/admin/orden", protegerRuta, actualizarOrdenMenu);
 
 router.put("/admin/:id", protegerRuta, actualizarMenu);
 
