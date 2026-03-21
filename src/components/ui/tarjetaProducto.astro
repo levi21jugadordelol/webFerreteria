@@ -1,22 +1,36 @@
 ---
+
 interface Props {
+   id: number;
   titulo: string;
   precio: string;
   descripcion?: string;
   imagen: { src: string };
+   stock: number;
   agotado?: boolean;
 }
 
 const {
+  id,
   titulo,
   precio,
   descripcion,
   imagen,
+  stock,
   agotado = false
 } = Astro.props;
 ---
 
-<div class="product-card ui-card">
+<div
+  class="product-card ui-card"
+  data-producto
+  data-id={id}
+  data-nombre={titulo}
+  data-precio={precio}
+  data-imagen={imagen.src}
+  data-stock={stock} 
+  data-agotado={agotado}
+>
 
   <!-- Imagen -->
   <div class="product-card-img ui-card-img is-cover">
@@ -27,9 +41,9 @@ const {
     )}
 
     {!agotado && (
-      <button class="btn-cms btn-primary btn-sm btn-overlay">
-        Agregar al carrito
-      </button>
+   <button class="btn-add">
+  agregar al carrito
+</button>
     )}
   </div>
 
@@ -46,6 +60,44 @@ const {
 </div>
 
 <style>
+
+.btn-add {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px) scale(0.9);
+
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+
+  background: linear-gradient(135deg, #ff6600, #ff8533);
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+
+  box-shadow: 0 8px 20px rgba(255,102,0,0.35);
+
+  opacity: 0;
+  transition:
+    transform 0.35s cubic-bezier(.2,.8,.2,1),
+    opacity 0.25s ease,
+    box-shadow 0.25s ease;
+
+  z-index: 10;
+}
+
+/* aparece suave */
+.product-card-img:hover .btn-add {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* hover del botón */
+.btn-add:hover {
+  transform: translateX(-50%) scale(1.08);
+  box-shadow: 0 12px 30px rgba(255,102,0,0.5);
+}
 /* =========================
    🧱 CARD BASE
 ========================= */
@@ -89,20 +141,30 @@ const {
   border-radius: 6px;
 }
 
-/* Botón overlay */
-.btn-overlay {
+
+.product-card-img::after {
+  content: "";
   position: absolute;
-  bottom: -50px;
-  left: 50%;
-  transform: translateX(-50%);
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.4),
+    rgba(0,0,0,0.05)
+  );
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: opacity 0.35s ease;
+
+  pointer-events: none; /* 👈 ESTA ES LA CLAVE */
 }
 
-.product-card:hover .btn-overlay {
-  bottom: 16px;
+.product-card-img:hover::after {
   opacity: 1;
 }
+
+.product-card:hover .product-card-img::after {
+  opacity: 1;
+}
+
 
 /* =========================
    📝 BODY

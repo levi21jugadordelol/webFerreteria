@@ -1,0 +1,59 @@
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.menu-row:hover {
+  background: #f8fafc;
+}
+
+.menu-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.drag-handle {
+  cursor: grab;
+  padding: 6px;
+  font-size: 18px;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+  background: #e2e8f0;
+  border-radius: 6px;
+  transform: scale(1.1);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-ghost {
+  opacity: 0.4;
+}
+
+.drag-chosen {
+  background: #e2e8f0;
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}

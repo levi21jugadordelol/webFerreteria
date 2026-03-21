@@ -9,6 +9,7 @@ interface MenuItem {
   url: string;
   titulo: string;
   tipo?: string;
+  children?: MenuItem[]; // 🔥 AGREGA ESTO
 }
 
 const res = await fetch(`${API}/api/menu`);
@@ -30,25 +31,38 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
 <div class="nav-item">
 
 <a
- href={item.tipo === "pagina" ? "/" + item.url : item.url}
+ href={item.url}
  class={`nav-link 
- ${item.titulo === "categorias" ? "nav-link-categorias" : ""}
+ ${item.titulo === "categoria" ? "nav-link-categorias" : ""}
  ${item.titulo === "marcas" ? "nav-link-marcas" : ""}
  `}
 >
  {item.titulo}
 </a>
 
-{item.titulo === "categorias" && (
-<div id="mega-categorias" class="mega-menu">
-<p>Cargando...</p>
-</div>
+{/* 🔥 SUBMENÚ DESDE BD */}
+{item.children && item.children.length > 0 && (
+  <div class="mega-menu">
+    {item.children.map(child => (
+      <a href={child.url} class="categoria-item">
+        {child.titulo}
+      </a>
+    ))}
+  </div>
 )}
 
+{/* 🔥 CATEGORÍAS DINÁMICAS */}
+{item.titulo === "categoria" && (
+  <div id="mega-categorias" class="mega-menu">
+    <p>Cargando...</p>
+  </div>
+)}
+
+{/* 🔥 MARCAS DINÁMICAS */}
 {item.titulo === "marcas" && (
-<div id="mega-marcas" class="mega-menu">
-<p>Cargando...</p>
-</div>
+  <div id="mega-marcas" class="mega-menu">
+    <p>Cargando...</p>
+  </div>
 )}
 
 </div>
@@ -155,7 +169,7 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
 /* MEGA MENU */
 .mega-menu {
   position: absolute;
-  top: 40px;
+  top: 50px;
   left: 0;
   width: 230px;
   background: white;
@@ -163,18 +177,26 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
 
   opacity: 0;
   visibility: hidden;
-  transform: translateY(6px);
-  transition: .18s ease;
+  transform: translateY(10px) scale(0.98);
+  filter: blur(2px);
 
-  border-radius: 8px;
+  transition: 
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    filter 0.25s ease,
+    visibility 0.25s;
+
+  border-radius: 10px;
   border: 1px solid #e5e5eb;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    pointer-events: none;
 }
 
 .mega-menu.visible {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0);
 }
 
 :global(.categoria-item) {

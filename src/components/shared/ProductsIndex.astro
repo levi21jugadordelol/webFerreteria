@@ -48,19 +48,21 @@ console.log("🧪 productos.length:", productos.length);
 
     {productos.length > 0 && (
       <div class="products-grid">
-        {productos.map((p:any) => (
-          <TarjetaProducto
-            titulo={p.nombre_producto}
-            precio={`S/ ${p.precio}`}
-            descripcion={p.descripcion}
-            imagen={{
-              src: p.url_imagen
-                ? `${apiUrl}/uploads/${p.url_imagen}`
-                : "https://via.placeholder.com/300x300?text=Sin+imagen"
-            }}
-            agotado={p.agotado}
-          />
-        ))}
+    {productos.map((p: any) => (
+  <TarjetaProducto
+    id={p.id_producto}
+    titulo={p.nombre_producto}
+    precio={`${p.precio}`}
+    descripcion={p.descripcion}
+    stock={p.stock}
+    imagen={{
+      src: p.url_imagen
+        ? `${apiUrl}/uploads/${p.url_imagen}`
+        : "https://via.placeholder.com/300x300?text=Sin+imagen"
+    }}
+    agotado={p.stock <= 0}
+  />
+))}
       </div>
     )}
 
@@ -86,17 +88,22 @@ console.log("🧪 productos.length:", productos.length);
   z-index: 2;
 }
 
-
 .products-section .container {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Grid limpio y centrado */
+/* 🔥 Grid PRO tipo e-commerce */
 .products-grid {
   display: grid;
   gap: 32px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 300px));
+  justify-content: center; /* centra las cards */
+}
+
+/* 👇 Hace que todas las tarjetas tengan misma altura */
+.products-grid > * {
+  height: 100%;
 }
 
 /* Espacio correcto antes del botón */
@@ -105,8 +112,6 @@ console.log("🧪 productos.length:", productos.length);
   display: flex;
   justify-content: center;
 }
-
-
 </style>
 
 

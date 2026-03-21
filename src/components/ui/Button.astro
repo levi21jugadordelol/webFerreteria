@@ -5,22 +5,30 @@ interface Props {
   size?: "sm" | "md" | "lg";
   type?: "button" | "submit";
   fullWidth?: boolean;
+  class?: string; // 👈 AGREGA ESTO
 }
 
 const {
   href,
   variant = "primary",
   size = "md",
-  type = "button"
+  type = "button",
+  class: customClass = "" // 👈 AQUÍ VA
 } = Astro.props;
 ---
 
 {href ? (
-  <a href={href} class={`btn-cms btn-${variant} btn-${size}`}>
+  <a
+    href={href}
+    class={`btn-cms btn-${variant} btn-${size} ${customClass}`}
+  >
     <slot>Comprar ahora</slot>
   </a>
 ) : (
-  <button type={type} class={`btn-cms btn-${variant} btn-${size}`}>
+  <button
+    type={type}
+    class={`btn-cms btn-${variant} btn-${size} ${customClass}`}
+  >
     <slot>Comprar ahora</slot>
   </button>
 )}

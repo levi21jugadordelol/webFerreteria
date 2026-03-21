@@ -3,164 +3,48 @@ const apiUrl = "http://localhost:3000";
 ---
 
 <form id="formProducto" class="bg-white p-4 shadow rounded">
-  <!-- Nombre -->
   <div class="mb-3">
     <label class="form-label fw-semibold">Nombre del producto</label>
     <input type="text" name="nombre_producto" class="form-control" required />
   </div>
 
-  <!-- Descripción -->
   <div class="mb-3">
     <label class="form-label fw-semibold">Descripción</label>
     <textarea name="descripcion" class="form-control"></textarea>
   </div>
 
-  <!-- Precio -->
   <div class="mb-3">
     <label class="form-label fw-semibold">Precio</label>
     <input type="number" name="precio" step="0.01" class="form-control" required />
   </div>
 
-  <!-- Stock -->
   <div class="mb-3">
     <label class="form-label fw-semibold">Stock</label>
     <input type="number" name="stock" class="form-control" required />
   </div>
 
-  <!-- DESTACADO -->
-<div class="form-check mb-2">
-  <input class="form-check-input" type="checkbox" name="es_destacado" />
-  <label class="form-check-label">Producto destacado</label>
-</div>
+  <div class="form-check mb-2">
+    <input class="form-check-input" type="checkbox" name="es_destacado" />
+    <label class="form-check-label">Producto destacado</label>
+  </div>
 
-
-
-
-  <!-- CATEGORÍA -->
   <div class="mb-3">
     <label class="form-label fw-semibold">Categoría</label>
-    <select name="categoria_id" id="categoriaSelect" class="form-select" required>
-      <option value="">Cargando categorías...</option>
-    </select>
+    <select name="categoria_id" id="categoriaSelect" class="form-select" required></select>
   </div>
 
-  <!-- MARCA -->
   <div class="mb-3">
     <label class="form-label fw-semibold">Marca</label>
-    <select name="marca_id" id="marcaSelect" class="form-select" required>
-      <option value="">Cargando marcas...</option>
-    </select>
+    <select name="marca_id" id="marcaSelect" class="form-select" required></select>
   </div>
 
-  <!-- Imagen -->
   <div class="mb-3">
-    <label class="form-label fw-semibold">Imagen del producto</label>
+    <label class="form-label fw-semibold">Imagen</label>
     <input type="file" id="imagen" name="imagen" />
   </div>
 
- <button id="btnGuardar" type="submit" class="btn btn-primary w-100 fw-semibold">
-  Guardar Producto
-</button>
-
-
+  <button type="submit" class="btn btn-primary w-100">Guardar Producto</button>
 </form>
-
-<!-- @ts-ignore -->
-<script is:client>
-  const apiUrl = "http://localhost:3000";
-
-  // 🔹 Cargar Categorías
-  async function cargarCategorias() {
-    const select = document.getElementById("categoriaSelect");
-    if (!select) return;
-
-    try {
-      const res = await fetch(`${apiUrl}/categorias`, { credentials: "include" });
-      const categorias = await res.json();
-
-      select.innerHTML = categorias.length
-        ? categorias
-            .map((c) => `<option value="${c.id_categoria}">${c.nombre_categoria}</option>`)
-            .join("")
-        : `<option value="">No hay categorías disponibles</option>`;
-    } catch (error) {
-      select.innerHTML = `<option value="">Error al cargar categorías</option>`;
-    }
-  }
-
-  // 🔹 Cargar Marcas
-  async function cargarMarcas() {
-    const select = document.getElementById("marcaSelect");
-    if (!select) return;
-
-    try {
-      const res = await fetch(`${apiUrl}/marcas`, { credentials: "include" });
-      const marcas = await res.json();
-
-      select.innerHTML = marcas.length
-        ? marcas
-            .map((m) => `<option value="${m.id_marca}">${m.nombre_marca}</option>`)
-            .join("")
-        : `<option value="">No hay marcas disponibles</option>`;
-    } catch (error) {
-      select.innerHTML = `<option value="">Error al cargar marcas</option>`;
-    }
-  }
-
- 
-
-
-
- document.addEventListener("DOMContentLoaded", () => {
-  cargarCategorias();
-  cargarMarcas();
-
-  const form = document.getElementById("formProducto");
-  const btn = document.getElementById("btnGuardar");
-  if (!form || !btn) return;
-
-  let isSubmitting = false;
-
-  form.addEventListener("submit", async (e) => {
-  e.preventDefault(); // 🔥 evita recarga del navegador
-
-  if (isSubmitting) {
-    console.warn("⛔ Envío duplicado bloqueado");
-    return;
-  }
-
-  isSubmitting = true;
-
-  try {
-    const formData = new FormData(form); // 🔥 AQUÍ SE ENVÍA LA IMAGEN
-
-    const res = await fetch("http://localhost:3000/productos/admin", {
-      method: "POST",
-      credentials: "include",
-      body: formData, // ⬅️ texto + imagen juntos
-    });
-
-    const data = await res.json();
-    console.log("✅ Backend respondió:", data);
-
-    if (!res.ok) {
-      alert(data.msg || "Error al crear producto");
-      isSubmitting = false;
-      return;
-    }
-
-    window.location.href = `/admin/productos/editar/${data.producto.id_producto}`;
-  } catch (err) {
-    console.error("❌ Error submit:", err);
-    alert("Error de conexión");
-    isSubmitting = false;
-  }
-});
-
-});
-
-
-</script>
 
 
 
