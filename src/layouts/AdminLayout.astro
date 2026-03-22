@@ -94,12 +94,22 @@ const { title = "Panel Admin" } = Astro.props;
 
 <hr class="border-secondary opacity-25" />
 
+
+
 <!-- CONFIGURACIÓN -->
 <small class="text-uppercase text-secondary">Configuración</small>
 
-<a href="/admin/configuracion" class="nav-link text-white">
- <i class="bi bi-gear"></i> Configuración
-</a>
+<div class="ms-2">
+
+  <a href="/admin/configuracion/general" class="nav-link text-white">
+    <i class="bi bi-sliders"></i> General
+  </a>
+
+  <a href="/admin/configuracion/footer" class="nav-link text-white">
+    <i class="bi bi-layout-text-window"></i> Footer
+  </a>
+
+</div>
 
 </nav>
 
