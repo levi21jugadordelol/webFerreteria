@@ -19,9 +19,32 @@ html[data-theme="dark"] .nav-link:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-footer {
+/* =========================
+   FOOTER (THEME AWARE)
+========================= */
+
+.footer {
   background-color: var(--color-footer-bg);
-  color: var(--color-text);
+  color: var(--color-footer-text);
+}
+
+.footer-link {
+  color: var(--color-footer-text);
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  opacity: 1;
+}
+
+.social-link {
+  color: var(--color-footer-text);
+  font-size: 20px;
+}
+
+.social-link:hover {
+  opacity: 0.8;
 }
 
 input,
@@ -143,6 +166,18 @@ textarea {
   font-weight: 600;
   font-size: 1rem;
   color: var(--color-text);
+}
+
+/* 🌞 LIGHT */
+html[data-theme="light"] {
+  --color-footer-bg: #f1f5f9; /* un poco más oscuro que el body */
+  --color-footer-text: #1f2937;
+}
+
+/* 🌙 DARK */
+html[data-theme="dark"] {
+  --color-footer-bg: #020617; /* bien oscuro */
+  --color-footer-text: #f9fafb;
 }
 
 /* Dark mode */
@@ -386,10 +421,6 @@ html[data-theme="dark"] .search-input:focus {
 html[data-theme="dark"] .theme-toggle i.fa-sun {
   color: #facc15;
 }
-
-/* ==========================
-   WhatsApp Floating Button
-========================== */
 
 /* ==========================
    WhatsApp Floating Button
