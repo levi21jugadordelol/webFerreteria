@@ -1,0 +1,58 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+import DefaultTemplate from "../components/templates/DefaultTemplate.astro";
+import ImageLeft from "../components/templates/ImagenLeft.astro";
+import ImageRight from "../components/templates/ImagenRight.astro";
+import HeroTemplate from "../components/templates/HeroTemplate.astro";
+
+const url = new URL(Astro.request.url);
+const dataParam = url.searchParams.get("data");
+
+let pagina = null;
+
+if (dataParam) {
+  try {
+    pagina = JSON.parse(decodeURIComponent(dataParam));
+  } catch (e) {
+    pagina = null;
+  }
+}
+---
+
+{!pagina ? (
+  <h1>Error en preview</h1>
+) : (
+
+<BaseLayout
+  title={pagina.meta_title || pagina.titulo}
+  description={pagina.meta_description || pagina.titulo}
+>
+
+  {
+    pagina.template === "image-left" && (
+      <ImageLeft pagina={pagina} />
+    )
+  }
+
+  {
+    pagina.template === "image-right" && (
+      <ImageRight pagina={pagina} />
+    )
+  }
+
+  {
+    pagina.template === "hero" && (
+      <HeroTemplate pagina={pagina} />
+    )
+  }
+
+  {
+    (!pagina.template || pagina.template === "default") && (
+      <DefaultTemplate pagina={pagina} />
+    )
+  }
+
+</BaseLayout>
+
+)}
