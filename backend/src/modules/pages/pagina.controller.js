@@ -11,7 +11,14 @@ export const crearPagina = async (req, res) => {
       body: req.body,
     });
 
-    let { titulo, slug, contenido } = req.body;
+    let {
+      titulo,
+      slug,
+      contenido,
+      template,
+      imagen_portada,
+      meta_description,
+    } = req.body;
 
     if (!titulo || !slug || !contenido) {
       return res.status(400).json({
@@ -34,10 +41,19 @@ export const crearPagina = async (req, res) => {
       });
     }
 
+    if (template !== "default" && !imagen_portada) {
+      return res.status(400).json({
+        msg: "Este template requiere imagen",
+      });
+    }
+
     const pagina = await Pagina.create({
       titulo,
       slug,
       contenido,
+      template: template || "default",
+      imagen_portada,
+      meta_description,
       activo: true,
     });
 
@@ -81,6 +97,7 @@ export const listarPaginasAdmin = async (req, res) => {
 
     return res.status(500).json({
       msg: "Error al listar páginas",
+      error: error.message,
     });
   }
 };
@@ -210,6 +227,7 @@ export const listarPaginas = async (req, res) => {
 
     return res.status(500).json({
       msg: "Error al listar páginas",
+      error: error.message,
     });
   }
 };

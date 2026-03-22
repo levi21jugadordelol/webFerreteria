@@ -54,6 +54,10 @@ const Pagina = db.define(
       type: DataTypes.STRING,
       defaultValue: "default",
     },
+    secciones: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
 
     activo: {
       type: DataTypes.BOOLEAN,
