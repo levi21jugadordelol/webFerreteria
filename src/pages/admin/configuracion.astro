@@ -41,6 +41,24 @@ const whatsapp = config.site_content?.whatsapp ?? "";
           </small>
         </div>
 
+ 
+
+  <!-- 🔥 LOGO -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">
+      Logo del sitio
+    </label>
+
+    <input type="file" id="logoFile" class="form-control" />
+
+    <input type="hidden" name="logo" id="logo" />
+
+    <div id="previewLogo" class="mt-2"></div>
+  </div>
+
+ 
+
+
         <button class="btn btn-primary">
           <i class="bi bi-save"></i> Guardar configuración
         </button>
@@ -71,11 +89,12 @@ form.addEventListener("submit", async (e) => {
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      site_content:{
-        whatsapp
-      }
-    })
+   body: JSON.stringify({
+  site_content: {
+    whatsapp,
+    logo: form.logo.value
+  }
+})
   });
 
   if (!res.ok) {
@@ -91,6 +110,42 @@ form.addEventListener("submit", async (e) => {
 
   document.getElementById("mensaje").innerHTML =
     `<div class="alert alert-success">${data.msg}</div>`;
+
+});
+
+
+const logoFile = document.getElementById("logoFile");
+const logoInput = document.getElementById("logo");
+const previewLogo = document.getElementById("previewLogo");
+
+logoFile.addEventListener("change", async () => {
+
+  const file = logoFile.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("imagen", file);
+
+  try {
+
+    const res = await fetch("http://localhost:3000/api/uploads/editor", {
+      method: "POST",
+      body: formData,
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    logoInput.value = data.url;
+
+    previewLogo.innerHTML = `
+      <img src="${data.url}" style="max-width:120px;border-radius:8px"/>
+    `;
+
+  } catch (err) {
+    console.error(err);
+    alert("Error subiendo logo");
+  }
 
 });
 

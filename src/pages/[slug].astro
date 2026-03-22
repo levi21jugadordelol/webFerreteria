@@ -1,10 +1,14 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 
+import DefaultTemplate from "../components/templates/DefaultTemplate.astro";
+import ImageLeft from "../components/templates/ImagenLeft.astro";
+import ImageRight from "../components/templates/ImagenRight.astro";
+import HeroTemplate from "../components/templates/HeroTemplate.astro";
+
 const API = "http://localhost:3000";
 const { slug } = Astro.params;
 
-// evitar archivos como favicon.ico, robots.txt, etc
 if (slug?.includes(".")) {
   return Astro.redirect("/");
 }
@@ -18,18 +22,33 @@ if (!res.ok) {
 const pagina = await res.json();
 ---
 
-
 <BaseLayout
   title={pagina.meta_title || pagina.titulo}
   description={pagina.meta_description || pagina.titulo}
 >
 
-<section class="container py-5">
+{
+  pagina.template === "image-left" && (
+    <ImageLeft pagina={pagina} />
+  )
+}
 
-<h1 class="mb-4">{pagina.titulo}</h1>
+{
+  pagina.template === "image-right" && (
+    <ImageRight pagina={pagina} />
+  )
+}
 
-<div class="cms-content" set:html={pagina.contenido}></div>
+{
+  pagina.template === "hero" && (
+    <HeroTemplate pagina={pagina} />
+  )
+}
 
-</section>
+{
+  (!pagina.template || pagina.template === "default") && (
+    <DefaultTemplate pagina={pagina} />
+  )
+}
 
 </BaseLayout>

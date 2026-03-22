@@ -8,29 +8,64 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 
 <form id="formPagina">
 
-  <div class="row">
 
-    <div class="col-md-6 mb-3">
-      <label class="form-label">Título</label>
-      <input
-        id="titulo"
-        class="form-control"
-        name="titulo"
-        required
-      >
-    </div>
 
-    <div class="col-md-6 mb-3">
-      <label class="form-label">Slug</label>
-      <input
-        id="slug"
-        class="form-control"
-        name="slug"
-        required
-      >
-    </div>
+    <hr>
 
+<div class="row">
+
+  <div class="col-md-6 mb-3">
+    <label class="form-label">Plantilla</label>
+    <select id="template" name="template" class="form-control">
+      <option value="default">Simple</option>
+      <option value="image-left">Imagen izquierda</option>
+      <option value="image-right">Imagen derecha</option>
+      <option value="hero">Hero</option>
+    </select>
   </div>
+
+  <div class="col-md-6 mb-3" id="campoImagen">
+    <label class="form-label">Imagen portada</label>
+  <input
+  type="file"
+  id="imagen_portada_file"
+  class="form-control"
+/>
+
+<input
+  type="hidden"
+  id="imagen_portada"
+  name="imagen_portada"
+/>
+
+<div id="previewImagen" class="mt-2"></div>
+  </div>
+
+</div>
+
+<div class="row">
+
+  <div class="col-md-6 mb-3">
+    <label class="form-label">Título</label>
+    <input
+      id="titulo"
+      class="form-control"
+      name="titulo"
+      required
+    >
+  </div>
+
+  <div class="col-md-6 mb-3">
+    <label class="form-label">Slug</label>
+    <input
+      id="slug"
+      class="form-control"
+      name="slug"
+      required
+    >
+  </div>
+
+</div>
 
   <hr>
 
@@ -45,7 +80,7 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 
   <div class="mt-4 d-flex gap-2">
 
-    <button id="btnGuardar" class="btn btn-success">
+    <button type="submit" id="btnGuardar" class="btn btn-success">
       Guardar
     </button>
 
@@ -141,6 +176,12 @@ const uploadMensaje = document.getElementById("uploadMensaje");
 const wordcount = document.getElementById("wordcount");
 const btnGuardar = document.getElementById("btnGuardar");
 const previewBtn = document.getElementById("previewBtn");
+const templateSelect = document.getElementById("template");
+const imagenInput = document.getElementById("imagen_portada");
+const campoImagen = document.getElementById("campoImagen");
+
+const imagenFile = document.getElementById("imagen_portada_file");
+const previewImagen = document.getElementById("previewImagen");
 
 /* --------------------------
    MENSAJES
@@ -192,6 +233,36 @@ quill.on("text-change", () => {
   wordcount.innerText = `${words} palabras`;
 });
 
+function actualizarCampos() {
+  const template = templateSelect.value;
+
+  if (template === "default") {
+  imagenInput.value = "";
+  previewImagen.innerHTML = "";
+}
+
+  // reset
+  campoImagen.style.display = "none";
+
+  if (template === "image-left" || template === "image-right") {
+    campoImagen.style.display = "block";
+  }
+
+  if (template === "hero") {
+    campoImagen.style.display = "block";
+    
+  }
+
+  if (template === "default") {
+    imagenInput.value = "";
+  }
+}
+
+templateSelect.addEventListener("change", actualizarCampos);
+
+// Ejecutar al cargar
+actualizarCampos();
+
 /* --------------------------
    SUBIR IMAGEN
 ---------------------------*/
@@ -218,6 +289,11 @@ quill.getModule("toolbar").addHandler("image", () => {
       mostrarUploadMensaje("danger","La imagen no puede superar 5MB.");
       return;
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+  alert("Máximo 5MB");
+  return;
+}
 
     try {
 
@@ -272,45 +348,17 @@ quill.getModule("toolbar").addHandler("image", () => {
 ---------------------------*/
 previewBtn.addEventListener("click", () => {
 
-  const html = quill.root.innerHTML;
-  const pageTitle = titulo.value?.trim() || "Preview";
+  const data = {
+    titulo: titulo.value,
+    contenido: quill.root.innerHTML,
+    template: templateSelect.value,
+    imagen_portada: imagenInput.value,
+    meta_description: titulo.value
+  };
 
-  const win = window.open("", "_blank");
+  const encoded = encodeURIComponent(JSON.stringify(data));
 
-  if (!win) {
-    mostrarMensaje("warning","El navegador bloqueó la ventana de preview.");
-    return;
-  }
-
-  win.document.write(`
-    <html>
-      <head>
-        <title>${pageTitle}</title>
-        <style>
-          body{
-            font-family:system-ui;
-            max-width:900px;
-            margin:auto;
-            padding:40px;
-            line-height:1.7;
-          }
-
-          img{
-            max-width:100%;
-            height:auto;
-            border-radius:8px;
-          }
-        </style>
-      </head>
-
-      <body>
-        <h1>${pageTitle}</h1>
-        ${html}
-      </body>
-    </html>
-  `);
-
-  win.document.close();
+  window.open(`/preview?data=${encoded}`, "_blank");
 
 });
 
@@ -318,7 +366,7 @@ previewBtn.addEventListener("click", () => {
    GUARDAR
 ---------------------------*/
 formPagina.addEventListener("submit", async (e) => {
-
+ console.log("🚀 SUBMIT EJECUTADO");
   e.preventDefault();
   limpiarMensaje();
 
@@ -340,9 +388,22 @@ formPagina.addEventListener("submit", async (e) => {
   }
 
   if (!data.contenido || data.contenido === "<p><br></p>") {
+    
     mostrarMensaje("danger","El contenido no puede estar vacío.");
     return;
   }
+
+  const template = data.template;
+
+if (template !== "default" && !data.imagen_portada) {
+  mostrarMensaje("danger","Este template requiere imagen.");
+  return;
+}
+
+if (template === "hero" && !data.titulo) {
+  mostrarMensaje("danger","El template hero requiere título.");
+  return;
+}
 
   btnGuardar.disabled = true;
   btnGuardar.innerText = "Guardando...";
@@ -385,6 +446,48 @@ formPagina.addEventListener("submit", async (e) => {
     btnGuardar.disabled=false;
     btnGuardar.innerText="Guardar";
 
+  }
+
+});
+
+
+
+imagenFile.addEventListener("change", async () => {
+
+  const file = imagenFile.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Solo imágenes");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("imagen", file);
+
+  try {
+
+    const res = await fetch(API + "/api/uploads/editor", {
+      method: "POST",
+      body: formData,
+      credentials: "include"
+    });
+
+    if (!res.ok) throw new Error("Error al subir imagen");
+
+    const data = await res.json();
+
+    // guardar URL
+    imagenInput.value = data.url;
+
+    // preview
+    previewImagen.innerHTML = `
+      <img src="${data.url}" style="max-width:200px;border-radius:8px"/>
+    `;
+
+  } catch (err) {
+    console.error(err);
+    alert("Error subiendo imagen");
   }
 
 });
