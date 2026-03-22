@@ -3,7 +3,14 @@ import Buscador from "../ui/Buscador.astro";
 import CarritoCounter from "../ui/carrito/CarritoCounter.astro";
 import ThemeToggle from "../ui/themeToggle/ThemeToggle.astro";
 
+
+
 const API = "http://localhost:3000";
+
+const resSettings = await fetch(`${API}/api/site-settings`);
+const config = await resSettings.json();
+
+const logo = config.site_content?.logo || "/img/logo-default.png";
 
 interface MenuItem {
   url: string;
@@ -22,7 +29,9 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
 
 <div class="nav-inner">
 
-<a href="/" class="logo"></a>
+<a href="/" class="logo">
+  <img src={logo} alt="logo" />
+</a>
 
 <div class="nav-links">
 
@@ -96,16 +105,17 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
   background: #fff;
   z-index: 3000;
   border-bottom: 1px solid #eee;
+   backdrop-filter: blur(10px);
 }
 
 .nav-inner {
   max-width: 1400px;
   margin: auto;
-  height: 80px;
+  min-height: 80px;
+  padding: 10px 25px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 25px;
 }
 
 .icons {
@@ -138,17 +148,16 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
 
 
 /* LOGO */
-.logo {
-  width: 90px;
-  height: 40px;
-  background: url('/img/logo.png') no-repeat center;
-  background-size: contain;
+.logo img {
+  width: 55px;
+  height: 55px;
+  border-radius: 12px; /* 🔥 le da estilo moderno */
 }
 
 /* LINKS */
 .nav-links {
   display: flex;
-  gap: 25px;
+  gap: 18px;
 }
 
 .nav-item {
@@ -160,10 +169,13 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
   text-decoration: none;
   padding: 8px 12px;
   border-radius: 6px;
+  transition: all 0.2s ease;
+  
 }
 
 .nav-link:hover {
   background: #f3f3f3;
+  transform: translateY(-1px);
 }
 
 /* MEGA MENU */

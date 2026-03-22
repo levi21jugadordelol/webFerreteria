@@ -15,6 +15,10 @@ import carritoStore from "../../../store/carritoStore.js";
   <button id="btn-realizar-compra" class="btn-realizar-compra">
     Realizar compra
   </button>
+
+  <button id="btn-whatsapp" class="btn-realizar-compra" style="background:#25D366;margin-top:10px;">
+  💬 Cotizar por WhatsApp
+</button>
 </div>
 
 <style is:global>
@@ -128,6 +132,52 @@ import carritoStore from "../../../store/carritoStore.js";
       document.dispatchEvent(new CustomEvent("modal-compra-abierto"));
     }
   });
+
+  const btnWhatsApp = document.getElementById("btn-whatsapp");
+
+btnWhatsApp?.addEventListener("click", async () => {
+
+  const carrito = carritoStore.get();
+
+  if (!carrito.length) {
+    alert("Tu carrito está vacío");
+    return;
+  }
+
+let mensaje = "👋 Hola, vi sus productos en la web y me interesa:%0A%0A";
+
+let total = 0;
+
+carrito.forEach(p => {
+  mensaje += `- ${p.nombre} (${p.cantidad}) → S/ ${(p.precio * p.cantidad).toFixed(2)}%0A`;
+  total += p.precio * p.cantidad;
+});
+
+mensaje += `%0ATotal: S/ ${total.toFixed(2)}`;
+
+mensaje += "%0A%0A📲 ¿Me confirmas disponibilidad y tiempo de entrega?";
+mensaje += "%0A🚚 ¿Realizan envío a domicilio?";
+mensaje += "%0A🙏 Gracias";
+
+  // 🔥 obtener número dinámico (tu sistema ya lo tiene)
+  let telefono = "";
+
+  try {
+    const res = await fetch("http://localhost:3000/api/site-settings");
+    const config = await res.json();
+    telefono = config.site_content?.whatsapp || "";
+  } catch {}
+
+  if (!telefono) {
+    alert("No hay número de WhatsApp configurado");
+    return;
+  }
+
+  const url = `https://wa.me/${telefono}?text=${mensaje}`;
+
+  window.open(url, "_blank");
+
+});
 </script>
 
 
