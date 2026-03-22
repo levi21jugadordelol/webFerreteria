@@ -1,0 +1,242 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+
+const API_URL = "http://localhost:3000";
+
+type Footer = {
+  titulo?: string;
+  titulo2?: string;
+  titulo3?: string;
+  parrafo?: string;
+  enlaces?: { label: string; url: string }[];
+  social?: { icon: string; url: string }[];
+};
+
+let footer: Footer = {};
+
+try {
+  const res = await fetch(`${API_URL}/api/site-settings?key=footer`);
+
+  if (res.ok) {
+    footer = await res.json();
+  }
+} catch (error) {
+  console.error("Error cargando footer", error);
+}
+---
+
+<AdminLayout title="Configuración Footer">
+  <div class="container-fluid" style="max-width:700px">
+    <div class="card shadow-sm">
+      <div class="card-header bg-light fw-bold">
+        <i class="bi bi-layout-text-window"></i> Footer
+      </div>
+
+      <div class="card-body">
+        <form id="footerForm">
+          <div class="mb-3">
+            <label class="form-label">Título</label>
+            <input
+              type="text"
+              id="titulo"
+              class="form-control"
+              value={footer.titulo || ""}
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Título 2</label>
+            <input
+              type="text"
+              id="titulo2"
+              class="form-control"
+              value={footer.titulo2 || ""}
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Título 3</label>
+            <input
+              type="text"
+              id="titulo3"
+              class="form-control"
+              value={footer.titulo3 || ""}
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea id="parrafo" class="form-control">
+              {footer.parrafo || ""}
+            </textarea>
+          </div>
+
+          <!-- ENLACES -->
+<div class="mb-3">
+  <label class="form-label fw-bold">Enlaces</label>
+
+  <div id="enlacesContainer">
+    {footer.enlaces?.map((item, i) => (
+      <div class="d-flex gap-2 mb-2">
+        <input type="text" class="form-control enlace-label" value={item.label} placeholder="Texto" />
+        <input type="text" class="form-control enlace-url" value={item.url} placeholder="/ruta" />
+        <button type="button" class="btn btn-danger btn-sm remove-enlace">✕</button>
+      </div>
+    ))}
+  </div>
+
+  <button type="button" id="addEnlace" class="btn btn-sm btn-outline-primary">
+    + Agregar enlace
+  </button>
+</div>
+
+
+
+<!-- REDES -->
+<div class="mb-3">
+  <label class="form-label fw-bold">Redes sociales</label>
+
+  <div id="socialContainer">
+    {footer.social?.map((s, i) => (
+      <div class="d-flex gap-2 mb-2">
+        <input type="text" class="form-control social-icon" value={s.icon} placeholder="facebook" />
+        <input type="text" class="form-control social-url" value={s.url} placeholder="https://..." />
+        <button type="button" class="btn btn-danger btn-sm remove-social">✕</button>
+      </div>
+    ))}
+  </div>
+
+  <button type="button" id="addSocial" class="btn btn-sm btn-outline-primary">
+    + Agregar red
+  </button>
+</div>
+
+          
+
+          <button class="btn btn-primary">
+            <i class="bi bi-save"></i> Guardar footer
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div id="mensaje" class="mt-3"></div>
+  </div>
+</AdminLayout>
+
+<script is:inline>
+
+const API_URL = "http://localhost:3000";
+
+const form = document.getElementById("footerForm");
+
+/* =========================
+   SUBMIT (CORREGIDO)
+========================= */
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  // 🔹 recoger enlaces
+  const enlaces = Array.from(
+    document.querySelectorAll("#enlacesContainer .d-flex")
+  ).map(el => ({
+    label: el.querySelector(".enlace-label").value,
+    url: el.querySelector(".enlace-url").value
+  })).filter(e => e.label && e.url); // 🔥 evita vacíos
+
+  // 🔹 recoger redes
+  const social = Array.from(
+    document.querySelectorAll("#socialContainer .d-flex")
+  ).map(el => ({
+    icon: el.querySelector(".social-icon").value,
+    url: el.querySelector(".social-url").value
+  })).filter(s => s.icon && s.url);
+
+  const data = {
+    footer: {
+      titulo: document.getElementById("titulo").value,
+      titulo2: document.getElementById("titulo2").value,
+      titulo3: document.getElementById("titulo3").value,
+      parrafo: document.getElementById("parrafo").value,
+      enlaces,
+      social
+    }
+  };
+
+  try {
+    const res = await fetch(`${API_URL}/api/site-settings`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify(data)
+    });
+
+    if (!res.ok) {
+      throw new Error("Error al guardar");
+    }
+
+    const result = await res.json();
+
+    document.getElementById("mensaje").innerHTML =
+      `<div class="alert alert-success">${result.msg}</div>`;
+
+  } catch (error) {
+    document.getElementById("mensaje").innerHTML =
+      `<div class="alert alert-danger">Error guardando footer</div>`;
+  }
+});
+
+
+/* =========================
+   AGREGAR ENLACE
+========================= */
+document.getElementById("addEnlace").addEventListener("click", () => {
+  const container = document.getElementById("enlacesContainer");
+
+  const div = document.createElement("div");
+  div.className = "d-flex gap-2 mb-2";
+
+  div.innerHTML = `
+    <input type="text" class="form-control enlace-label" placeholder="Texto" />
+    <input type="text" class="form-control enlace-url" placeholder="/ruta" />
+    <button type="button" class="btn btn-danger btn-sm remove-enlace">✕</button>
+  `;
+
+  container.appendChild(div);
+});
+
+
+/* =========================
+   AGREGAR SOCIAL
+========================= */
+document.getElementById("addSocial").addEventListener("click", () => {
+  const container = document.getElementById("socialContainer");
+
+  const div = document.createElement("div");
+  div.className = "d-flex gap-2 mb-2";
+
+  div.innerHTML = `
+    <input type="text" class="form-control social-icon" placeholder="facebook" />
+    <input type="text" class="form-control social-url" placeholder="https://..." />
+    <button type="button" class="btn btn-danger btn-sm remove-social">✕</button>
+  `;
+
+  container.appendChild(div);
+});
+
+
+/* =========================
+   ELIMINAR (IMPORTANTE)
+========================= */
+document.addEventListener("click", (e) => {
+  if (
+    e.target.classList.contains("remove-enlace") ||
+    e.target.classList.contains("remove-social")
+  ) {
+    e.target.parentElement.remove();
+  }
+});
+
+</script>

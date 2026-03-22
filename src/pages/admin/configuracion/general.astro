@@ -1,12 +1,30 @@
 ---
-import AdminLayout from "../../layouts/AdminLayout.astro";
+import AdminLayout from "../../../layouts/AdminLayout.astro";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "http://localhost:3000"; // 👈 FALTABA AQUÍ
 
-const res = await fetch(`${API_URL}/api/site-settings`);
-const config = await res.json();
+type SiteContent = {
+  whatsapp?: string;
+  logo?: string;
+};
+
+type SiteSettings = {
+  site_content?: SiteContent;
+};
+
+let config: SiteSettings = {};
+
+try {
+  const res = await fetch(`${API_URL}/api/site-settings`);
+  if (res.ok) {
+    config = await res.json();
+  }
+} catch (error) {
+  console.error("Error cargando configuración");
+}
 
 const whatsapp = config.site_content?.whatsapp ?? "";
+const logo = config.site_content?.logo ?? "";
 ---
 
 <AdminLayout title="Configuración del sitio">
@@ -23,6 +41,7 @@ const whatsapp = config.site_content?.whatsapp ?? "";
 
       <form id="settingsForm">
 
+        <!-- WHATSAPP -->
         <div class="mb-3">
           <label class="form-label fw-semibold">
             Número de WhatsApp
@@ -41,23 +60,22 @@ const whatsapp = config.site_content?.whatsapp ?? "";
           </small>
         </div>
 
- 
+        <!-- LOGO -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">
+            Logo del sitio
+          </label>
 
-  <!-- 🔥 LOGO -->
-  <div class="mb-3">
-    <label class="form-label fw-semibold">
-      Logo del sitio
-    </label>
+          <input type="file" id="logoFile" class="form-control" />
 
-    <input type="file" id="logoFile" class="form-control" />
+          <input type="hidden" name="logo" id="logo" value={logo} />
 
-    <input type="hidden" name="logo" id="logo" />
-
-    <div id="previewLogo" class="mt-2"></div>
-  </div>
-
- 
-
+          <div id="previewLogo" class="mt-2">
+            {logo && (
+              <img src={logo} style="max-width:120px;border-radius:8px" />
+            )}
+          </div>
+        </div>
 
         <button class="btn btn-primary">
           <i class="bi bi-save"></i> Guardar configuración
@@ -75,6 +93,8 @@ const whatsapp = config.site_content?.whatsapp ?? "";
 
 <script is:inline>
 
+const API_URL = "http://localhost:3000";
+
 const form = document.getElementById("settingsForm");
 
 form.addEventListener("submit", async (e) => {
@@ -82,38 +102,47 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const whatsapp = form.whatsapp.value;
+  const logo = form.logo.value;
 
-  const res = await fetch("http://localhost:3000/api/site-settings", {
-    method: "PUT",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json"
-    },
-   body: JSON.stringify({
-  site_content: {
-    whatsapp,
-    logo: form.logo.value
-  }
-})
-  });
+  try {
 
-  if (!res.ok) {
-    const err = await res.json();
+    const res = await fetch(`${API_URL}/api/site-settings`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        site_content: {
+          whatsapp,
+          logo
+        }
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+
+      document.getElementById("mensaje").innerHTML =
+        `<div class="alert alert-danger">${err.msg}</div>`;
+
+      return;
+    }
+
+    const data = await res.json();
 
     document.getElementById("mensaje").innerHTML =
-      `<div class="alert alert-danger">${err.msg}</div>`;
+      `<div class="alert alert-success">${data.msg}</div>`;
 
-    return;
+  } catch (error) {
+    document.getElementById("mensaje").innerHTML =
+      `<div class="alert alert-danger">Error de conexión</div>`;
   }
-
-  const data = await res.json();
-
-  document.getElementById("mensaje").innerHTML =
-    `<div class="alert alert-success">${data.msg}</div>`;
 
 });
 
 
+// 🔥 SUBIDA DE LOGO
 const logoFile = document.getElementById("logoFile");
 const logoInput = document.getElementById("logo");
 const previewLogo = document.getElementById("previewLogo");
@@ -128,7 +157,7 @@ logoFile.addEventListener("change", async () => {
 
   try {
 
-    const res = await fetch("http://localhost:3000/api/uploads/editor", {
+    const res = await fetch(`${API_URL}/api/uploads/editor`, {
       method: "POST",
       body: formData,
       credentials: "include"
