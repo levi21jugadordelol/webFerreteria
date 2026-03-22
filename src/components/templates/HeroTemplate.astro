@@ -1,0 +1,16 @@
+---
+const { pagina } = Astro.props;
+---
+
+<section
+  class="py-5 text-center text-white"
+  style={`background-image:url(${pagina.imagen_portada}); background-size:cover; background-position:center;`}
+>
+  <div class="container">
+    <h1 class="display-4 fw-bold">{pagina.titulo}</h1>
+    
+    {pagina.meta_description && (
+      <p class="lead">{pagina.meta_description}</p>
+    )}
+  </div>
+</section>

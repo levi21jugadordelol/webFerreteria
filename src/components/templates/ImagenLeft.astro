@@ -1,0 +1,18 @@
+---
+const { pagina } = Astro.props;
+---
+
+<section class="container py-5">
+  <div class="row align-items-center">
+    
+    <div class="col-md-6">
+      <img src={pagina.imagen_portada} class="img-fluid rounded" />
+    </div>
+
+    <div class="col-md-6">
+      <h1>{pagina.titulo}</h1>
+      <div set:html={pagina.contenido}></div>
+    </div>
+
+  </div>
+</section>
