@@ -1,32 +1,24 @@
 // controllers/siteSettings.controller.js
+
 import logger from "../../shared/logger/logger.js";
-import SiteSetting from "../../modules/settings/settings.model.js";
+import {
+  getSiteSettings,
+  getSettingByKey,
+  updateSettings,
+} from "../settings/settings.services.js";
 
-/* ──────────────────────────────
-   🟢 GET /api/site-settings
-────────────────────────────── */
-export const getSiteSettings = async (req, res) => {
+/* 🟢 GET /api/site-settings
+   🟢 GET /api/site-settings?key=footer */
+export const getSiteSettingsController = async (req, res) => {
   try {
-    const records = await SiteSetting.findAll();
+    const { key } = req.query;
 
-    const settings = {};
+    if (key) {
+      const setting = await getSettingByKey(key);
+      return res.json(setting || {});
+    }
 
-    records.forEach((record) => {
-      try {
-        settings[record.key] = JSON.parse(record.value);
-      } catch (err) {
-        logger.warn({
-          message: "Error parsing site_setting",
-          key: record.key,
-        });
-      }
-    });
-
-    logger.info({
-      message: "Site settings enviados",
-      total: Object.keys(settings).length,
-    });
-
+    const settings = await getSiteSettings();
     return res.json(settings);
   } catch (error) {
     logger.error({
@@ -35,16 +27,13 @@ export const getSiteSettings = async (req, res) => {
     });
 
     return res.status(500).json({
-      msg: "Error al cargar configuración del sitio",
+      msg: "Error al cargar configuración",
     });
   }
 };
 
-/* ──────────────────────────────
-   🔒 PUT /api/site-settings
-   (POST-PMV)
-────────────────────────────── */
-export const updateSiteSettings = async (req, res) => {
+/* 🔒 PUT /api/site-settings */
+export const updateSiteSettingsController = async (req, res) => {
   try {
     const data = req.body;
 
@@ -54,20 +43,7 @@ export const updateSiteSettings = async (req, res) => {
       });
     }
 
-    for (const key of Object.keys(data)) {
-      await SiteSetting.upsert({
-        key,
-        value: JSON.stringify(data[key]),
-      });
-      logger.info({
-        message: "Guardando setting",
-        key,
-      });
-    }
-
-    logger.info({
-      message: "Site settings actualizados",
-    });
+    await updateSettings(data);
 
     return res.json({
       msg: "Configuración actualizada correctamente",
