@@ -2,16 +2,20 @@ import fs from "fs";
 import csv from "csv-parser";
 import Producto from "../producto.model.js";
 import db from "../../../config/db.js";
+import logger from "../../../shared/logger/logger.js";
 
 async function importar() {
-  await db.authenticate();
-  console.log("✅ DB conectada");
+  try {
+    await db.authenticate();
 
-  fs.createReadStream("scripts/productos.csv")
-    .pipe(csv())
-    .on("data", async (row) => {
-      try {
-        await Producto.create({
+    logger.info({ message: "✅ DB conectada" });
+
+    const productos = [];
+
+    fs.createReadStream("scripts/productos.csv")
+      .pipe(csv())
+      .on("data", (row) => {
+        productos.push({
           nombre_producto: row.nombre,
           descripcion: row.descripcion,
           precio: Number(row.precio),
@@ -20,16 +24,39 @@ async function importar() {
           marca_id: Number(row.marca_id),
           url_imagen: row.imagen ? `productos/${row.imagen}` : null,
         });
+      })
+      .on("end", async () => {
+        try {
+          for (const p of productos) {
+            await Producto.create(p);
 
-        console.log("✔ Producto creado:", row.nombre);
-      } catch (err) {
-        console.error("❌ Error:", row.nombre, err.message);
-      }
-    })
-    .on("end", () => {
-      console.log("🎉 Importación finalizada");
-      process.exit();
+            logger.debug({
+              message: "Producto creado",
+              nombre: p.nombre_producto,
+            });
+          }
+
+          logger.info({
+            message: "🎉 Importación finalizada",
+            total: productos.length,
+          });
+
+          process.exit();
+        } catch (error) {
+          logger.error({
+            message: "❌ Error guardando productos",
+            error: error.message,
+          });
+          process.exit(1);
+        }
+      });
+  } catch (error) {
+    logger.error({
+      message: "❌ Error inicializando importación",
+      error: error.message,
     });
+    process.exit(1);
+  }
 }
 
 importar();
