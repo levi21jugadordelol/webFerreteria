@@ -1,9 +1,9 @@
 // libs/api/auth.api.ts
 
-const API_URL = "http://localhost:3000";
+const API_URL = ""; // 🔥 IMPORTANTE: usar proxy de Astro
 
 /* =========================
-   TIPOS (🔥 IMPORTANTE)
+   TIPOS
 ========================= */
 type LoginData = {
   correo: string;
@@ -38,7 +38,7 @@ export async function loginRequest({
   correo,
   password,
 }: LoginData): Promise<AuthResponse> {
-  const response = await fetch(`${API_URL}/auth/login`, {
+  const response = await fetch(`/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ correo, password }),
@@ -62,7 +62,7 @@ export async function registerRequest({
   correo,
   password,
 }: RegisterData): Promise<AuthResponse> {
-  const response = await fetch(`${API_URL}/auth/registro`, {
+  const response = await fetch(`/auth/registro`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nombre, correo, password }),
@@ -82,7 +82,7 @@ export async function registerRequest({
    VALIDAR SESIÓN
 ========================= */
 export async function validarSesion(): Promise<SessionResponse | null> {
-  const response = await fetch(`${API_URL}/auth/validar`, {
+  const response = await fetch(`/auth/validar`, {
     method: "GET",
     credentials: "include",
   });
@@ -99,7 +99,7 @@ export async function validarSesion(): Promise<SessionResponse | null> {
    LISTAR ADMINS
 ========================= */
 export async function getAdminsRequest(): Promise<Admin[]> {
-  const response = await fetch(`${API_URL}/auth/admins`, {
+  const response = await fetch(`/auth/admins`, {
     method: "GET",
     credentials: "include",
   });
@@ -117,7 +117,7 @@ export async function getAdminsRequest(): Promise<Admin[]> {
    LOGOUT
 ========================= */
 export async function logoutRequest(): Promise<AuthResponse> {
-  const response = await fetch(`${API_URL}/auth/logout`, {
+  const response = await fetch(`/auth/logout`, {
     method: "POST",
     credentials: "include",
   });

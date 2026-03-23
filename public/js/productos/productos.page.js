@@ -23,7 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let enviando = false;
 
-  const pond = FilePond.create(inputImagen);
+  const pond = FilePond.create(inputImagen, {
+    allowMultiple: false,
+    instantUpload: false,
+    acceptedFileTypes: ["image/*"],
+    labelIdle: "Arrastra o haz clic para seleccionar la imagen",
+  });
 
   /* =========================
      CARGA INICIAL

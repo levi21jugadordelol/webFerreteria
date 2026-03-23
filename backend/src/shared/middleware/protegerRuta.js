@@ -6,10 +6,10 @@ const protegerRuta = async (req, res, next) => {
   const token = req.cookies?._token;
 
   if (!token) {
-    if (req.accepts("json")) {
-      return res.status(401).json({ ok: false, msg: "No autenticado" });
-    }
-    return res.redirect("/admin/login");
+    return res.status(401).json({
+      ok: false,
+      msg: "No autenticado",
+    });
   }
 
   try {
@@ -32,14 +32,10 @@ const protegerRuta = async (req, res, next) => {
   } catch (error) {
     res.clearCookie("_token");
 
-    if (req.accepts("json")) {
-      return res.status(401).json({
-        ok: false,
-        msg: "Token inválido",
-      });
-    }
-
-    return res.redirect("/admin/login");
+    return res.status(401).json({
+      ok: false,
+      msg: "Token inválido",
+    });
   }
 };
 

@@ -1,4 +1,5 @@
-export const getApiUrl = () => window.API_URL;
+export const getApiUrl = () =>
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 
 export const safeJson = async (res) => {
   try {
@@ -10,3 +11,12 @@ export const safeJson = async (res) => {
 
 export const getImageUrl = (apiUrl, img) =>
   img ? `${apiUrl}/uploads/${img}` : "https://via.placeholder.com/150";
+
+export const escapeHTML = (str = "") => {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};

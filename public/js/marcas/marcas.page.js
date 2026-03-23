@@ -14,21 +14,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputImagen = document.getElementById("imagenMarca");
   const contenedor = document.getElementById("lista-marcas");
 
-  if (!form) return;
-
   let enviando = false;
 
-  const pond = FilePond.create(inputImagen, {
-    allowMultiple: false,
-    instantUpload: false,
-    acceptedFileTypes: ["image/*"],
-    labelIdle: "Arrastra o haz clic para seleccionar el logo",
-  });
-
   /* ===============================
-     Cargar marcas
+     Cargar marcas SIEMPRE
   ================================= */
   async function cargarMarcasUI() {
+    if (!contenedor) return;
+
     try {
       const marcas = await obtenerMarcas(apiUrl);
       renderMarcas(contenedor, marcas, apiUrl);
@@ -37,56 +30,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 🔥 siempre cargar marcas
   cargarMarcasUI();
 
   /* ===============================
-     Submit
+     FORMULARIO (solo si existe)
   ================================= */
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  if (form && inputImagen) {
+    const pond = FilePond.create(inputImagen, {
+      allowMultiple: false,
+      instantUpload: false,
+      acceptedFileTypes: ["image/*"],
+      labelIdle: "Arrastra o haz clic para seleccionar el logo",
+    });
 
-    if (enviando) return;
-    enviando = true;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    const btn = form.querySelector("button");
-    btn.disabled = true;
+      if (enviando) return;
+      enviando = true;
 
-    const nombre = form.nombre_marca.value.trim();
-    const descripcion = form.descripcion.value.trim();
+      const btn = form.querySelector("button");
+      btn.disabled = true;
 
-    if (!nombre) {
-      showToast("El nombre es obligatorio", "error");
-      enviando = false;
-      btn.disabled = false;
-      return;
-    }
+      const nombre = form.nombre_marca.value.trim();
+      const descripcion = form.descripcion.value.trim();
 
-    try {
-      const data = await crearMarca(apiUrl, {
-        nombre_marca: nombre,
-        descripcion,
-      });
-
-      const marcaId = data.marca?.id_marca || data.id_marca || data.marca?.id;
-
-      if (!marcaId) throw new Error("No se obtuvo ID");
-
-      if (pond.getFiles().length > 0) {
-        const archivo = pond.getFiles()[0].file;
-        await subirLogoMarca(apiUrl, marcaId, archivo);
+      if (!nombre) {
+        showToast("El nombre es obligatorio", "error");
+        enviando = false;
+        btn.disabled = false;
+        return;
       }
 
-      showToast("Marca creada correctamente", "success");
+      try {
+        const data = await crearMarca(apiUrl, {
+          nombre_marca: nombre,
+          descripcion,
+        });
 
-      form.reset();
-      pond.removeFiles();
+        const marcaId = data.marca?.id_marca || data.id_marca || data.marca?.id;
 
-      await cargarMarcasUI();
-    } catch (error) {
-      showToast(error.message, "error");
-    } finally {
-      enviando = false;
-      btn.disabled = false;
-    }
-  });
+        if (!marcaId) throw new Error("No se obtuvo ID");
+
+        if (pond.getFiles().length > 0) {
+          const archivo = pond.getFiles()[0].file;
+          await subirLogoMarca(apiUrl, marcaId, archivo);
+        }
+
+        showToast("Marca creada correctamente", "success");
+
+        form.reset();
+        pond.removeFiles();
+
+        await cargarMarcasUI();
+      } catch (error) {
+        showToast(error.message, "error");
+      } finally {
+        enviando = false;
+        btn.disabled = false;
+      }
+    });
+  }
 });

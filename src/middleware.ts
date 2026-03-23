@@ -1,22 +1,21 @@
 import jwt from "jsonwebtoken";
 import type { MiddlewareHandler } from "astro";
 
-const SECRET = import.meta.env.JWT_SECRET;
+import { env } from "./config/env";
+
+const SECRET = env.JWT_SECRET;
 
 export const onRequest: MiddlewareHandler = async (context, next) => {
   const { request, cookies, redirect, locals } = context;
   const url = new URL(request.url);
 
-  // Solo proteger rutas admin
   if (url.pathname.startsWith("/admin")) {
-    // Rutas públicas
     if (url.pathname === "/admin/login" || url.pathname === "/admin/registro") {
       return next();
     }
 
     const token = cookies.get("_token")?.value;
 
-    // No hay token
     if (!token) {
       return redirect("/admin/login");
     }
@@ -31,10 +30,8 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
       };
 
       return next();
-    } catch (error) {
-      // Token inválido o expirado
+    } catch {
       cookies.delete("_token");
-
       return redirect("/admin/login");
     }
   }
