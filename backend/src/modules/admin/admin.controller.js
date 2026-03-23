@@ -14,7 +14,7 @@ const formularioLogin = (req, res) => {
 const autenticar = async (req, res) => {
   logger.info({
     message: "Entering autenticar",
-    body: req.body,
+    correo: req.body.correo,
   });
 
   try {
@@ -34,13 +34,8 @@ const autenticar = async (req, res) => {
     });
 
     if (!admin) {
-      return res.status(404).json({ msg: "El administrador no existe" });
+      return res.status(401).json({ msg: "Credenciales inválidas" });
     }
-
-    logger.debug({
-      message: "Hash from DB",
-      hash: admin.hash,
-    });
 
     // 🔥 LIMPIAMOS password igual que en registro
     const cleanPassword = password.trim();
@@ -68,7 +63,7 @@ const autenticar = async (req, res) => {
 
     res.cookie("_token", token, {
       httpOnly: true,
-      secure: false,
+      secure: env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
     });
@@ -149,9 +144,7 @@ const registrar = async (req, res) => {
 
 const listarAdmins = async (req, res) => {
   try {
-    const admins = await Administrador.findAll({
-      attributes: ["id_administrador", "nombre", "correo", "hash"],
-    });
+    const admins = await Administrador.scope("sinHash").findAll();
 
     return res.json(admins);
   } catch (error) {
@@ -163,7 +156,6 @@ const listarAdmins = async (req, res) => {
   }
 };
 
-// 🟢 Cerrar sesión
 // 🟢 Cerrar sesión
 const cerrarSesion = (req, res) => {
   res.clearCookie("_token", {

@@ -1,6 +1,7 @@
 import express from "express";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 import logger from "../../shared/logger/logger.js";
+import requireRole from "../../shared/middleware/requireRole.js";
 
 import {
   formularioLogin,
@@ -24,7 +25,7 @@ router.get("/login", (req, res) => {
 router.post("/login", (req, res, next) => {
   logger.info({
     message: "POST /auth/login",
-    body: req.body,
+    email: req.body.correo,
   });
 
   autenticar(req, res, next);
@@ -38,14 +39,19 @@ router.get("/registro", (req, res) => {
   formularioRegistro(req, res);
 });
 
-router.post("/registro", (req, res, next) => {
-  logger.info({
-    message: "POST /auth/registro",
-    body: req.body,
-  });
+router.post(
+  "/registro",
+  protegerRuta,
+  requireRole("SUPER_ADMIN"), // luego puedes usar "SUPER_ADMIN"
+  (req, res, next) => {
+    logger.info({
+      message: "POST /auth/registro",
+      email: req.body.correo,
+    });
 
-  registrar(req, res, next);
-});
+    registrar(req, res, next);
+  },
+);
 
 /* =========================
    VALIDAR SESIÓN
@@ -64,10 +70,7 @@ router.get("/validar", protegerRuta, (req, res) => {
 /* =========================
    LISTAR ADMINS
 ========================= */
-router.get("/admins", (req, res) => {
-  logger.info({ message: "GET /auth/admins" });
-  listarAdmins(req, res);
-});
+router.get("/admins", protegerRuta, requireRole("SUPER_ADMIN"), listarAdmins);
 
 /* =========================
    LOGOUT
