@@ -11,11 +11,17 @@ import "../models/index.js";
 
 const startServer = async () => {
   try {
+    // 🔌 Conectar a la BD
     await db.authenticate();
-    await db.sync();
-
     logger.info("Database connected successfully");
 
+    // ⚠️ SOLO en desarrollo
+    if (env.NODE_ENV === "development") {
+      await db.sync({ alter: true }); // puedes usar alter para ajustar tablas
+      logger.warn("⚠️ Database sync enabled (development only)");
+    }
+
+    // 🚀 Levantar servidor
     app.listen(env.PORT, () => {
       logger.info(`Server running at ${env.BACKEND_URL}:${env.PORT}`);
     });
@@ -24,6 +30,8 @@ const startServer = async () => {
       message: "Database connection failed",
       error: error.message,
     });
+
+    process.exit(1); // 💥 importante en producción
   }
 };
 
