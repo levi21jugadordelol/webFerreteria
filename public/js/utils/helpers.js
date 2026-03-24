@@ -1,5 +1,4 @@
-export const getApiUrl = () =>
-  import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
+export const getApiUrl = () => window.API_URL || "http://localhost:3000";
 
 export const safeJson = async (res) => {
   try {

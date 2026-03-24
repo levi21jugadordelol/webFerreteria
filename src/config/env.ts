@@ -1,5 +1,5 @@
 export const env = {
-  JWT_SECRET: import.meta.env.JWT_SECRET as string,
+  JWT_SECRET: import.meta.env.PUBLIC_JWT_SECRET as string,
 };
 
 if (!env.JWT_SECRET) {

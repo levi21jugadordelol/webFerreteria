@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const pond = FilePond.create(inputImagen, {
     allowMultiple: false,
     instantUpload: false,
+    storeAsFile: true, // 🔥 CLAVE
     acceptedFileTypes: ["image/*"],
     labelIdle: "Arrastra o haz clic para seleccionar la imagen",
   });
@@ -72,7 +73,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       showToast("Producto creado correctamente", "success");
 
-      window.location.href = `/admin/productos/editar/${data.producto.id_producto}`;
+      setTimeout(() => {
+        window.location.href = `/admin/productos/editar/${data.producto.id_producto}`;
+      }, 1200);
     } catch (error) {
       showToast(error.message, "error");
     } finally {

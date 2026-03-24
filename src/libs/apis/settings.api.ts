@@ -1,7 +1,5 @@
 // libs/api/settings.api.ts
 
-const API_URL = "http://localhost:3000";
-
 /* =========================
    TIPOS
 ========================= */
@@ -17,7 +15,7 @@ type SettingsResponse = {
    OBTENER SETTINGS (PUBLICO)
 ========================= */
 export async function getSiteSettings(): Promise<SiteSettings> {
-  const res = await fetch(`${API_URL}/site-settings`);
+  const res = await fetch("/api/site-settings"); // ✅ proxy + ruta correcta
 
   const data = await res.json();
 
@@ -34,7 +32,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 export async function updateSiteSettings(
   data: SiteSettings,
 ): Promise<SettingsResponse> {
-  const res = await fetch(`${API_URL}/site-settings`, {
+  const res = await fetch("/api/site-settings", {
+    // ✅ igual aquí
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },

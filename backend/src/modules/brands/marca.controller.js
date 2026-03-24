@@ -23,7 +23,6 @@ export const crearMarca = async (req, res) => {
     const nueva = await Marca.create({
       nombre_marca,
       descripcion,
-      url_logo: "",
     });
 
     logger.info({

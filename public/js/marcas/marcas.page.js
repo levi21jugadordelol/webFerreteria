@@ -7,6 +7,8 @@ import {
 import { renderMarcas } from "../marcas/marcas.ui.js";
 import { showToast } from "../utils/toast.js";
 
+console.log("🔥 marcas.page.js cargado");
+
 document.addEventListener("DOMContentLoaded", () => {
   const apiUrl = getApiUrl();
 
@@ -40,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const pond = FilePond.create(inputImagen, {
       allowMultiple: false,
       instantUpload: false,
+      storeAsFile: true, // 🔥 IMPORTANTE AQUÍ
       acceptedFileTypes: ["image/*"],
       labelIdle: "Arrastra o haz clic para seleccionar el logo",
     });
@@ -47,7 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      if (enviando) return;
+      console.log("🟡 [1] Submit iniciado");
+
+      if (enviando) {
+        console.log("⚠️ Ya se está enviando");
+        return;
+      }
+
       enviando = true;
 
       const btn = form.querySelector("button");
@@ -56,27 +65,45 @@ document.addEventListener("DOMContentLoaded", () => {
       const nombre = form.nombre_marca.value.trim();
       const descripcion = form.descripcion.value.trim();
 
-      if (!nombre) {
-        showToast("El nombre es obligatorio", "error");
-        enviando = false;
-        btn.disabled = false;
-        return;
-      }
+      console.log("🟡 [2] Datos capturados:", {
+        nombre_marca: nombre,
+        descripcion,
+      });
 
       try {
+        console.log("🟡 [3] Enviando a crearMarca...");
+
         const data = await crearMarca(apiUrl, {
           nombre_marca: nombre,
           descripcion,
         });
 
+        console.log("🟢 [4] Respuesta crearMarca:", data);
+
         const marcaId = data.marca?.id_marca || data.id_marca || data.marca?.id;
+
+        console.log("🟡 [5] ID obtenido:", marcaId);
 
         if (!marcaId) throw new Error("No se obtuvo ID");
 
+        console.log("🟡 [6] Revisando archivos en FilePond...");
+        console.log("FILES:", pond.getFiles());
+
         if (pond.getFiles().length > 0) {
           const archivo = pond.getFiles()[0].file;
-          await subirLogoMarca(apiUrl, marcaId, archivo);
+
+          console.log("🟢 [7] Archivo encontrado:", archivo);
+
+          console.log("🟡 [8] Subiendo logo...");
+
+          const resLogo = await subirLogoMarca(apiUrl, marcaId, archivo);
+
+          console.log("🟢 [9] Logo subido:", resLogo);
+        } else {
+          console.log("⚠️ [7] No hay archivo en FilePond");
         }
+
+        console.log("🟢 [10] Proceso completado correctamente");
 
         showToast("Marca creada correctamente", "success");
 
@@ -85,8 +112,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         await cargarMarcasUI();
       } catch (error) {
+        console.log("🔴 [ERROR]:", error);
         showToast(error.message, "error");
       } finally {
+        console.log("🟡 [FIN] Liberando botón");
+
         enviando = false;
         btn.disabled = false;
       }
