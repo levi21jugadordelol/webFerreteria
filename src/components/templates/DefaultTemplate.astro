@@ -1,8 +1,11 @@
 ---
+import { sanitizarHTML } from "../../utils/sanitizeHtml.js";
+
 const { pagina } = Astro.props;
+const contenidoSeguro = sanitizarHTML(pagina.contenido);
 ---
 
 <section class="container py-5">
   <h1>{pagina.titulo}</h1>
-  <div set:html={pagina.contenido}></div>
+  <div set:html={contenidoSeguro}></div>
 </section>

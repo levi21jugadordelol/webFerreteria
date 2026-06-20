@@ -2,13 +2,18 @@ import jwt from "jsonwebtoken";
 import Administrador from "../../modules/admin/admin.model.js";
 import { env } from "../../config/env.js";
 
+import {
+  AUTH_COOKIE_NAME,
+  getClearAuthCookieOptions,
+} from "../utils/authCookie.js";
+
 const protegerRuta = async (req, res, next) => {
-  const token = req.cookies?._token;
+  const token = req.cookies?.[AUTH_COOKIE_NAME];
 
   if (!token) {
     return res.status(401).json({
       ok: false,
-      msg: "No autenticado",
+      message: "No autenticado",
     });
   }
 
@@ -19,10 +24,12 @@ const protegerRuta = async (req, res, next) => {
       attributes: { exclude: ["hash"] },
     });
 
-    if (!admin) {
+    if (!admin || admin.estado !== "ACTIVO") {
+      res.clearCookie(AUTH_COOKIE_NAME, getClearAuthCookieOptions());
+
       return res.status(403).json({
         ok: false,
-        msg: "Acceso denegado",
+        message: "Acceso denegado",
       });
     }
 
@@ -30,11 +37,11 @@ const protegerRuta = async (req, res, next) => {
 
     next();
   } catch (error) {
-    res.clearCookie("_token");
+    res.clearCookie(AUTH_COOKIE_NAME, getClearAuthCookieOptions());
 
     return res.status(401).json({
       ok: false,
-      msg: "Token inválido",
+      message: "Token inválido o expirado",
     });
   }
 };

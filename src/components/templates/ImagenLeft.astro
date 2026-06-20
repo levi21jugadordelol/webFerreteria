@@ -1,17 +1,25 @@
 ---
+import { sanitizarHTML } from "../../utils/sanitizeHtml.js";
+
 const { pagina } = Astro.props;
+const contenidoSeguro = sanitizarHTML(pagina.contenido);
 ---
 
 <section class="container py-5">
   <div class="row align-items-center">
-    
+
     <div class="col-md-6">
-      <img src={pagina.imagen_portada} class="img-fluid rounded" />
+      <img
+  src={pagina.imagen_portada}
+  alt={pagina.titulo}
+  class="img-fluid rounded"
+  loading="lazy"
+/>
     </div>
 
     <div class="col-md-6">
       <h1>{pagina.titulo}</h1>
-      <div set:html={pagina.contenido}></div>
+      <div set:html={contenidoSeguro}></div>
     </div>
 
   </div>

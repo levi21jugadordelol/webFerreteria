@@ -1,10 +1,8 @@
 ---
-import ProductoCard from "../../components/shared/ProductoCard.astro";
 import ModalEditProducto from "../ui/productos/ModalEditProducto.astro";
 ---
 
 <div class="container my-4">
-
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-semibold">Lista de Productos</h4>
 
@@ -18,183 +16,239 @@ import ModalEditProducto from "../ui/productos/ModalEditProducto.astro";
   <div id="lista-productos" class="d-flex flex-column gap-3 mt-3">
     <p class="text-center text-muted">Cargando productos...</p>
   </div>
-
 </div>
 
-<!-- 🔥 MODAL DE EDICIÓN -->
 <ModalEditProducto id="modal-editar" />
 
 <script is:client>
-  const apiUrl = "http://localhost:3000";
+  const apiUrl = "http://localhost:3000/api/v1";
+  const uploadsUrl = "http://localhost:3000/uploads";
+
+  function safeUploadUrl(path) {
+    const cleanPath = String(path || "").replace(/^\/+/, "");
+
+    if (!cleanPath) return "/img/no-image.png";
+
+    if (cleanPath.includes("..")) return "/img/no-image.png";
+
+    return `${uploadsUrl}/${encodeURIComponent(cleanPath)}`;
+  }
+
+  function crearMensaje(texto, clase = "text-muted") {
+    const p = document.createElement("p");
+    p.className = `text-center ${clase}`;
+    p.textContent = texto;
+    return p;
+  }
+
+  async function getJSON(url, options = {}) {
+    const res = await fetch(url, {
+      credentials: "include",
+      ...options,
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result?.message || result?.msg || "Error en la API");
+    }
+
+    return result.data ?? result;
+  }
+
+  function crearCardProducto(p) {
+    const card = document.createElement("div");
+    card.className =
+      "card p-3 shadow-sm d-flex flex-row align-items-center gap-3";
+    card.dataset.id = String(p.id_producto);
+
+    const img = document.createElement("img");
+    img.src = p.url_imagen ? safeUploadUrl(p.url_imagen) : "/img/no-image.png";
+    img.alt = p.nombre_producto || "Producto";
+    img.width = 100;
+    img.height = 100;
+    img.className = "rounded";
+
+    const info = document.createElement("div");
+    info.className = "flex-grow-1";
+
+    const nombre = document.createElement("h5");
+    nombre.className = "mb-1";
+    nombre.textContent = p.nombre_producto ?? "";
+
+    const precio = document.createElement("p");
+    precio.className = "text-muted mb-1";
+    precio.textContent = `Precio: S/ ${p.precio ?? 0}`;
+
+    const stock = document.createElement("small");
+    stock.textContent = `Stock disponible: ${p.stock_disponible ?? 0}`;
+
+    info.append(nombre, precio, stock);
+
+    const acciones = document.createElement("div");
+    acciones.className = "d-flex flex-column gap-2";
+
+    const btnEditar = document.createElement("button");
+    btnEditar.type = "button";
+    btnEditar.className = "btn btn-warning btn-sm btn-editar";
+    btnEditar.textContent = "✏️ Rápido";
+
+    const btnAvanzado = document.createElement("button");
+    btnAvanzado.type = "button";
+    btnAvanzado.className = "btn btn-info btn-sm btn-avanzado";
+    btnAvanzado.textContent = "⚙️ Avanzado";
+
+    const btnEliminar = document.createElement("button");
+    btnEliminar.type = "button";
+    btnEliminar.className = "btn btn-danger btn-sm btn-eliminar";
+    btnEliminar.textContent = "🗑️ Eliminar";
+
+    acciones.append(btnEditar, btnAvanzado, btnEliminar);
+    card.append(img, info, acciones);
+
+    return card;
+  }
+
+  function activarEventosProductos(contenedor) {
+    contenedor.querySelectorAll(".btn-eliminar").forEach((btn) =>
+      btn.addEventListener("click", async (e) => {
+        const card = e.target.closest(".card");
+        const id = card.dataset.id;
+
+        if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
+
+        try {
+          await getJSON(`${apiUrl}/productos/admin/${id}`, {
+            method: "DELETE",
+          });
+
+          alert("✅ Producto eliminado correctamente");
+          card.remove();
+        } catch (error) {
+          alert("❌ Error al eliminar producto");
+        }
+      })
+    );
+
+    contenedor.querySelectorAll(".btn-avanzado").forEach((btn) =>
+      btn.addEventListener("click", (e) => {
+        const card = e.target.closest(".card");
+        const id = card.dataset.id;
+
+        window.location.href = `/admin/productos/editar/${id}`;
+      })
+    );
+
+    const modal = document.getElementById("modal-editar");
+
+    contenedor.querySelectorAll(".btn-editar").forEach((btn) =>
+      btn.addEventListener("click", async (e) => {
+        const card = e.target.closest(".card");
+        const id = card.dataset.id;
+
+        try {
+          const producto = await getJSON(`${apiUrl}/productos/admin/${id}`);
+
+          document.getElementById("edit-id").value = producto.id_producto;
+          document.getElementById("edit-nombre").value =
+            producto.nombre_producto ?? "";
+          document.getElementById("edit-descripcion").value =
+            producto.descripcion ?? "";
+          document.getElementById("edit-precio").value = producto.precio ?? 0;
+          document.getElementById("edit-stock").value =
+            producto.stock_total ?? 0;
+
+          document.getElementById("edit-img-preview").src = producto.url_imagen
+            ? safeUploadUrl(producto.url_imagen)
+            : "/img/no-image.png";
+
+          modal.classList.add("visible");
+        } catch (error) {
+          alert("❌ Error cargando producto");
+        }
+      })
+    );
+  }
+
+  function configurarFormularioEdicion() {
+    const formEditar = document.getElementById("form-editar");
+
+    if (!formEditar || formEditar.dataset.listenerAttached === "true") return;
+
+    formEditar.dataset.listenerAttached = "true";
+
+    formEditar.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById("edit-id").value;
+
+      const data = {
+        nombre_producto: document.getElementById("edit-nombre").value.trim(),
+        descripcion: document.getElementById("edit-descripcion").value.trim(),
+        precio: document.getElementById("edit-precio").value,
+        stock_total: document.getElementById("edit-stock").value,
+      };
+
+      try {
+        await getJSON(`${apiUrl}/productos/admin/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        const fileInput = document.getElementById("edit-img");
+
+        if (fileInput.files.length > 0) {
+          const formData = new FormData();
+          formData.append("imagen", fileInput.files[0]);
+
+          await getJSON(`${apiUrl}/productos/admin/${id}/imagen`, {
+            method: "POST",
+            body: formData,
+          });
+        }
+
+        alert("✅ Producto actualizado correctamente");
+
+        document.dispatchEvent(new CustomEvent("cerrar-editar"));
+
+        cargarProductos();
+      } catch (error) {
+        alert("❌ Error al actualizar producto");
+      }
+    });
+  }
 
   async function cargarProductos() {
     const contenedor = document.getElementById("lista-productos");
     const contador = document.getElementById("contador");
 
     try {
-      const res = await fetch(`${apiUrl}/productos`, { credentials: "include" });
+      const productos = await getJSON(`${apiUrl}/productos`);
 
-      if (!res.ok) {
-        contenedor.innerHTML = `<p class="text-danger">❌ Error ${res.status}: ${res.statusText}</p>`;
-        contador.textContent = "Error al cargar productos";
-        return;
-      }
-
-      const productos = await res.json();
       contador.textContent = `Total productos: ${productos.length}`;
+      contenedor.replaceChildren();
 
       if (productos.length === 0) {
-        contenedor.innerHTML = "<p class='text-center text-muted'>No hay productos aún.</p>";
+        contenedor.appendChild(
+          crearMensaje("No hay productos aún.", "text-muted")
+        );
         return;
       }
 
-      contenedor.innerHTML = productos.map((p) => {
-        const imagenUrl = p.url_imagen
-          ? `${apiUrl}/uploads/${p.url_imagen}`
-          : "https://via.placeholder.com/100";
-
-        return `
-  <div class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3" data-id="${p.id_producto}">
-    <img src="${imagenUrl}" width="100" height="100" class="rounded" />
-    <div class="flex-grow-1">
-      <h5 class="mb-1">${p.nombre_producto}</h5>
-      <p class="text-muted mb-1">Precio: S/ ${p.precio}</p>
-      <small>Stock: ${p.stock}</small>
-    </div>
-    <div class="d-flex flex-column gap-2">
-      <button class="btn btn-warning btn-sm btn-editar">✏️ Rápido</button>
-      <button class="btn btn-info btn-sm btn-avanzado">⚙️ Avanzado</button>
-      <button class="btn btn-danger btn-sm btn-eliminar">🗑️ Eliminar</button>
-    </div>
-  </div>`;
-      }).join("");
-
-      /* ────────────────────────────────
-         🗑️ BOTÓN ELIMINAR
-      ────────────────────────────────*/
-      contenedor.querySelectorAll(".btn-eliminar").forEach((btn) =>
-        btn.addEventListener("click", async (e) => {
-          const card = e.target.closest(".card");
-          const id = card.dataset.id;
-
-          if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
-
-          const res = await fetch(`${apiUrl}/productos/admin/${id}`, {
-  method: "DELETE",
-  credentials: "include",
-});
-
-if (!res.ok) return alert("❌ Error al eliminar producto");
-
-
-          alert("✅ Producto eliminado correctamente");
-          card.remove();
-        })
-      );
-
-      /* ────────────────────────────────
-   ⚙️ BOTÓN EDICIÓN AVANZADA
-────────────────────────────────*/
-contenedor.querySelectorAll(".btn-avanzado").forEach((btn) =>
-  btn.addEventListener("click", (e) => {
-    const card = e.target.closest(".card");
-    const id = card.dataset.id;
-    window.location.href = `/admin/productos/editar/${id}`;
-  })
-);
-
-
-      /* ────────────────────────────────
-         ✏️ BOTÓN EDITAR
-      ────────────────────────────────*/
-      const modal = document.getElementById("modal-editar");
-
-      contenedor.querySelectorAll(".btn-editar").forEach((btn) =>
-        btn.addEventListener("click", async (e) => {
-          const card = e.target.closest(".card");
-          const id = card.dataset.id;
-
-         const res = await fetch(`${apiUrl}/productos/admin/${id}`, { credentials: "include" });
-          const producto = await res.json();
-
-          // 📌 Llenar datos en el modal
-          document.getElementById("edit-id").value = producto.id_producto;
-          document.getElementById("edit-nombre").value = producto.nombre_producto;
-          document.getElementById("edit-descripcion").value = producto.descripcion;
-          document.getElementById("edit-precio").value = producto.precio;
-          document.getElementById("edit-stock").value = producto.stock;
-
-          // 📌 Imagen previa
-          document.getElementById("edit-img-preview").src = producto.url_imagen
-            ? `${apiUrl}/uploads/${producto.url_imagen}`
-            : "https://via.placeholder.com/120";
-
-          modal.classList.add("visible");
-        })
-      );
-
-      /* ────────────────────────────────
-         💾 GUARDAR CAMBIOS DEL MODAL
-      ────────────────────────────────*/
-      document.getElementById("form-editar").addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const id = document.getElementById("edit-id").value;
-
-        // 🟢 Actualizar datos generales
-        const data = {
-          nombre_producto: document.getElementById("edit-nombre").value,
-          descripcion: document.getElementById("edit-descripcion").value,
-          precio: document.getElementById("edit-precio").value,
-          stock: document.getElementById("edit-stock").value
-        };
-
-        const resUpdate = await fetch(`${apiUrl}/productos/admin/${id}`, {
-          method: "PUT",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-
-        if (!resUpdate.ok) {
-          alert("❌ Error al actualizar producto");
-          return;
-        }
-
-        // 🟢 Actualizar imagen SOLO si se seleccionó una nueva
-        const fileInput = document.getElementById("edit-img");
-        if (fileInput.files.length > 0) {
-          const formData = new FormData();
-          formData.append("file", fileInput.files[0]);
-
-          const resImg = await fetch(`${apiUrl}/productos/admin/${id}/imagen`, {
-            method: "POST",
-            credentials: "include",
-            body: formData,
-          });
-
-          if (!resImg.ok) {
-            alert("⚠️ Producto actualizado, pero hubo problema al subir la imagen.");
-          }
-        }
-
-        alert("✅ Producto actualizado correctamente");
-
-        // Cerrar modal
-        document.dispatchEvent(new CustomEvent("cerrar-editar"));
-
-        // Recargar productos
-        cargarProductos();
+      productos.forEach((p) => {
+        contenedor.appendChild(crearCardProducto(p));
       });
 
+      activarEventosProductos(contenedor);
+      configurarFormularioEdicion();
     } catch (err) {
-      contenedor.innerHTML = `<p class="text-danger">❌ Error: ${err.message}</p>`;
+      contenedor.replaceChildren(
+        crearMensaje(`❌ Error: ${err.message}`, "text-danger")
+      );
       contador.textContent = "Error de conexión";
     }
   }
 
   document.addEventListener("DOMContentLoaded", cargarProductos);
 </script>
-
-
-

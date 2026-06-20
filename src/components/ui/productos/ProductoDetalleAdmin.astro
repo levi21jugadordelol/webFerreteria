@@ -1,408 +1,466 @@
 ---
 const { id } = Astro.props;
-const apiUrl = "http://localhost:3000";
 ---
 
 <div id="producto-detalle" data-id={id}>
+  <section class="bg-white p-4 shadow rounded mb-4">
+    <h3 class="fw-semibold mb-3">Imágenes adicionales</h3>
 
-<section class="bg-white p-4 shadow rounded mb-4">
+    <form id="form-img-extra" class="d-flex gap-2 align-items-center">
+      <input type="file" id="img-extra" class="form-control" />
+      <button type="submit" class="btn btn-secondary btn-sm">
+        Subir
+      </button>
+    </form>
 
-<h3 class="fw-semibold mb-3">Imágenes adicionales</h3>
+    <div id="lista-imagenes-extra" class="d-flex flex-wrap gap-3 mt-3"></div>
+  </section>
 
-<form id="form-img-extra" class="d-flex gap-2 align-items-center">
-<input type="file" id="img-extra" class="form-control" />
-<button type="submit" class="btn btn-secondary btn-sm">
-Subir
-</button>
-</form>
+  <section class="bg-white p-4 shadow rounded">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="fw-semibold mb-0">Características</h3>
+      <small id="contador-carac" class="text-muted"></small>
+    </div>
 
-<div id="lista-imagenes-extra" class="d-flex flex-wrap gap-3 mt-3"></div>
+    <form id="form-carac" class="row g-3 align-items-end mb-4">
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Tipo</label>
+        <select id="carac-tab" class="form-select"></select>
+      </div>
 
-</section>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Característica</label>
+        <input type="text" id="carac-titulo" class="form-control" required />
+      </div>
 
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Valor</label>
+        <input type="text" id="carac-valor" class="form-control" required />
+      </div>
 
-<section class="bg-white p-4 shadow rounded">
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100" type="submit">
+          Agregar
+        </button>
+      </div>
+    </form>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-<h3 class="fw-semibold mb-0">Características</h3>
-<small id="contador-carac" class="text-muted"></small>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0" id="tabla-caracteristicas">
+        <thead class="table-light">
+          <tr>
+            <th style="width:20%">Tipo</th>
+            <th style="width:10%">Orden</th>
+            <th style="width:30%">Característica</th>
+            <th style="width:25%">Valor</th>
+            <th class="text-end" style="width:15%">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <script is:client>
+    const apiUrl = "http://localhost:3000/api/v1";
+
+    let tabsCache = [];
+
+    async function fetchJSON(url, options = {}) {
+      const res = await fetch(url, {
+        credentials: "include",
+        ...options,
+      });
+
+      const contentType = res.headers.get("content-type") || "";
+      const raw = await res.text();
+
+      if (!contentType.includes("application/json")) {
+        console.error("La API no devolvió JSON:", {
+          url,
+          status: res.status,
+          contentType,
+          body: raw.slice(0, 200),
+        });
+
+        throw new Error("La API devolvió una respuesta inválida");
+      }
+
+      const result = raw ? JSON.parse(raw) : null;
+
+      if (!res.ok) {
+        throw new Error(result?.message || result?.msg || "Error en la API");
+      }
+
+      return result?.data ?? result;
+    }
+
+    const tituloInput = document.getElementById("carac-titulo");
+    const valorInput = document.getElementById("carac-valor");
+    const productoId = Number(
+      document.getElementById("producto-detalle").dataset.id
+    );
+
+    const placeholders = {
+      especificaciones: {
+        titulo: "Ej: Material",
+        valor: "Ej: Acero",
+      },
+      caracteristicas: {
+        titulo: "Ej: Uso",
+        valor: "Ej: Interior",
+      },
+      garantia: {
+        titulo: "Ej: Tiempo",
+        valor: "Ej: 12 meses",
+      },
+      manual: {
+        titulo: "Ej: Descarga",
+        valor: "Ej: manual.pdf",
+      },
+    };
+
+    function crearMensajeTabla(texto, clase = "text-muted") {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+
+      td.colSpan = 5;
+      td.className = `text-center py-4 ${clase}`;
+      td.textContent = texto;
+
+      tr.appendChild(td);
+      return tr;
+    }
+
+    function crearOptionTab(tab, selectedId = "") {
+      const option = document.createElement("option");
+
+      option.value = String(tab.id_tab);
+      option.textContent = tab.nombre ?? "";
+
+      if (String(tab.id_tab) === String(selectedId)) {
+        option.selected = true;
+      }
+
+      return option;
+    }
+
+    async function cargarTabs() {
+      const select = document.getElementById("carac-tab");
+
+      try {
+        tabsCache = await fetchJSON(`${apiUrl}/producto-tabs`);
+
+        select.replaceChildren();
+
+        tabsCache.forEach((tab) => {
+          select.appendChild(crearOptionTab(tab));
+        });
+
+        activarPlaceholder();
+      } catch (error) {
+        console.error("Error cargando tabs:", error);
+
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Error cargando tabs";
+
+        select.replaceChildren(option);
+      }
+    }
+
+    function activarPlaceholder() {
+      const select = document.getElementById("carac-tab");
+
+      if (!select || select.selectedIndex < 0) return;
+
+      const nombre = select.options[select.selectedIndex].text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+
+      if (placeholders[nombre]) {
+        tituloInput.placeholder = placeholders[nombre].titulo;
+        valorInput.placeholder = placeholders[nombre].valor;
+      } else {
+        tituloInput.placeholder = "Ej: Material";
+        valorInput.placeholder = "Ej: Acero";
+      }
+    }
+
+    document
+      .getElementById("carac-tab")
+      ?.addEventListener("change", activarPlaceholder);
+
+    async function obtenerProductoDetalle() {
+      return await fetchJSON(
+        `${apiUrl}/productos/admin/${productoId}/caracteristicas`
+      );
+    }
+
+    function crearFilaCaracteristica(c) {
+      const tr = document.createElement("tr");
+      tr.dataset.id = String(c.id_caracteristica);
+
+      const tipoTd = document.createElement("td");
+      tipoTd.className = "carac-tipo";
+      tipoTd.dataset.tabId = String(c.tab_id ?? c.tab?.id_tab ?? "");
+      tipoTd.textContent = c.tab?.nombre ?? "-";
+
+      const ordenTd = document.createElement("td");
+      ordenTd.className = "carac-orden";
+      ordenTd.textContent = String(c.orden ?? 0);
+
+      const tituloTd = document.createElement("td");
+      tituloTd.className = "fw-semibold carac-titulo";
+      tituloTd.textContent = c.titulo ?? "";
+
+      const valorTd = document.createElement("td");
+      valorTd.className = "carac-valor";
+      valorTd.textContent = c.valor ?? "";
+
+      const accionesTd = document.createElement("td");
+      accionesTd.className = "text-end";
+
+      const btnEditar = document.createElement("button");
+      btnEditar.type = "button";
+      btnEditar.className = "btn btn-sm btn-outline-primary btn-edit-carac";
+      btnEditar.textContent = "✏";
+
+      const btnEliminar = document.createElement("button");
+      btnEliminar.type = "button";
+      btnEliminar.className = "btn btn-sm btn-danger btn-del-carac";
+      btnEliminar.dataset.id = String(c.id_caracteristica);
+      btnEliminar.textContent = "✕";
+
+      accionesTd.append(btnEditar, btnEliminar);
+      tr.append(tipoTd, ordenTd, tituloTd, valorTd, accionesTd);
+
+      return tr;
+    }
+
+    async function cargarCaracteristicas() {
+      const tbody = document.querySelector("#tabla-caracteristicas tbody");
+      const contador = document.getElementById("contador-carac");
+
+      try {
+        const prod = await obtenerProductoDetalle();
+
+        tbody.replaceChildren();
+
+        if (!prod || prod.length === 0) {
+          contador.textContent = "";
+          tbody.appendChild(
+            crearMensajeTabla("No hay características agregadas", "text-muted")
+          );
+          return;
+        }
+
+        contador.textContent = `${prod.length} registradas`;
+
+        prod.forEach((c) => {
+          tbody.appendChild(crearFilaCaracteristica(c));
+        });
+
+        activarEliminar();
+        activarEdicion();
+      } catch (error) {
+        console.error("Error cargando características:", error);
+
+        contador.textContent = "";
+        tbody.replaceChildren();
+        tbody.appendChild(
+          crearMensajeTabla("Error cargando características", "text-danger")
+        );
+      }
+    }
+
+    function activarEliminar() {
+      document.querySelectorAll(".btn-del-carac").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          const idCarac = e.currentTarget.dataset.id;
+
+          if (!confirm("¿Eliminar característica?")) return;
+
+          try {
+            await fetchJSON(
+              `${apiUrl}/productos/admin/${productoId}/caracteristicas/${idCarac}`,
+              {
+                method: "DELETE",
+              }
+            );
+
+            cargarCaracteristicas();
+          } catch (error) {
+            console.error("Error eliminando característica:", error);
+            alert("Error eliminando característica");
+          }
+        });
+      });
+    }
+
+    function activarEdicion() {
+      document.querySelectorAll(".btn-edit-carac").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const row = e.currentTarget.closest("tr");
+
+          const tipoTd = row.querySelector(".carac-tipo");
+          const ordenTd = row.querySelector(".carac-orden");
+          const tituloTd = row.querySelector(".carac-titulo");
+          const valorTd = row.querySelector(".carac-valor");
+          const accionesTd = row.querySelector("td.text-end");
+
+          const tabActual = tipoTd.dataset.tabId || "";
+          const ordenActual = ordenTd.textContent.trim();
+          const tituloActual = tituloTd.textContent.trim();
+          const valorActual = valorTd.textContent.trim();
+
+          const selectTab = document.createElement("select");
+          selectTab.className = "form-select form-select-sm edit-tab";
+
+          tabsCache.forEach((tab) => {
+            selectTab.appendChild(crearOptionTab(tab, tabActual));
+          });
+
+          const inputOrden = document.createElement("input");
+          inputOrden.type = "number";
+          inputOrden.className = "form-control form-control-sm edit-orden";
+          inputOrden.value = ordenActual;
+
+          const inputTitulo = document.createElement("input");
+          inputTitulo.type = "text";
+          inputTitulo.className = "form-control form-control-sm edit-titulo";
+          inputTitulo.value = tituloActual;
+
+          const inputValor = document.createElement("input");
+          inputValor.type = "text";
+          inputValor.className = "form-control form-control-sm edit-valor";
+          inputValor.value = valorActual;
+
+          const btnGuardar = document.createElement("button");
+          btnGuardar.type = "button";
+          btnGuardar.className = "btn btn-sm btn-success btn-save-carac";
+          btnGuardar.textContent = "💾";
+
+          const btnCancelar = document.createElement("button");
+          btnCancelar.type = "button";
+          btnCancelar.className = "btn btn-sm btn-secondary btn-cancel-carac";
+          btnCancelar.textContent = "↩";
+
+          tipoTd.replaceChildren(selectTab);
+          ordenTd.replaceChildren(inputOrden);
+          tituloTd.replaceChildren(inputTitulo);
+          valorTd.replaceChildren(inputValor);
+          accionesTd.replaceChildren(btnGuardar, btnCancelar);
+
+          btnGuardar.addEventListener("click", async () => {
+            const nuevoTab = selectTab.value;
+            const nuevoOrden = inputOrden.value;
+            const nuevoTitulo = inputTitulo.value.trim();
+            const nuevoValor = inputValor.value.trim();
+            const idCarac = row.dataset.id;
+
+            if (!nuevoTab || !nuevoTitulo || !nuevoValor) {
+              alert("Completa todos los campos");
+              return;
+            }
+
+            try {
+              await fetchJSON(
+                `${apiUrl}/productos/admin/${productoId}/caracteristicas/${idCarac}`,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    titulo: nuevoTitulo,
+                    valor: nuevoValor,
+                    tab_id: nuevoTab,
+                    orden: nuevoOrden,
+                  }),
+                }
+              );
+
+              cargarCaracteristicas();
+            } catch (error) {
+              console.error("Error actualizando característica:", error);
+              alert("Error actualizando característica");
+            }
+          });
+
+          btnCancelar.addEventListener("click", cargarCaracteristicas);
+        });
+      });
+    }
+
+    document.getElementById("form-carac").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const tab_id = Number(document.getElementById("carac-tab").value);
+      const titulo = tituloInput.value.trim();
+      const valor = valorInput.value.trim();
+
+      if (!tab_id || !titulo || !valor) {
+        alert("Completa todos los campos");
+        return;
+      }
+
+      try {
+        await fetchJSON(`${apiUrl}/productos/admin/${productoId}/caracteristicas`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            titulo,
+            valor,
+            tab_id,
+          }),
+        });
+
+        tituloInput.value = "";
+        valorInput.value = "";
+
+        cargarCaracteristicas();
+      } catch (error) {
+        console.error("Error creando característica:", error);
+        alert("Error creando característica");
+      }
+    });
+
+    document.getElementById("form-img-extra")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const input = document.getElementById("img-extra");
+
+      if (!input.files || input.files.length === 0) {
+        alert("Selecciona una imagen");
+        return;
+      }
+
+      const formData = new FormData();
+formData.append("imagen", input.files[0]);
+
+      try {
+        await fetchJSON(`${apiUrl}/productos/admin/${productoId}/imagenes`, {
+          method: "POST",
+          body: formData,
+        });
+
+        input.value = "";
+        alert("Imagen subida correctamente");
+      } catch (error) {
+        console.error("Error subiendo imagen:", error);
+        alert("Error subiendo imagen");
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await cargarTabs();
+      await cargarCaracteristicas();
+    });
+  </script>
 </div>
-
-
-<form id="form-carac" class="row g-3 align-items-end mb-4">
-
-<div class="col-md-3">
-<label class="form-label fw-semibold">Tipo</label>
-<select id="carac-tab" class="form-select"></select>
-</div>
-
-<div class="col-md-3">
-<label class="form-label fw-semibold">Característica</label>
-<input type="text" id="carac-titulo" class="form-control" required />
-</div>
-
-<div class="col-md-3">
-<label class="form-label fw-semibold">Valor</label>
-<input type="text" id="carac-valor" class="form-control" required />
-</div>
-
-
-
-<div class="col-md-2">
-<button class="btn btn-primary w-100" type="submit">
-Agregar
-</button>
-</div>
-
-</form>
-
-
-<div class="table-responsive">
-
-<table class="table table-sm align-middle mb-0" id="tabla-caracteristicas">
-
-<thead class="table-light">
-<tr>
-<th style="width:20%">Tipo</th>
-<th style="width:10%">Orden</th>
-<th style="width:30%">Característica</th>
-<th style="width:25%">Valor</th>
-<th class="text-end" style="width:15%">Acciones</th>
-</tr>
-</thead>
-
-<tbody></tbody>
-
-</table>
-
-</div>
-
-</section>
-
-
-<script is:client>
-
-const apiUrl = "http://localhost:3000";
-
-let tabsCache = [];
-
-/* =====================================
-CARGAR TABS
-===================================== */
-
-async function cargarTabs(){
-
-const res = await fetch(`${apiUrl}/api/producto-tabs`);
-tabsCache = await res.json();
-
-const select = document.getElementById("carac-tab");
-
-select.innerHTML = tabsCache.map(tab=>`
-<option value="${tab.id_tab}">
-${tab.nombre}
-</option>
-`).join("");
-
-activarPlaceholder();
-
-}
-
-/* =====================================
-PLACEHOLDER INTELIGENTE
-===================================== */
-
-const tituloInput = document.getElementById("carac-titulo");
-const valorInput = document.getElementById("carac-valor");
-
-const placeholders = {
-
-especificaciones:{
-titulo:"Ej: Material",
-valor:"Ej: Acero"
-},
-
-caracteristicas:{
-titulo:"Ej: Uso",
-valor:"Ej: Interior"
-},
-
-garantia:{
-titulo:"Ej: Tiempo",
-valor:"Ej: 12 meses"
-},
-
-manual:{
-titulo:"Ej: Descarga",
-valor:"Ej: manual.pdf"
-}
-
-};
-
-function activarPlaceholder(){
-
-const select = document.getElementById("carac-tab");
-
-const nombre = select.options[select.selectedIndex]
-  .text
-  .toLowerCase()
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "");
-
-if(placeholders[nombre]){
-
-tituloInput.placeholder = placeholders[nombre].titulo;
-valorInput.placeholder = placeholders[nombre].valor;
-
-}
-
-}
-
-document.getElementById("carac-tab").addEventListener("change",activarPlaceholder);
-
-
-/* =====================================
-PRODUCTO
-===================================== */
-
-const productoId = Number(
-  document.getElementById("producto-detalle").dataset.id
-);
-
-
-async function obtenerProductoDetalle(){
-
-const res = await fetch(`${apiUrl}/productos/admin/${productoId}/caracteristicas`, {
-  credentials: "include"
-});
-
-if(!res.ok) throw new Error("No se pudo cargar producto");
-
-return res.json();
-
-}
-
-
-/* =====================================
-CARGAR CARACTERISTICAS
-===================================== */
-
-async function cargarCaracteristicas(){
-
-const tbody = document.querySelector("#tabla-caracteristicas tbody");
-const contador = document.getElementById("contador-carac");
-
-const prod = await obtenerProductoDetalle();
-
-if(!prod || prod.length===0){
-
-contador.textContent="";
-
-tbody.innerHTML=`
-<tr>
-<td colspan="5" class="text-center py-4 text-muted">
-No hay características agregadas
-</td>
-</tr>
-`;
-
-return;
-
-}
-
-contador.textContent = `${prod.length} registradas`;
-
-tbody.innerHTML = prod.map(c => `
-
-<tr data-id="${c.id_caracteristica}">
-
-<td class="carac-tipo">${c.tab?.nombre ?? "-"}</td>
-
-<td class="carac-orden">${c.orden ?? 0}</td>
-
-<td class="fw-semibold carac-titulo">${c.titulo}</td>
-
-<td class="carac-valor">${c.valor}</td>
-
-<td class="text-end">
-
-<button class="btn btn-sm btn-outline-primary btn-edit-carac">✏</button>
-
-<button class="btn btn-sm btn-danger btn-del-carac" data-id="${c.id_caracteristica}">✕</button>
-
-</td>
-
-</tr>
-
-`).join("");
-
-activarEliminar();
-activarEdicion();
-
-}
-
-
-/* =====================================
-ELIMINAR
-===================================== */
-
-function activarEliminar(){
-
-document.querySelectorAll(".btn-del-carac").forEach(btn=>{
-
-btn.addEventListener("click",async(e)=>{
-
-const idCarac = e.currentTarget.dataset.id;
-
-if(!confirm("¿Eliminar característica?")) return;
-
-await fetch(
-`${apiUrl}/productos/admin/${productoId}/caracteristicas/${idCarac}`,
-{method:"DELETE",credentials:"include"}
-);
-
-cargarCaracteristicas();
-
-});
-
-});
-
-}
-
-
-/* =====================================
-EDITAR
-===================================== */
-
-function activarEdicion(){
-
-document.querySelectorAll(".btn-edit-carac").forEach(btn=>{
-
-btn.addEventListener("click",e=>{
-
-const row = e.currentTarget.closest("tr");
-
-const tipoTd = row.querySelector(".carac-tipo");
-const ordenTd = row.querySelector(".carac-orden");
-const tituloTd = row.querySelector(".carac-titulo");
-const valorTd = row.querySelector(".carac-valor");
-
-const ordenActual = ordenTd.textContent.trim();
-const tituloActual = tituloTd.textContent.trim();
-const valorActual = valorTd.textContent.trim();
-
-tipoTd.innerHTML = `
-<select class="form-select form-select-sm edit-tab">
-${tabsCache.map(tab=>`
-<option value="${tab.id_tab}">
-${tab.nombre}
-</option>
-`).join("")}
-</select>
-`;
-
-ordenTd.innerHTML=`<input type="number" class="form-control form-control-sm edit-orden" value="${ordenActual}">`;
-
-tituloTd.innerHTML=`<input type="text" class="form-control form-control-sm edit-titulo" value="${tituloActual}">`;
-
-valorTd.innerHTML=`<input type="text" class="form-control form-control-sm edit-valor" value="${valorActual}">`;
-
-const accionesTd = row.querySelector("td.text-end");
-
-accionesTd.innerHTML=`
-<button class="btn btn-sm btn-success btn-save-carac">💾</button>
-<button class="btn btn-sm btn-secondary btn-cancel-carac">↩</button>
-`;
-
-accionesTd.querySelector(".btn-save-carac").addEventListener("click",async()=>{
-
-const nuevoTab = row.querySelector(".edit-tab").value;
-const nuevoOrden = row.querySelector(".edit-orden").value;
-const nuevoTitulo = row.querySelector(".edit-titulo").value.trim();
-const nuevoValor = row.querySelector(".edit-valor").value.trim();
-const idCarac = row.dataset.id;
-
-await fetch(
-`${apiUrl}/productos/admin/${productoId}/caracteristicas/${idCarac}`,
-{
-method:"PUT",
-headers:{ "Content-Type":"application/json" },
-credentials:"include",
-body:JSON.stringify({
-titulo:nuevoTitulo,
-valor:nuevoValor,
-tab_id:nuevoTab,
-orden:nuevoOrden
-})
-}
-);
-
-cargarCaracteristicas();
-
-});
-
-accionesTd.querySelector(".btn-cancel-carac")
-.addEventListener("click",cargarCaracteristicas);
-
-});
-
-});
-
-}
-
-
-/* =====================================
-CREAR
-===================================== */
-
-document.getElementById("form-carac")
-.addEventListener("submit",async e=>{
-
-e.preventDefault();
-
-const tab_id = Number(
-document.getElementById("carac-tab").value
-);
-
-const titulo = tituloInput.value.trim();
-const valor = valorInput.value.trim();
-
-
-await fetch(
-`${apiUrl}/productos/admin/${productoId}/caracteristicas`,
-{
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-credentials:"include",
-body:JSON.stringify({
-titulo,
-valor,
-tab_id
-})
-}
-);
-
-tituloInput.value="";
-valorInput.value="";
-
-
-cargarCaracteristicas();
-
-});
-
-
-/* =====================================
-INIT
-===================================== */
-
-document.addEventListener("DOMContentLoaded",async()=>{
-
-await cargarTabs();
-await cargarCaracteristicas();
-
-});
-
-</script>
-</div>
-
-
-
