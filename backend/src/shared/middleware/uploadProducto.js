@@ -1,5 +1,5 @@
 import { crearUpload } from "../../shared/middleware/upload.js";
 
-const uploadProducto = crearUpload("uploads/productos");
+const uploadProducto = crearUpload();
 
 export default uploadProducto;

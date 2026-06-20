@@ -1,15 +1,7 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 import { fileTypeFromBuffer } from "file-type";
 
-export function crearUpload(destino) {
-  const uploadDir = path.join(process.cwd(), destino);
-
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
+export function crearUpload() {
   const storage = multer.memoryStorage();
 
   const upload = multer({
@@ -22,35 +14,39 @@ export function crearUpload(destino) {
   const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
   return (req, res, next) => {
-    const handler = upload.single("file");
+    const handler = upload.single("imagen");
 
     handler(req, res, async (err) => {
-      if (err) return next(err);
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({
+          ok: false,
+          message: "El archivo excede el tamaño permitido (5MB)",
+        });
+      }
+
+      // Otros errores de multer o middleware
+      if (err) {
+        return next(err);
+      }
 
       if (!req.file) {
-        return next(new Error("No se subió ningún archivo"));
+        return res.status(400).json({
+          ok: false,
+          message: "No se subió ningún archivo",
+        });
       }
 
       try {
-        // 🔍 Detectar tipo REAL del archivo
         const type = await fileTypeFromBuffer(req.file.buffer);
 
         if (!type || !allowedTypes.includes(type.mime)) {
-          return next(new Error("Tipo de archivo no permitido"));
+          return res.status(400).json({
+            ok: false,
+            message:
+              "Tipo de archivo no permitido. Solo se permite JPG, PNG o WEBP.",
+          });
         }
 
-        // 📝 Generar nombre seguro
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-
-        const filename = `file-${uniqueSuffix}.${type.ext}`;
-        const filepath = path.join(uploadDir, filename);
-
-        // 💾 Guardar archivo SOLO si es válido
-        fs.writeFileSync(filepath, req.file.buffer);
-
-        // 📌 Adjuntar info al request
-        req.file.filename = filename;
-        req.file.path = filepath;
         req.file.mimetype = type.mime;
 
         next();

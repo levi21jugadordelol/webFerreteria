@@ -1,5 +1,5 @@
 import { crearUpload } from "./upload.js";
 
-const uploadMarca = crearUpload("uploads/marcas");
+const uploadMarca = crearUpload();
 
 export default uploadMarca;

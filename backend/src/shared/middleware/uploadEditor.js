@@ -1,5 +1,5 @@
 import { crearUpload } from "./upload.js";
 
-const uploadEditor = crearUpload("uploads/editor");
+const uploadEditor = crearUpload();
 
 export default uploadEditor;

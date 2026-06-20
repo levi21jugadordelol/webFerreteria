@@ -1,5 +1,5 @@
 import { crearUpload } from "./upload.js";
 
-const uploadHero = crearUpload("uploads/hero");
+const uploadHero = crearUpload();
 
 export default uploadHero;

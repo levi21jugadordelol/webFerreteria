@@ -1,5 +1,5 @@
 import { crearUpload } from "./upload.js";
 
-const uploadComprobante = crearUpload("uploads/comprobantes");
+const uploadComprobante = crearUpload();
 
 export default uploadComprobante;

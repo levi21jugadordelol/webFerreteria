@@ -1,5 +1,5 @@
 import { crearUpload } from "./upload.js";
 
-const uploadCategoria = crearUpload("uploads/categorias");
+const uploadCategoria = crearUpload();
 
 export default uploadCategoria;
