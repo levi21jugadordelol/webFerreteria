@@ -27,7 +27,13 @@ const Administrador = db.define(
     },
     rol: {
       type: DataTypes.STRING,
-      defaultValue: "admin",
+      allowNull: false,
+      defaultValue: "ADMIN",
+    },
+    estado: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "ACTIVO",
     },
   },
   {

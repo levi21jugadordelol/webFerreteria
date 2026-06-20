@@ -23,17 +23,21 @@ const Producto = db.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    descripcion: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
     precio: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
-    stock: {
+
+    stock_total: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 0,
+    },
+
+    stock_reservado: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
     },
     url_imagen: {
       type: DataTypes.STRING(255),
