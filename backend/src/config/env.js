@@ -53,4 +53,17 @@ export const env = Object.freeze({
 
   // auth
   JWT_SECRET: required(process.env.JWT_SECRET, "JWT_SECRET"),
+
+  // ☁️ cloudinary
+  CLOUDINARY: {
+    CLOUD_NAME: required(
+      process.env.CLOUDINARY_CLOUD_NAME,
+      "CLOUDINARY_CLOUD_NAME",
+    ),
+    API_KEY: required(process.env.CLOUDINARY_API_KEY, "CLOUDINARY_API_KEY"),
+    API_SECRET: required(
+      process.env.CLOUDINARY_API_SECRET,
+      "CLOUDINARY_API_SECRET",
+    ),
+  },
 });

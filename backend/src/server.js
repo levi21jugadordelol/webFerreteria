@@ -2,6 +2,7 @@ import app from "./app.js";
 import db from "./config/db.js";
 import { env } from "./config/env.js";
 import logger from "./shared/logger/logger.js";
+import { runMigrations } from "./config/runMigrations.js";
 
 // ⏰ Jobs
 import "./jobs/pagosCron.js";
@@ -15,11 +16,8 @@ const startServer = async () => {
     await db.authenticate();
     logger.info("Database connected successfully");
 
-    // ⚠️ SOLO en desarrollo
-    if (env.NODE_ENV === "development") {
-      await db.sync({ alter: true }); // puedes usar alter para ajustar tablas
-      logger.warn("⚠️ Database sync enabled (development only)");
-    }
+    // 🔥 SOLO migraciones
+    await runMigrations();
 
     // 🚀 Levantar servidor
     app.listen(env.PORT, () => {
