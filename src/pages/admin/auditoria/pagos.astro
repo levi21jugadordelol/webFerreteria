@@ -9,49 +9,142 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 </AdminLayout>
 
 <script is:client>
+const API = "http://localhost:3000/api/v1/auditoria/pagos";
+const cont = document.getElementById("tabla-auditoria");
 
-const API = "http://localhost:3000/api/auditoria/pagos"
-
-async function cargar(){
-
- const res = await fetch(API,{credentials:"include"})
- const data = await res.json()
-
- const cont = document.getElementById("tabla-auditoria")
-
- cont.innerHTML = `
-  <table class="table table-striped">
-
-   <thead>
-    <tr>
-     <th>ID</th>
-     <th>Comprobante</th>
-     <th>Acción</th>
-     <th>Admin</th>
-     <th>Fecha</th>
-    </tr>
-   </thead>
-
-   <tbody>
-
-   ${
-    data.map(a=>`
-     <tr>
-      <td>${a.id_auditoria}</td>
-      <td>#${a.comprobante_id}</td>
-      <td>${a.accion}</td>
-      <td>${a.admin_usuario}</td>
-      <td>${new Date(a.fecha).toLocaleString()}</td>
-     </tr>
-    `).join("")
-   }
-
-   </tbody>
-
-  </table>
- `
+function crearCelda(texto) {
+  const td = document.createElement("td");
+  td.textContent = texto ?? "-";
+  return td;
 }
 
-cargar()
+function badgeAccion(accion = "") {
+  const span = document.createElement("span");
+  const value = String(accion || "").toLowerCase();
 
+  span.textContent = accion || "-";
+  span.className = "badge";
+
+  if (value === "validado") {
+    span.classList.add("bg-success");
+  } else if (value === "rechazado") {
+    span.classList.add("bg-danger");
+  } else if (value === "revertido") {
+    span.classList.add("bg-warning", "text-dark");
+  } else if (value === "vencido") {
+    span.classList.add("bg-secondary");
+  } else {
+    span.classList.add("bg-info");
+  }
+
+  return span;
+}
+
+function crearTabla(data) {
+  const table = document.createElement("table");
+  table.className = "table table-striped align-middle";
+
+  const thead = document.createElement("thead");
+  thead.innerHTML = `
+    <tr>
+      <th>ID</th>
+      <th>Comprobante</th>
+      <th>Acción</th>
+      <th>Admin</th>
+      <th>Fecha</th>
+      <th>Alerta</th>
+    </tr>
+  `;
+
+  const tbody = document.createElement("tbody");
+
+  const rechazosPorComprobante = data.reduce((acc, item) => {
+    if (String(item.accion).toLowerCase() === "rechazado") {
+      acc[item.comprobante_id] = (acc[item.comprobante_id] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  data.forEach((a) => {
+    const tr = document.createElement("tr");
+
+    tr.appendChild(crearCelda(String(a.id_auditoria ?? "-")));
+    tr.appendChild(crearCelda(`#${a.comprobante_id ?? "-"}`));
+
+    const tdAccion = document.createElement("td");
+    tdAccion.appendChild(badgeAccion(a.accion));
+    tr.appendChild(tdAccion);
+
+    tr.appendChild(crearCelda(a.admin_usuario || "-"));
+
+    const fecha = a.fecha ? new Date(a.fecha).toLocaleString() : "-";
+    tr.appendChild(crearCelda(fecha));
+
+    const tdAlerta = document.createElement("td");
+    const rechazos = rechazosPorComprobante[a.comprobante_id] || 0;
+
+    if (rechazos >= 3) {
+      const span = document.createElement("span");
+      span.className = "badge bg-danger";
+      span.textContent = "Sospechoso";
+      tdAlerta.appendChild(span);
+    } else if (rechazos > 0) {
+      const span = document.createElement("span");
+      span.className = "badge bg-warning text-dark";
+      span.textContent = `${rechazos} rechazo(s)`;
+      tdAlerta.appendChild(span);
+    } else {
+      tdAlerta.textContent = "-";
+    }
+
+    tr.appendChild(tdAlerta);
+
+    tbody.appendChild(tr);
+  });
+
+  table.append(thead, tbody);
+  return table;
+}
+
+async function cargar() {
+  cont.replaceChildren();
+
+  const loading = document.createElement("p");
+  loading.className = "text-muted";
+  loading.textContent = "Cargando auditoría...";
+  cont.appendChild(loading);
+
+  try {
+    const res = await fetch(API, { credentials: "include" });
+    const result = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(result?.message || result?.msg || "Error cargando auditoría");
+    }
+
+    const data = Array.isArray(result.data) ? result.data : [];
+
+    cont.replaceChildren();
+
+    if (data.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "alert alert-info";
+      empty.textContent = "No hay registros de auditoría.";
+      cont.appendChild(empty);
+      return;
+    }
+
+    cont.appendChild(crearTabla(data));
+  } catch (error) {
+    cont.replaceChildren();
+
+    const alert = document.createElement("div");
+    alert.className = "alert alert-danger";
+    alert.textContent = error.message || "Error cargando auditoría";
+
+    cont.appendChild(alert);
+  }
+}
+
+cargar();
 </script>

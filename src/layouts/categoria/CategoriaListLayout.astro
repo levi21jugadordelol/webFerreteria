@@ -2,7 +2,9 @@
 import CategoriaList from "../../components/shared/categoria/CategoriaList.astro";
 
 // 🔗 Backend
-const API_URL = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL ||
+  "http://localhost:3000/api/v1";
 
 // 🧠 Defaults
 let siteContent = {
@@ -14,7 +16,7 @@ let image = undefined;
 
 // 🌐 Fetch CMS
 try {
-  const res = await fetch(`${API_URL}/api/site-settings`);
+  const res = await fetch(`${API_URL}/site-settings`);
   if (res.ok) {
     const settings = await res.json();
 

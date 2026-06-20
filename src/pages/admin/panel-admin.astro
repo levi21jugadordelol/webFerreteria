@@ -70,115 +70,95 @@ import AdminLayout from "../../layouts/AdminLayout.astro";
 
 
 <script is:client>
+const API_URL = "http://localhost:3000/api/v1";
 
-async function cargarDashboard(){
+async function fetchJSON(url) {
+  const res = await fetch(url, {
+    credentials: "include",
+  });
 
- try{
+  const result = await res.json();
 
-  const res = await fetch(
-   "http://localhost:3000/api/dashboard",
-   {credentials:"include"}
-  )
-
-  const data = await res.json()
-
-  document.getElementById("totalProductos").innerText = data.totalProductos
-  document.getElementById("ventasHoy").innerText = data.ventasHoy
-  document.getElementById("pagosPendientes").innerText = data.pagosPendientes
-  document.getElementById("stockBajo").innerText = data.stockBajo
-
-  /* ALERTAS AUTOMÁTICAS */
-
-  if(data.pagosPendientes > 3){
-    document.getElementById("pagosPendientes").classList.add("text-danger")
+  if (!res.ok) {
+    throw new Error(result?.message || result?.msg || "Error en la API");
   }
 
-  if(data.stockBajo > 0){
-    document.getElementById("stockBajo").classList.add("text-danger")
+  return result.data ?? result;
+}
+
+async function cargarDashboard() {
+  try {
+    const data = await fetchJSON(`${API_URL}/dashboard`);
+
+    const stats = data.stats ?? {};
+
+    const totalProductos = stats.totalProductos ?? 0;
+    const ventasHoy = stats.totalVentas ?? 0;
+    const pagosPendientes = stats.pagosPendientes ?? 0;
+    const stockBajo = stats.stockBajo ?? 0;
+
+    document.getElementById("totalProductos").innerText = totalProductos;
+    document.getElementById("ventasHoy").innerText = ventasHoy;
+    document.getElementById("pagosPendientes").innerText = pagosPendientes;
+    document.getElementById("stockBajo").innerText = stockBajo;
+
+    if (pagosPendientes > 3) {
+      document.getElementById("pagosPendientes").classList.add("text-danger");
+    }
+
+    if (stockBajo > 0) {
+      document.getElementById("stockBajo").classList.add("text-danger");
+    }
+  } catch (error) {
+    console.error("Error dashboard", error);
   }
-
- }catch(error){
-
-  console.error("Error dashboard",error)
-
- }
-
 }
 
+async function cargarActividad() {
+  try {
+    const data = await fetchJSON(`${API_URL}/dashboard/actividad`);
 
-async function cargarActividad(){
+    const cont = document.getElementById("actividad-reciente");
 
- try{
+    if (data.length === 0) {
+      cont.innerHTML = `
+        <div class="alert alert-info">
+          No hay actividad reciente
+        </div>
+      `;
+      return;
+    }
 
- const res = await fetch(
-  "http://localhost:3000/api/dashboard/actividad",
-  {credentials:"include"}
- )
+    cont.innerHTML = `
+      <ul class="list-group">
+        ${data.map(a => `
+          <li class="list-group-item d-flex justify-content-between">
+            <span>
+              ${iconoAccion(a.accion)}
+              ${a.accion} comprobante #${a.comprobante_id}
+            </span>
 
- const data = await res.json()
-
- const cont = document.getElementById("actividad-reciente")
-
- if(data.length===0){
-
-   console.log(data)
-
-  cont.innerHTML = `
-   <div class="alert alert-info">
-    No hay actividad reciente
-   </div>
-  `
-  return
- }
-
- cont.innerHTML = `
-  <ul class="list-group">
-
-  ${
-
-   data.map(a=>`
-
-    <li class="list-group-item d-flex justify-content-between">
-
-      <span>
-        ${iconoAccion(a.accion)} 
-        ${a.accion} comprobante #${a.comprobante_id}
-      </span>
-
-      <small class="text-muted">
-        ${new Date(a.fecha).toLocaleString()}
-      </small>
-
-    </li>
-
-   `).join("")
+            <small class="text-muted">
+              ${new Date(a.fecha).toLocaleString()}
+            </small>
+          </li>
+        `).join("")}
+      </ul>
+    `;
+  } catch (error) {
+    console.error("Error actividad", error);
   }
-
-  </ul>
- `
-
- }catch(error){
-
-  console.error("Error actividad",error)
-
- }
-
 }
 
+function iconoAccion(accion) {
+  if (accion === "validado") return "✅";
+  if (accion === "revertido") return "↩️";
 
-function iconoAccion(accion){
-
- if(accion==="validado") return "✅"
- if(accion==="revertido") return "↩️"
-
- return "📌"
-
+  return "📌";
 }
 
-
-cargarDashboard()
-cargarActividad()
-
+cargarDashboard();
+cargarActividad();
 </script>
 
 

@@ -3,7 +3,12 @@ export const prerender = false;
 
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 
-/* 🧠 Definir tipo */
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+
+const UPLOADS_URL =
+  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
+
 interface HeroSlide {
   id_hero: number;
   titulo1?: string;
@@ -17,24 +22,37 @@ interface HeroSlide {
   activo: boolean;
 }
 
-const res = await fetch("http://localhost:3000/api/hero");
-const slides: HeroSlide[] = await res.json();
+let slides: HeroSlide[] = [];
+
+try {
+  const res = await fetch(`${API_URL}/hero`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error ${res.status}`);
+  }
+
+  const result = await res.json();
+
+  slides = result.data ?? [];
+} catch (error) {
+  console.error("Error cargando preview hero:", error);
+}
 ---
 
 <AdminLayout title="Preview Hero">
-
   <div class="container">
-
     <div class="carousel slide">
-
       {slides.map((slide: HeroSlide) => (
         <div class="mb-4 p-4 border rounded">
           <img
-            src={`http://localhost:3000/uploads/${slide.imagen}`}
+            src={`${UPLOADS_URL}/${slide.imagen}`}
             class="img-fluid mb-3"
           />
 
           <h3>{slide.titulo1}</h3>
+
           <p>{slide.titulo2}</p>
 
           {slide.mostrar_boton && (
@@ -44,10 +62,6 @@ const slides: HeroSlide[] = await res.json();
           )}
         </div>
       ))}
-
     </div>
-
   </div>
-
 </AdminLayout>
-

@@ -61,63 +61,50 @@ const { slides } = Astro.props as { slides: Slide[] };
 
 <script is:inline>
 document.addEventListener("DOMContentLoaded", function () {
+  const API_URL = "http://localhost:3000/api/v1";
 
   document.querySelectorAll(".heroList").forEach(heroList => {
+    new Sortable(heroList, {
+      animation: 200,
+      handle: ".drag-handle",
+      ghostClass: "drag-ghost",
+      chosenClass: "drag-chosen",
 
-  new Sortable(heroList, {
+      onEnd: async function () {
+        const items = [...heroList.children];
 
-    animation: 200,
-    handle: ".drag-handle",
-    ghostClass: "drag-ghost",
-    chosenClass: "drag-chosen",
+        const slides = items.map((el, index) => ({
+          id_hero: el.dataset.id,
+          orden: index + 1,
+        }));
 
-    onEnd: async function () {
-
-      const items = [...heroList.children];
-
-      const slides = items.map((el, index) => ({
-        id_hero: el.dataset.id,
-        orden: index+1
-      }));
-
-      await fetch("http://localhost:3000/api/hero/orden", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ slides })
-      });
-
-    }
-
+        await fetch(`${API_URL}/hero/orden`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ slides }),
+        });
+      },
+    });
   });
 
-});
-
-  // 🔥 ELIMINAR
   document.querySelectorAll(".btn-delete").forEach(btn => {
-
     btn.addEventListener("click", async function () {
-
       const id = this.dataset.id;
 
       if (!confirm("¿Eliminar este slide?")) return;
 
       try {
-
-        const res = await fetch(
-          `http://localhost:3000/api/hero/${id}`,
-          {
-            method: "DELETE",
-            credentials: "include"
-          }
-        );
+        const res = await fetch(`${API_URL}/hero/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
 
         if (!res.ok) {
           alert("Error al eliminar");
           return;
         }
 
-        // 💥 Eliminación visual sin recargar
         const row = this.closest(".hero-row");
         row.style.transition = "opacity 0.3s";
         row.style.opacity = "0";
@@ -125,15 +112,11 @@ document.addEventListener("DOMContentLoaded", function () {
         setTimeout(() => {
           row.remove();
         }, 300);
-
       } catch (error) {
         alert("Error inesperado");
       }
-
     });
-
   });
-
 });
 </script>
 

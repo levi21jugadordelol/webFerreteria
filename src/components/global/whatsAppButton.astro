@@ -5,36 +5,57 @@ interface SiteSettings {
   };
 }
 
-const apiUrl = new URL("/api/site-settings", Astro.url).toString();
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 let config: SiteSettings = {};
 
 try {
-  const res = await fetch(apiUrl, {
-    cache: "no-store"
+  const res = await fetch(`${API_URL}/site-settings`, {
+    cache: "no-store",
   });
 
   if (res.ok) {
-    config = await res.json();
+    const result = await res.json();
+    config = result.data ?? {};
   }
-
 } catch (error) {
   console.error("Error cargando site-settings:", error);
 }
 
-const whatsappNumber = config.site_content?.whatsapp ?? "";
+/* =========================
+   HELPERS
+========================= */
+
+function safeWhatsapp(number = "") {
+  const clean = String(number)
+    .replace(/\D/g, "");
+
+  return clean.length >= 8
+    ? clean
+    : "";
+}
+
+const whatsappNumber = safeWhatsapp(
+  config.site_content?.whatsapp
+);
 ---
 
-<a
-  href={`https://wa.me/${whatsappNumber}`}
-  class="whatsapp-float"
-  target="_blank"
->
-  💬
-</a>
+{
+  whatsappNumber && (
+    <a
+      href={`https://wa.me/${whatsappNumber}`}
+      class="whatsapp-float"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="WhatsApp"
+    >
+      💬
+    </a>
+  )
+}
 
 <style>
-
 .whatsapp-float {
   position: fixed;
   bottom: 25px;
@@ -64,16 +85,16 @@ const whatsappNumber = config.site_content?.whatsapp ?? "";
 }
 
 @keyframes pulseWhatsapp {
-  0% { box-shadow: 0 0 0 0 rgba(37,211,102,.6); }
-  70% { box-shadow: 0 0 0 15px rgba(37,211,102,0); }
-  100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(37,211,102,.6);
+  }
+
+  70% {
+    box-shadow: 0 0 0 15px rgba(37,211,102,0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(37,211,102,0);
+  }
 }
-
 </style>
-
-
-
-
-
-
-

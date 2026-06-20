@@ -3,24 +3,6 @@ export const prerender = false;
 
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 import HeroForm from "../../../components/admin/HeroForm.astro";
-
-// 🔐 Validación admin (SSR)
-const token = Astro.cookies.get("_token");
-
-if (!token) {
-  return Astro.redirect("/admin/login");
-}
-
-const validar = await fetch("http://localhost:3000/auth/validar", {
-  headers: {
-    cookie: Astro.request.headers.get("cookie") ?? "",
-  },
-  credentials: "include",
-});
-
-if (!validar.ok) {
-  return Astro.redirect("/admin/login");
-}
 ---
 
 <AdminLayout title="Nuevo Slide Hero">

@@ -4,7 +4,24 @@ import Button from "../ui/Button.astro";
 
 export const prerender = false;
 
-const API_URL = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+
+const UPLOADS_URL =
+  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
+
+  const imagenHeroSegura = (path = "") => {
+  const cleanPath = String(path || "").replace(/^\/+/, "");
+
+  if (!cleanPath) return "/img/no-image.png";
+  if (cleanPath.includes("..")) return "/img/no-image.png";
+
+  return `${UPLOADS_URL}/${encodeURIComponent(cleanPath)}`;
+};
+
+const urlInternaSegura = (url = "") => {
+  return /^\/[a-zA-Z0-9/_?=&-]*$/.test(url) ? url : "#";
+};
 
 interface HeroSlide {
   id_hero: number;
@@ -22,8 +39,16 @@ interface HeroSlide {
 let clientes: HeroSlide[] = [];
 
 try {
-  const res = await fetch(`${API_URL}/api/hero?type=carousel`);
-  if (res.ok) clientes = await res.json();
+  const res = await fetch(`${API_URL}/hero?type=carousel`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    console.error("Error cargando hero:", res.status, res.statusText);
+  } else {
+    const result = await res.json();
+    clientes = result.data ?? [];
+  }
 } catch (error) {
   console.error("Error cargando hero:", error);
 }
@@ -46,7 +71,7 @@ try {
               <div class="w-100 h-100 d-flex align-items-center">
 
                 <img
-                  src={`${API_URL}/uploads/${slide.imagen}`}
+                  src={imagenHeroSegura(slide.imagen)}
                   alt=""
                   class="img-fluid w-100 rounded"
                   style="height:100%; object-fit:cover;"
@@ -65,7 +90,7 @@ try {
 
                   <div class="col-lg-7">
                   <img
-  src={`${API_URL}/uploads/${slide.imagen}`}
+  src={imagenHeroSegura(slide.imagen)}
   alt=""
   class="w-100"
   style="height:100%; object-fit:cover;"
@@ -89,7 +114,7 @@ try {
                     )}
 
                     {slide.mostrar_boton && slide.boton_texto && (
-                      <Button href={slide.boton_url ?? "#"}>
+                      <Button href={urlInternaSegura(slide.boton_url ?? "")}>
                         {slide.boton_texto}
                       </Button>
                     )}

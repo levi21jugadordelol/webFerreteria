@@ -4,15 +4,23 @@ interface Marca {
   nombre_marca: string;
 }
 
-const apiUrl = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+
 let marcas: Marca[] = [];
 
 const categoriaActual = Astro.url.searchParams.get("categoria") || "";
 const marcaActual = Astro.url.searchParams.get("marca") || "";
 
 try {
-  const res = await fetch(apiUrl + "/marcas");
-  if (res.ok) marcas = await res.json();
+  const res = await fetch(`${API_URL}/marcas`, {
+    cache: "no-store",
+  });
+
+  if (res.ok) {
+    const result = await res.json();
+    marcas = result.data ?? [];
+  }
 } catch (e) {
   console.error("Error cargando marcas", e);
 }

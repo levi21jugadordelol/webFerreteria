@@ -14,36 +14,50 @@ interface Producto {
   descripcion: string;
   precio: number;
   url_imagen: string | null;
-  stock: number;   // 👈 AGREGA ESTO
+  stock_total: number;
+  stock_reservado: number;
+  stock_disponible: number;
+  agotado: boolean;
 }
 
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
-const apiUrl = "http://localhost:3000";
+const UPLOADS_URL =
+  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
+
 const urlParams = Astro.url.searchParams;
 
 const marca = urlParams.get("marca");
 const categoria = urlParams.get("categoria");
 const maxPrecio = urlParams.get("max");
 
-// -------------------------
-// Construcción del endpoint
-// -------------------------
-let backendURL = new URL(apiUrl + "/productos");
+let backendURL = new URL(`${API_URL}/productos`);
 
 if (maxPrecio && !isNaN(Number(maxPrecio))) {
-  backendURL = new URL(apiUrl + "/productos/precio");
+  backendURL = new URL(`${API_URL}/productos/precio`);
   backendURL.searchParams.set("max", maxPrecio);
 } else {
   if (marca) backendURL.searchParams.set("marca", marca);
   if (categoria) backendURL.searchParams.set("categoria", categoria);
 }
 
-// -------------------------
-// Fetch productos
-// -------------------------
-const res = await fetch(backendURL);
-const data = await res.json();
-const productos: Producto[] = Array.isArray(data) ? data : [];
+let productos: Producto[] = [];
+
+try {
+  const res = await fetch(backendURL, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    console.error("Error cargando productos:", res.status, res.statusText);
+  } else {
+    const result = await res.json();
+    productos = result.data ?? [];
+  }
+} catch (error) {
+  console.error("Error cargando productos:", error);
+}
 ---
 
 <BaseLayout title="Productos">
@@ -84,16 +98,16 @@ const productos: Producto[] = Array.isArray(data) ? data : [];
       {productos.length > 0 && (
         <div class="product-grid">
           {productos.map((p) => (
-    <ProductoCardSimpleBtn
+<ProductoCardSimpleBtn
   id={p.id_producto}
   slug={p.slug}
   titulo={p.nombre_producto}
   precio={p.precio}
-  stock={p.stock}
-  agotado={p.stock <= 0}
+  stock={p.stock_disponible}
+  agotado={p.agotado}
   imagen={{
     src: p.url_imagen
-      ? `${apiUrl}/uploads/${p.url_imagen}`
+      ? `${UPLOADS_URL}/${p.url_imagen}`
       : "/img/no-image.png"
   }}
 />

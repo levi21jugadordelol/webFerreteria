@@ -1,111 +1,155 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
-import "../../../styles/admin/menu.css"; // 🔥 IMPORTANTE
+import "../../../styles/admin/menu.css";
 ---
 
 <AdminLayout title="Menú del sitio">
+  <div class="mb-3">
+    <a href="/admin/menu/nuevo" class="btn btn-primary">
+      Nuevo enlace
+    </a>
+  </div>
 
-<div class="mb-3">
-  <a href="/admin/menu/nuevo" class="btn btn-primary">
-    Nuevo enlace
-  </a>
-</div>
-
-<div id="menuList" class="menuList"></div>
-
+  <div id="menuList" class="menuList"></div>
 </AdminLayout>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <script is:inline>
 document.addEventListener("DOMContentLoaded", async function () {
+  const API = "http://localhost:3000/api/v1";
 
-  const API = "http://localhost:3000"
+  async function fetchJSON(url, options = {}) {
+    const res = await fetch(url, {
+      credentials: "include",
+      ...options,
+    });
 
-  async function cargarMenu(){
+    const result = await res.json().catch(() => ({}));
 
-    const res = await fetch(
-      API + "/api/menu/admin/lista",
-      { credentials:"include" }
-    )
+    if (!res.ok) {
+      throw new Error(result?.message || result?.msg || "Error en la API");
+    }
 
-    const data = await res.json()
-
-    const cont = document.getElementById("menuList")
-
-    cont.innerHTML = data.map(m => `
-      <div class="menu-row" data-id="${m.id_menu}">
-
-        <div class="drag-handle">☰</div>
-
-        <div class="menu-info">
-          <strong>${m.titulo}</strong>
-          <small>${m.url} | ${m.tipo}</small>
-        </div>
-
-        <div class="menu-actions">
-          <a href="/admin/menu/editar/${m.id_menu}" class="btn btn-sm btn-warning">✏</a>
-          <button class="btn btn-sm btn-danger btn-delete" data-id="${m.id_menu}">🗑</button>
-        </div>
-
-      </div>
-    `).join("")
-
-    initSortable()
-    initEliminar()
+    return result.data ?? result;
   }
 
-  function initSortable(){
+  function escapeHTML(value = "") {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
 
-    const menuList = document.getElementById("menuList")
+  async function cargarMenu() {
+    const cont = document.getElementById("menuList");
+
+    try {
+      const data = await fetchJSON(`${API}/menu/admin/lista`);
+
+      if (!Array.isArray(data) || data.length === 0) {
+        cont.innerHTML = `<p class="text-muted">No hay enlaces de menú.</p>`;
+        return;
+      }
+
+      cont.innerHTML = data
+  .filter((m) => Number(m.id_menu) > 0)
+  .map((m) => {
+    const idMenu = Number(m.id_menu);
+        const titulo = escapeHTML(m.titulo ?? "-");
+        const url = escapeHTML(m.url ?? "-");
+        const tipo = escapeHTML(m.tipo ?? "-");
+
+        return `
+          <div class="menu-row" data-id="${idMenu}">
+            <div class="drag-handle">☰</div>
+
+            <div class="menu-info">
+              <strong>${titulo}</strong>
+              <small>${url} | ${tipo}</small>
+            </div>
+
+            <div class="menu-actions">
+              <a
+                href="/admin/menu/editar/${idMenu}"
+                class="btn btn-sm btn-warning"
+              >
+                ✏
+              </a>
+
+              <button
+                class="btn btn-sm btn-danger btn-delete"
+                data-id="${idMenu}"
+              >
+                🗑
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      initSortable();
+      initEliminar();
+    } catch (err) {
+      cont.innerHTML = `
+        <p class="text-danger">
+          Error cargando menú: ${escapeHTML(err.message)}
+        </p>
+      `;
+    }
+  }
+
+  function initSortable() {
+    const menuList = document.getElementById("menuList");
+
+    if (!menuList) return;
 
     new Sortable(menuList, {
       animation: 200,
       handle: ".drag-handle",
-      ghostClass: "drag-ghost",
-      chosenClass: "drag-chosen",
 
       onEnd: async function () {
+        const items = [...menuList.children];
 
-        const items = [...menuList.children]
+        const menus = items
+          .map((el, index) => ({
+            id_menu: Number(el.dataset.id),
+            orden: index + 1,
+          }))
+          .filter((item) => item.id_menu);
 
-        const menus = items.map((el, index) => ({
-          id_menu: el.dataset.id,
-          orden: index + 1
-        }))
-
-        await fetch(API + "/api/menu/admin/orden", {
+        await fetchJSON(`${API}/menu/admin/orden`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ menus })
-        })
-
-      }
-    })
+          body: JSON.stringify({ menus }),
+        });
+      },
+    });
   }
 
-  function initEliminar(){
-
-    document.querySelectorAll(".btn-delete").forEach(btn => {
-
+  function initEliminar() {
+    document.querySelectorAll(".btn-delete").forEach((btn) => {
       btn.addEventListener("click", async function () {
+        const id = Number(this.dataset.id);
 
-        const id = this.dataset.id
+        if (!id) {
+          alert("ID inválido");
+          return;
+        }
 
-        if (!confirm("¿Eliminar este enlace del menú?")) return
+        if (!confirm("¿Eliminar este enlace del menú?")) return;
 
-        await fetch(API + "/api/menu/admin/" + id, {
-          method:"DELETE",
-          credentials:"include"
-        })
+        await fetchJSON(`${API}/menu/admin/${id}`, {
+          method: "DELETE",
+        });
 
-        cargarMenu()
-      })
-    })
+        cargarMenu();
+      });
+    });
   }
 
-  cargarMenu()
-
-})
+  cargarMenu();
+});
 </script>

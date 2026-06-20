@@ -378,83 +378,125 @@ if (linkSelector && linkInput) {
 
   }
 
+
+
+
+function safeUrl(url) {
+  const value = String(url || "").trim();
+
+  if (!value) return "#";
+
+  if (value.startsWith("/")) {
+    return value;
+  }
+
+  try {
+    const parsed = new URL(value);
+
+    if (
+      parsed.protocol === "https:" ||
+      parsed.protocol === "http:"
+    ) {
+      return value;
+    }
+  } catch {}
+
+  return "#";
+}
+
+function mostrarMensaje(tipo, texto) {
+  const mensaje = document.getElementById("mensaje");
+
+  const div = document.createElement("div");
+  div.className = `alert ${tipo}`;
+  div.textContent = texto || "Operación procesada";
+
+  mensaje.replaceChildren(div);
+}
+
   /* ---------- PREVIEW ---------- */
 
-  function updatePreview(imageUrl = null){
 
-    const layout = getLayout();
-    const config = getConfig();
 
-    const titulo1 = form.titulo1.value || "Título ejemplo";
-    const titulo2 = form.titulo2.value || "Subtítulo ejemplo";
-    const botonTexto = form.boton_texto.value || "Botón";
 
-    const link = linkInput?.value || "javascript:void(0)";
+ function updatePreview(imageUrl = null) {
+  const config = getConfig();
 
-    const img =
-      imageUrl ||
-      preview.querySelector("img")?.src ||
-      "https://via.placeholder.com/1200x500?text=Preview";
+  const titulo1 = form.titulo1.value || "Título ejemplo";
+  const titulo2 = form.titulo2.value || "Subtítulo ejemplo";
+  const botonTexto = form.boton_texto.value || "Botón";
 
-    preview.innerHTML = `
-      <div style="
-        position:relative;
-        width:100%;
-        height:320px;
-        overflow:hidden;
-        border-radius:8px;
-        background:#000;
-      ">
+  const link = safeUrl(linkInput?.value);
 
-        ${
-          config.link
-          ? `<a href="${link}" target="_blank" style="display:block;height:100%">`
-          : ""
-        }
+  const img =
+    imageUrl ||
+    preview.querySelector("img")?.src ||
+    "https://via.placeholder.com/1200x500?text=Preview";
 
-        <img src="${img}" style="
-          width:100%;
-          height:100%;
-          object-fit:cover;
-          opacity:${config.text ? 0.85 : 1};
-        ">
+  const wrapper = document.createElement("div");
+  wrapper.style.position = "relative";
+  wrapper.style.width = "100%";
+  wrapper.style.height = "320px";
+  wrapper.style.overflow = "hidden";
+  wrapper.style.borderRadius = "8px";
+  wrapper.style.background = "#000";
 
-        ${config.link ? `</a>` : ""}
+  const image = document.createElement("img");
+  image.src = img;
+  image.style.width = "100%";
+  image.style.height = "100%";
+  image.style.objectFit = "cover";
+  image.style.opacity = config.text ? "0.85" : "1";
 
-        ${
-          config.text
-          ? `
-          <div style="
-            position:absolute;
-            inset:0;
-            display:flex;
-            flex-direction:column;
-            justify-content:center;
-            align-items:${config.align};
-            padding:40px;
-            color:white;
-            text-align:${config.textAlign};
-          ">
-
-            <h2 style="margin-bottom:10px">${titulo1}</h2>
-            <p style="margin-bottom:20px">${titulo2}</p>
-
-            ${
-              config.button && mostrarBoton.checked
-              ? `<button class="btn btn-primary" style="width:max-content">
-                  ${botonTexto}
-                </button>`
-              : ""
-            }
-
-          </div>
-          `
-          : ""
-        }
-
-      </div>
-    `;
+  if (config.link) {
+    const linkEl = document.createElement("a");
+    linkEl.href = link;
+    linkEl.target = "_blank";
+    linkEl.rel = "noopener noreferrer";
+    linkEl.style.display = "block";
+    linkEl.style.height = "100%";
+    linkEl.appendChild(image);
+    wrapper.appendChild(linkEl);
+  } else {
+    wrapper.appendChild(image);
   }
+
+  if (config.text) {
+    const overlay = document.createElement("div");
+    overlay.style.position = "absolute";
+    overlay.style.inset = "0";
+    overlay.style.display = "flex";
+    overlay.style.flexDirection = "column";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = config.align;
+    overlay.style.padding = "40px";
+    overlay.style.color = "white";
+    overlay.style.textAlign = config.textAlign;
+
+    const h2 = document.createElement("h2");
+    h2.style.marginBottom = "10px";
+    h2.textContent = titulo1;
+
+    const p = document.createElement("p");
+    p.style.marginBottom = "20px";
+    p.textContent = titulo2;
+
+    overlay.append(h2, p);
+
+    if (config.button && mostrarBoton.checked) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "btn btn-primary";
+      button.style.width = "max-content";
+      button.textContent = botonTexto;
+      overlay.appendChild(button);
+    }
+
+    wrapper.appendChild(overlay);
+  }
+
+  preview.replaceChildren(wrapper);
+}
 
   /* ---------- EVENTOS ---------- */
 
@@ -498,9 +540,11 @@ if (linkSelector && linkInput) {
 
     const id = form.dataset.id;
 
-    const url = id
-      ? `http://localhost:3000/api/hero/${id}`
-      : `http://localhost:3000/api/hero`;
+    const API_URL = "http://localhost:3000/api/v1";
+
+const url = id
+  ? `${API_URL}/hero/${id}`
+  : `${API_URL}/hero`;
 
     const method = id ? "PUT" : "POST";
 
@@ -512,18 +556,17 @@ if (linkSelector && linkInput) {
         credentials:"include"
       });
 
-      const data = await res.json();
+      const result = await res.json();
+const data = result.data ?? result;
 
-      mensaje.innerHTML = `
-        <div class="alert ${res.ok ? "alert-success" : "alert-danger"}">
-          ${data.msg}
-        </div>
-      `;
+      mostrarMensaje(
+  res.ok ? "alert-success" : "alert-danger",
+  data.msg
+);
 
     } catch {
 
-      mensaje.innerHTML =
-        `<div class="alert alert-danger">Error de conexión</div>`;
+     mostrarMensaje("alert-danger", "Error de conexión");
 
     }
 

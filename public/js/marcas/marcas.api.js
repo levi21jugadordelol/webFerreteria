@@ -29,7 +29,7 @@ export async function crearMarca(apiUrl, payload) {
 
 export async function subirLogoMarca(apiUrl, marcaId, archivo) {
   const formData = new FormData();
-  formData.append("file", archivo);
+  formData.append("imagen", archivo);
 
   const res = await fetch(`${apiUrl}/marcas/subir-logo/${marcaId}`, {
     method: "POST",

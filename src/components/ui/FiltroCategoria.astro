@@ -6,16 +6,23 @@ interface Categoria {
   url_imagen: string | null;
 }
 
-const apiUrl = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+
 let categorias: Categoria[] = [];
 
 const marcaActual = Astro.url.searchParams.get("marca") || "";
 const categoriaActual = Astro.url.searchParams.get("categoria") || "";
 
-
 try {
-  const res = await fetch(apiUrl + "/categorias");
-  if (res.ok) categorias = await res.json() as Categoria[];
+  const res = await fetch(`${API_URL}/categorias`, {
+    cache: "no-store",
+  });
+
+  if (res.ok) {
+    const result = await res.json();
+    categorias = result.data ?? [];
+  }
 } catch (e) {
   console.error("Error cargando categorías", e);
 }

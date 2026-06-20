@@ -60,7 +60,7 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 
 <script is:client>
 
-const API = "http://localhost:3000"
+
 
 const select = document.getElementById("paginaSelect")
 const tipoSelect = document.getElementById("tipoSelect")
@@ -73,7 +73,7 @@ const rutaInput = document.getElementById("rutaInput")
 ---------------------------*/
 async function cargarPaginas(){
   try{
-    const res = await fetch(API + "/api/paginas")
+    const res = await fetch("/api/paginas")
     const paginas = await res.json()
 
     paginas.forEach(p=>{
@@ -175,7 +175,7 @@ data.parent_id = parentSelect.value || null
   ---------------------------*/
   try{
 
-    const res = await fetch(API + "/api/menu/admin", {
+    const res = await fetch("/api/menu/admin", {
       method:"POST",
       body:JSON.stringify(data),
       headers:{ "Content-Type":"application/json" },
@@ -214,7 +214,7 @@ const parentSelect = document.getElementById("parentSelect")
 
 async function cargarPadres(){
   try{
-    const res = await fetch(API + "/api/menu/admin/lista", {
+    const res = await fetch("/api/menu/admin/lista", {
       credentials:"include"
     })
 

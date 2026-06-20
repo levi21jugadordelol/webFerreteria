@@ -8,10 +8,35 @@ interface Marca {
   url_logo: string | null;
 }
 
-const apiUrl = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL ||
+  "http://localhost:3000/api/v1";
 
-const res = await fetch(apiUrl + "/marcas");
-const marcas: Marca[] = await res.json();
+const UPLOADS_URL =
+  import.meta.env.PUBLIC_UPLOADS_URL ||
+  "http://localhost:3000/uploads";
+
+let marcas: Marca[] = [];
+
+try {
+  const res = await fetch(
+    `${API_URL}/marcas`,
+    { cache: "no-store" }
+  );
+
+  if (!res.ok) {
+    console.error(
+      "Error cargando marcas:",
+      res.status,
+      res.statusText
+    );
+  } else {
+    const result = await res.json();
+    marcas = result.data ?? [];
+  }
+} catch (error) {
+  console.error("Error cargando marcas:", error);
+}
 ---
 
 <BaseLayout title="Marcas">
@@ -33,9 +58,9 @@ const marcas: Marca[] = await res.json();
 
         <div class="ui-card-img is-contain">
           <img 
-            src={m.url_logo 
-              ? `${apiUrl}/uploads/${m.url_logo}` 
-              : "/img/no-image.png"}
+          src={m.url_logo
+ ? `${UPLOADS_URL}/${m.url_logo}`
+ : "/img/no-image.png"}
             alt={m.nombre_marca}
           />
         </div>

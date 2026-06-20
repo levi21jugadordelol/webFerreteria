@@ -8,51 +8,58 @@ interface Categoria {
   url_imagen: string | null;
 }
 
-const apiUrl = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
-const res = await fetch(apiUrl + "/categorias");
-const categorias: Categoria[] = await res.json();
+const UPLOADS_URL =
+  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
+
+let categorias: Categoria[] = [];
+
+try {
+  const res = await fetch(`${API_URL}/categorias`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    console.error("Error cargando categorías:", res.status, res.statusText);
+  } else {
+    const result = await res.json();
+    categorias = result.data ?? [];
+  }
+} catch (error) {
+  console.error("Error cargando categorías:", error);
+}
 ---
 
 <BaseLayout title="Categorías">
-
   <div class="container py-5">
-
     <h2 class="section-title">Categorías</h2>
 
-
     <div class="row g-4">
+      {categorias.map((c) => (
+        <div class="col-6 col-md-4 col-lg-3">
+          <a
+            href={`/productos?categoria=${c.id_categoria}`}
+            class="ui-card text-decoration-none"
+          >
+            <div class="ui-card-img is-cover">
+              <img
+                src={
+                  c.url_imagen
+                    ? `${UPLOADS_URL}/${c.url_imagen}`
+                    : "/img/no-image.png"
+                }
+                alt={c.nombre_categoria}
+              />
+            </div>
 
-  {categorias.map((c) => (
-    <div class="col-6 col-md-4 col-lg-3">
-      <a 
-        href={`/productos?categoria=${c.id_categoria}`} 
-        class="ui-card text-decoration-none"
-      >
-
-        <div class="ui-card-img is-cover">
-          <img 
-            src={c.url_imagen 
-              ? `http://localhost:3000/uploads/${c.url_imagen}` 
-              : "/img/no-image.png"}
-            alt={c.nombre_categoria}
-          />
+            <div class="ui-card-body">
+              <h5>{c.nombre_categoria}</h5>
+            </div>
+          </a>
         </div>
-
-        <div class="ui-card-body">
-          <h5>{c.nombre_categoria}</h5>
-        </div>
-
-      </a>
+      ))}
     </div>
-  ))}
-
-</div>
-
-
   </div>
-
 </BaseLayout>
-
-
-

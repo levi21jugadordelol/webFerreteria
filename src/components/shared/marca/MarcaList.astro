@@ -1,15 +1,16 @@
 ---
 import ModalEditMarca from "../../ui/marca/ModalEditMarca.astro";
-const apiUrl = "http://localhost:3000";
 ---
+
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-  <h3 class="fw-bold mb-0">Lista de Marcas</h3>
+    <h3 class="fw-bold mb-0">Lista de Marcas</h3>
 
-  <a href="/admin/marcas/marca-nueva" class="btn btn-primary">
-    ➕ Nueva Marca
-  </a>
-</div>
+    <a href="/admin/marcas/marca-nueva" class="btn btn-primary">
+      ➕ Nueva Marca
+    </a>
+  </div>
+
   <p id="contador" class="text-muted">Cargando marcas...</p>
 
   <div id="lista-marcas" class="d-flex flex-column gap-3 mt-3">
@@ -17,30 +18,62 @@ const apiUrl = "http://localhost:3000";
   </div>
 </div>
 
-<!-- MODAL DE EDICIÓN -->
 <ModalEditMarca id="modal-editar-marca" />
 
-<!-- Script del lado del cliente -->
-<!-- @ts-ignore -->
 <script is:client>
-  const apiUrl = "http://localhost:3000";
+  const apiUrl = "http://localhost:3000/api/v1";
+  const uploadsUrl = "http://localhost:3000/uploads";
+
+  async function fetchJSON(url, options = {}) {
+    const res = await fetch(url, {
+      credentials: "include",
+      ...options,
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result?.message || result?.msg || "Error en la API");
+    }
+
+    return result.data ?? result;
+  }
+
+
+  function escapeHTML(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function safeUploadUrl(fileName) {
+  if (!fileName) return "/img/no-image.png";
+
+  const clean = String(fileName).replace(/^\/?uploads\//, "");
+
+  if (
+    clean.includes("..") ||
+    clean.includes("<") ||
+    clean.includes(">") ||
+    clean.includes('"') ||
+    clean.includes("'")
+  ) {
+    return "/img/no-image.png";
+  }
+
+  return `${uploadsUrl}/${encodeURIComponent(clean)}`;
+}
 
   async function cargarMarcas() {
     const contenedor = document.getElementById("lista-marcas");
     const contador = document.getElementById("contador");
 
     try {
-      const res = await fetch(`${apiUrl}/marcas`, {
-        credentials: "include",
-      });
+      const marcas = await fetchJSON(`${apiUrl}/marcas`);
 
-      if (!res.ok) {
-        contenedor.innerHTML = `<p class="text-danger">❌ Error ${res.status}: ${res.statusText}</p>`;
-        contador.textContent = "Error al cargar marcas";
-        return;
-      }
-
-      const marcas = await res.json();
       contador.textContent = `Total marcas: ${marcas.length}`;
 
       if (marcas.length === 0) {
@@ -51,17 +84,18 @@ const apiUrl = "http://localhost:3000";
 
       contenedor.innerHTML = marcas
         .map((m) => {
-          const imagenUrl = m.url_logo
-            ? `${apiUrl}/uploads/${m.url_logo}`
-            : "https://via.placeholder.com/120";
+          const imagenUrl = safeUploadUrl(m.url_logo);
+const nombre = escapeHTML(m.nombre_marca ?? "-");
+const descripcion = escapeHTML(m.descripcion || "Sin descripción");
+const idMarca = Number(m.id_marca) || 0;
 
           return `
-            <div class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3" data-id="${m.id_marca}">
-              <img src="${imagenUrl}" width="120" height="120" class="rounded" />
+            <div class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3" data-id="${idMarca}">
+              <img src="${imagenUrl}" width="120" height="120" class="rounded" alt="${nombre}" />
 
               <div class="flex-grow-1">
-                <h5 class="mb-1">${m.nombre_marca}</h5>
-                <p class="text-muted mb-1">${m.descripcion || "Sin descripción"}</p>
+                <h5 class="mb-1">${nombre}</h5>
+<p class="text-muted mb-1">${descripcion}</p>
               </div>
 
               <div class="d-flex gap-2">
@@ -73,20 +107,18 @@ const apiUrl = "http://localhost:3000";
         })
         .join("");
 
-      // 🗑️ Evento ELIMINAR marca
       contenedor.querySelectorAll(".btn-eliminar").forEach((btn) =>
         btn.addEventListener("click", async (e) => {
           const card = e.target.closest(".card");
-          const id = card.dataset.id;
+          const id = Number(card.dataset.id);
+if (!id) return alert("ID de marca inválido");
+
           if (!confirm("¿Seguro que deseas eliminar esta marca?")) return;
 
           try {
-            const res = await fetch(`${apiUrl}/marcas/${id}`, {
+            await fetchJSON(`${apiUrl}/marcas/${id}`, {
               method: "DELETE",
-              credentials: "include",
             });
-
-            if (!res.ok) throw new Error("Error al eliminar marca");
 
             alert("✅ Marca eliminada correctamente");
             card.remove();
@@ -96,42 +128,43 @@ const apiUrl = "http://localhost:3000";
         })
       );
 
-      // ✏️ Evento EDITAR marca (ABRIR MODAL)
       contenedor.querySelectorAll(".btn-editar").forEach((btn) =>
         btn.addEventListener("click", async (e) => {
           const card = e.target.closest(".card");
           const id = card.dataset.id;
 
-          const res = await fetch(`${apiUrl}/marcas/${id}`, { credentials: "include" });
-          const marca = await res.json();
+          try {
+            const marca = await fetchJSON(`${apiUrl}/marcas/${id}`);
 
-          // Llenar campos del modal
-          document.getElementById("marca-id").value = marca.id_marca;
-          document.getElementById("marca-nombre").value = marca.nombre_marca;
-          document.getElementById("marca-descripcion").value = marca.descripcion || "";
+            document.getElementById("marca-id").value = marca.id_marca;
+            document.getElementById("marca-nombre").value = marca.nombre_marca;
+            document.getElementById("marca-descripcion").value =
+              marca.descripcion || "";
 
-          // Vista previa del logo
-          const preview = document.getElementById("marca-img-preview");
-          preview.src = marca.url_logo
-            ? `${apiUrl}/uploads/${marca.url_logo}`
-            : "https://via.placeholder.com/120";
+            const preview = document.getElementById("marca-img-preview");
 
-          // Mostrar modal
-          document.getElementById("modal-editar-marca").classList.add("visible");
+            preview.src = safeUploadUrl(marca.url_logo);
+
+            document
+              .getElementById("modal-editar-marca")
+              .classList.add("visible");
+          } catch (err) {
+            alert("❌ Error cargando marca");
+          }
         })
       );
-
     } catch (err) {
-      contenedor.innerHTML = `<p class="text-danger">❌ Error: ${err.message}</p>`;
+      contenedor.innerHTML = `<p class="text-danger">❌ Error: ${escapeHTML(err.message)}</p>`;
       contador.textContent = "Error de conexión";
     }
   }
 
   document.addEventListener("DOMContentLoaded", cargarMarcas);
 
-  // 🟦 Guardar cambios del modal
   document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("form-editar-marca");
+
+    if (!form) return;
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -141,31 +174,33 @@ const apiUrl = "http://localhost:3000";
       const descripcion = document.getElementById("marca-descripcion").value;
       const nuevoLogo = document.getElementById("marca-img").files[0];
 
-      // 1️⃣ Actualizar texto
-      await fetch(`${apiUrl}/marcas/${id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre_marca: nombre, descripcion }),
-      });
-
-      // 2️⃣ Subir nuevo logo
-      if (nuevoLogo) {
-        const data = new FormData();
-        data.append("file", nuevoLogo);
-
-        await fetch(`${apiUrl}/marcas/subir-logo/${id}`, {
-          method: "POST",
-          credentials: "include",
-          body: data,
+      try {
+        await fetchJSON(`${apiUrl}/marcas/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre_marca: nombre,
+            descripcion,
+          }),
         });
+
+        if (nuevoLogo) {
+          const data = new FormData();
+          data.append("imagen", nuevoLogo);
+
+          await fetchJSON(`${apiUrl}/marcas/subir-logo/${id}`, {
+            method: "POST",
+            body: data,
+          });
+        }
+
+        alert("✅ Marca actualizada");
+
+        document.dispatchEvent(new Event("cerrar-modal-marca"));
+        cargarMarcas();
+      } catch (err) {
+        alert("❌ Error actualizando marca");
       }
-
-      alert("✅ Marca actualizada");
-
-      // Cerrar modal y recargar lista
-      document.dispatchEvent(new Event("cerrar-modal-marca"));
-      cargarMarcas();
     });
   });
 </script>
@@ -175,4 +210,3 @@ const apiUrl = "http://localhost:3000";
   object-fit: cover;
 }
 </style>
-

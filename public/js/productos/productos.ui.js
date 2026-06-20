@@ -1,31 +1,57 @@
-import { escapeHTML } from "../utils/helpers.js";
-
 export function renderCategoriasSelect(select, categorias) {
   if (!select) return;
 
-  select.innerHTML = categorias.length
-    ? categorias
-        .map(
-          (c) =>
-            `<option value="${c.id_categoria}">
-              ${escapeHTML(c.nombre_categoria)}
-            </option>`,
-        )
-        .join("")
-    : `<option value="">No hay categorías</option>`;
+  select.replaceChildren();
+
+  if (!Array.isArray(categorias) || categorias.length === 0) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No hay categorías";
+
+    select.appendChild(option);
+    return;
+  }
+
+  categorias.forEach((c) => {
+    const id = Number(c.id_categoria);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return;
+    }
+
+    const option = document.createElement("option");
+    option.value = String(id);
+    option.textContent = c.nombre_categoria || "Sin nombre";
+
+    select.appendChild(option);
+  });
 }
 
 export function renderMarcasSelect(select, marcas) {
   if (!select) return;
 
-  select.innerHTML = marcas.length
-    ? marcas
-        .map(
-          (m) =>
-            `<option value="${m.id_marca}">
-              ${escapeHTML(m.nombre_marca)}
-            </option>`,
-        )
-        .join("")
-    : `<option value="">No hay marcas</option>`;
+  select.replaceChildren();
+
+  if (!Array.isArray(marcas) || marcas.length === 0) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No hay marcas";
+
+    select.appendChild(option);
+    return;
+  }
+
+  marcas.forEach((m) => {
+    const id = Number(m.id_marca);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return;
+    }
+
+    const option = document.createElement("option");
+    option.value = String(id);
+    option.textContent = m.nombre_marca || "Sin nombre";
+
+    select.appendChild(option);
+  });
 }

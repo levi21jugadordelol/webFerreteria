@@ -1,5 +1,8 @@
 import { safeJson } from "../utils/helpers.js";
 
+/* =========================
+   CATEGORIAS
+========================= */
 export async function obtenerCategorias(apiUrl) {
   const res = await fetch(`${apiUrl}/categorias`, {
     credentials: "include",
@@ -7,9 +10,13 @@ export async function obtenerCategorias(apiUrl) {
 
   if (!res.ok) throw new Error("Error al cargar categorías");
 
-  return res.json();
+  const result = await res.json();
+  return result.data; // 🔥 CAMBIO
 }
 
+/* =========================
+   MARCAS
+========================= */
 export async function obtenerMarcas(apiUrl) {
   const res = await fetch(`${apiUrl}/marcas`, {
     credentials: "include",
@@ -17,9 +24,13 @@ export async function obtenerMarcas(apiUrl) {
 
   if (!res.ok) throw new Error("Error al cargar marcas");
 
-  return res.json();
+  const result = await res.json();
+  return result.data; // 🔥 CAMBIO
 }
 
+/* =========================
+   PRODUCTO
+========================= */
 export async function crearProducto(apiUrl, formData) {
   const res = await fetch(`${apiUrl}/productos/admin`, {
     method: "POST",

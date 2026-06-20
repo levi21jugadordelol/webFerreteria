@@ -1,7 +1,8 @@
 ---
 import AdminLayout from "../../../../layouts/AdminLayout.astro";
 
-const API_URL = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 interface Tab {
   id_tab: number;
@@ -13,11 +14,24 @@ interface Tab {
 
 const { id } = Astro.params;
 
-const res = await fetch(`${API_URL}/api/producto-tabs`, {
-  credentials: "include"
-});
+let tabs: Tab[] = [];
 
-const tabs: Tab[] = await res.json();
+try {
+  const res = await fetch(`${API_URL}/producto-tabs`, {
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Error ${res.status}`);
+  }
+
+  const result = await res.json();
+
+  tabs = result.data ?? [];
+} catch (error) {
+  console.error("Error cargando tabs:", error);
+}
 
 const tab = tabs.find((t: Tab) => t.id_tab === Number(id));
 
@@ -67,7 +81,7 @@ e.preventDefault();
 
 const data = Object.fromEntries(new FormData(e.target));
 
-await fetch(`http://localhost:3000/api/producto-tabs/${id}`,{
+await fetch(`http://localhost:3000/api/v1/producto-tabs/${id}`,{
 method:"PUT",
 credentials:"include",
 headers:{

@@ -3,140 +3,281 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 ---
 
 <AdminLayout title="Validar Comprobantes de Pago">
+
+  <div class="mb-3">
+    <input
+      id="search-comprobantes"
+      type="search"
+      class="form-control"
+      placeholder="Buscar por cliente, documento, teléfono, pedido o producto..."
+    />
+  </div>
+
   <div id="app-comprobantes" class="table-responsive"></div>
+
 </AdminLayout>
 
 <script is:client>
-const API_BASE = "http://localhost:3000/api/pagos";
+const API_BASE = "http://localhost:3000/api/v1/pagos";
+const BACKEND_URL = "http://localhost:3000";
 const container = document.getElementById("app-comprobantes");
 
-/* 🔥 AQUÍ VA */
 async function fetchJSON(url, options = {}) {
   const res = await fetch(url, {
-    credentials: "include", // 👈 ENVÍA COOKIES (_token)
+    credentials: "include",
     ...options,
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || "Error en la API");
+  const contentType = res.headers.get("content-type") || "";
+  const raw = await res.text();
+
+  if (!contentType.includes("application/json")) {
+    throw new Error("La API devolvió HTML o texto");
   }
 
-  return res.json();
+  const result = raw ? JSON.parse(raw) : null;
+
+  if (!res.ok) {
+    throw new Error(result?.message || result?.msg || "Error en la API");
+  }
+
+  return result?.data ?? result;
 }
 
-/* 📥 Cargar comprobantes */
-async function cargarComprobantes() {
+function escapeHTML(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function safeComprobanteUrl(url = "") {
+  const value = String(url || "").trim();
+
+  if (!value.startsWith("/uploads/")) {
+    return "#";
+  }
+
+  if (value.includes("..")) {
+    return "#";
+  }
+
+  return `${BACKEND_URL}${value}`;
+}
+
+function tiempoDesde(fecha) {
+  const diff = Date.now() - new Date(fecha).getTime();
+  const minutos = Math.floor(diff / 60000);
+
+  if (minutos < 1) return "hace unos segundos";
+  if (minutos < 60) return `hace ${minutos} min`;
+
+  const horas = Math.floor(minutos / 60);
+  if (horas < 24) return `hace ${horas}h`;
+
+  const dias = Math.floor(horas / 24);
+  return `hace ${dias} día${dias > 1 ? "s" : ""}`;
+}
+
+function resumenComprobante(c) {
+  const pedidoId = c.pedido?.id_pedido ?? c.pedido_id;
+
+  if (c.estado_validacion === "pendiente") {
+    return `
+      <strong>Pedido #${pedidoId}</strong><br>
+      <span>Comprobante enviado ${tiempoDesde(c.fecha_hora)}</span><br>
+      <small class="text-warning fw-bold">Aún no revisado</small>
+    `;
+  }
+
+  if (c.estado_validacion === "validado") {
+    return `
+      <strong>Pedido #${pedidoId}</strong><br>
+      <span>Comprobante validado</span><br>
+      <small class="text-success fw-bold">Pago aprobado</small>
+    `;
+  }
+
+  if (c.estado_validacion === "rechazado") {
+    return `
+      <strong>Pedido #${pedidoId}</strong><br>
+      <span>Comprobante rechazado</span><br>
+      <small class="text-danger fw-bold">Requiere revisión</small>
+    `;
+  }
+
+  return `
+    <strong>Pedido #${pedidoId}</strong><br>
+    <span>Comprobante vencido</span><br>
+    <small class="text-muted fw-bold">Reserva liberada</small>
+  `;
+}
+
+function resumenProductos(c) {
+  const detalles = c.pedido?.detalles ?? [];
+
+  if (!detalles.length) {
+    return `<span class="text-muted">Sin productos</span>`;
+  }
+
+  return detalles
+    .map((d) => {
+      const nombre = escapeHTML(
+  d.producto?.nombre_producto ?? "Producto"
+);
+
+return `<span>${nombre} x${d.cantidad}</span>`;
+    })
+    .join("<br>");
+}
+
+function resumenCliente(c) {
+  const pedido = c.pedido;
+
+  if (!pedido) return "-";
+
+  const nombre = escapeHTML(pedido.nombre_comprador ?? "-");
+  const telefono = escapeHTML(pedido.telefono_comprador ?? "-");
+  const numeroDocumento = escapeHTML(pedido.numero_documento ?? "-");
+  const tipoDocumento = escapeHTML(pedido.tipo_documento ?? "");
+
+  const documento =
+    tipoDocumento && tipoDocumento !== "SIN_DOCUMENTO"
+      ? `${tipoDocumento}: ${numeroDocumento}`
+      : "Sin documento";
+
+  return `
+    <strong>${nombre}</strong><br>
+    <small>Tel: ${telefono}</small><br>
+    <small>${documento}</small>
+  `;
+}
+
+function estadoBadge(valor) {
+  const color =
+    valor === "validado" || valor === "pagado"
+      ? "success"
+      : valor === "rechazado" || valor === "cancelado"
+      ? "danger"
+      : valor === "vencido"
+      ? "secondary"
+      : "warning";
+
+  return `<span class="badge bg-${color}">${valor}</span>`;
+}
+
+let currentPage = 1;
+let currentSearch = "";
+const pageLimit = 10;
+
+async function cargarComprobantes(page = 1, search = "") {
   try {
-    const data = await fetchJSON(`${API_BASE}/admin/lista`);
+    currentPage = page;
+    currentSearch = search;
+
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(pageLimit),
+    });
+
+    if (search.trim()) {
+      params.set("search", search.trim());
+    }
+
+    const response = await fetchJSON(`${API_BASE}/admin/lista?${params}`);
+
+    const data = response.items ?? [];
+    const pagination = response.pagination ?? {
+      page: 1,
+      limit: pageLimit,
+      total: 0,
+      totalPages: 1,
+    };
 
     if (!Array.isArray(data) || data.length === 0) {
-      container.innerHTML = "<p>No hay comprobantes</p>";
+      container.innerHTML = `
+        <div class="alert alert-info">
+          No hay comprobantes para mostrar.
+        </div>
+      `;
       return;
     }
 
     container.innerHTML = `
-      <table class="table table-striped">
+      <table class="table table-striped align-middle">
         <thead>
-<tr>
-  <th>ID</th>
-  <th>Pedido</th>
-  <th>Cliente</th>
-  <th>Dirección</th>
-  <th>Total</th>
-  <th>Enviado</th>
-  <th>Tiempo pendiente</th>
-  <th>Validado</th>
-  <th>Imagen</th>
-  <th>Estado Pago</th>
-  <th>Estado Pedido</th>
-  <th>Acciones</th>
-</tr>
+          <tr>
+            <th>Resumen</th>
+            <th>Productos</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Total</th>
+            <th>Comprobante</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
         </thead>
+
         <tbody>
           ${data.map(c => `
-       <tr>
-  <td>${c.id_comprobante}</td>
-  <td>#${c.pedido.id_pedido}</td>
-  <td>${c.pedido.nombre_comprador}</td>
-  <td>${c.pedido.direccion_envio}</td>
-  <td>S/ ${c.pedido.total_pedido}</td>
+            <tr>
+              <td>${resumenComprobante(c)}</td>
+              <td>${resumenProductos(c)}</td>
+              <td>${resumenCliente(c)}</td>
+              <td>${escapeHTML(
+  c.pedido?.direccion_envio ?? "-"
+)}</td>
+              <td>S/ ${c.pedido?.total_pedido ?? "0.00"}</td>
 
-  <td>${c.fecha_envio}</td>
-<td class="${
-  c.estado_validacion === "vencido"
-    ? "text-danger fw-bold"
-    : c.estado_validacion === "pendiente"
-    ? "text-warning"
-    : ""
-}">
-  ${c.estado_validacion === "vencido"
-  ? "❌ vencido"
-  : c.tiempo_pendiente}
-</td>
-  <td>${c.fecha_validacion}</td>
+              <td>
+               <a href="${safeComprobanteUrl(c.url_imagen)}" target="_blank" rel="noopener noreferrer">
+                  Ver imagen
+                </a>
+              </td>
 
-  <td>
-    <a href="http://localhost:3000${c.url_imagen}" target="_blank">
-      Ver
-    </a>
-  </td>
+              <td>
+                <div class="d-flex flex-column gap-1">
+                  <span>Pago: ${estadoBadge(c.estado_validacion)}</span>
+                  <span>Pedido: ${estadoBadge(c.pedido?.estado_pedido ?? "-")}</span>
+                </div>
+              </td>
 
-  <td>
-    <span class="badge bg-${
-   c.estado_validacion === "validado"
-  ? "success"
-  : c.estado_validacion === "rechazado"
-  ? "danger"
-  : c.estado_validacion === "vencido"
-  ? "secondary"
-  : "warning"
-    }">
-      ${c.estado_validacion}
-    </span>
-  </td>
+              <td>
+                ${
+                  c.estado_validacion === "pendiente"
+                    ? `
+                      <button class="btn btn-success btn-sm mb-1"
+                        onclick="validar(${c.id_comprobante})">
+                        Validar
+                      </button>
 
-  <td>
-    <span class="badge bg-${
-      c.pedido.estado_pedido === "pagado"
-        ? "success"
-        : "secondary"
-    }">
-      ${c.pedido.estado_pedido}
-    </span>
-  </td>
-
-  <td>
-    ${
-      c.estado_validacion === "pendiente"
-        ? `
-        <button class="btn btn-success btn-sm"
-          onclick="validar(${c.id_comprobante})">
-          Validar
-        </button>
-        <button class="btn btn-danger btn-sm"
-          onclick="rechazar(${c.id_comprobante})">
-          Rechazar
-        </button>
-      `
-        : c.estado_validacion === "validado"
-        ? `
-        <button class="btn btn-warning btn-sm"
-          onclick="revertir(${c.id_comprobante})">
-          Revertir
-        </button>
-      `
-        : `
-        <span class="text-muted fw-bold">
-          Acción completada
-        </span>
-      `
-    }
-  </td>
-</tr>
+                      <button class="btn btn-danger btn-sm mb-1"
+                        onclick="rechazar(${c.id_comprobante})">
+                        Rechazar
+                      </button>
+                    `
+                    : c.estado_validacion === "validado"
+                    ? `
+                      <button class="btn btn-warning btn-sm"
+                        onclick="revertir(${c.id_comprobante})">
+                        Revertir
+                      </button>
+                    `
+                    : `
+                      <span class="text-muted fw-bold">
+                        Acción completada
+                      </span>
+                    `
+                }
+              </td>
+            </tr>
           `).join("")}
         </tbody>
       </table>
+
+      ${renderPagination(pagination)}
     `;
   } catch (err) {
     container.innerHTML = `
@@ -148,26 +289,82 @@ async function cargarComprobantes() {
   }
 }
 
-/* ✔ Validar */
+
+function conectarBuscador() {
+  const input = document.getElementById("search-comprobantes");
+  if (!input) return;
+
+  let timer = null;
+
+  input.addEventListener("input", () => {
+    clearTimeout(timer);
+
+    timer = setTimeout(() => {
+      cargarComprobantes(1, input.value);
+    }, 400);
+  });
+}
+
+function renderPagination(pagination) {
+  if (!pagination || pagination.totalPages <= 1) return "";
+
+  const prevPage = pagination.page - 1;
+  const nextPage = pagination.page + 1;
+
+  return `
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <small class="text-muted">
+        Página ${pagination.page} de ${pagination.totalPages}
+        · Total: ${pagination.total}
+      </small>
+
+      <div class="d-flex gap-2">
+        <button
+          class="btn btn-outline-secondary btn-sm"
+          ${pagination.page <= 1 ? "disabled" : ""}
+          onclick="cargarComprobantes(${prevPage}, currentSearch)"
+        >
+          Anterior
+        </button>
+
+        <button
+          class="btn btn-outline-secondary btn-sm"
+          ${pagination.page >= pagination.totalPages ? "disabled" : ""}
+          onclick="cargarComprobantes(${nextPage}, currentSearch)"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 async function validar(id) {
-  if (!confirm("¿Validar comprobante?")) return;
+  if (!confirm("¿Validar comprobante? Esto marcará el pedido como pagado y descontará stock.")) return;
   await fetchJSON(`${API_BASE}/admin/${id}/validar`, { method: "PUT" });
-  cargarComprobantes();
+  cargarComprobantes(currentPage, currentSearch);
 }
 
-/* ✖ Rechazar */
 async function rechazar(id) {
-  if (!confirm("¿Rechazar comprobante?")) return;
+  if (!confirm("¿Rechazar comprobante? Esto cancelará el pedido y liberará stock reservado.")) return;
   await fetchJSON(`${API_BASE}/admin/${id}/rechazar`, { method: "PUT" });
-  cargarComprobantes();
+  cargarComprobantes(currentPage, currentSearch);
 }
 
-  async function revertir(id) {
-    if (!confirm("⚠️ ¿Revertir este pago validado?")) return;
-    await fetchJSON(`${API_BASE}/admin/${id}/revertir`, { method: "PUT" });
-    cargarComprobantes();
-  }
+async function revertir(id) {
+  if (!confirm("¿Revertir pago validado? Esto devolverá stock y volverá el pedido a pendiente.")) return;
+  await fetchJSON(`${API_BASE}/admin/${id}/revertir`, { method: "PUT" });
+  cargarComprobantes(currentPage, currentSearch);
+}
 
+window.validar = validar;
+window.rechazar = rechazar;
+window.revertir = revertir;
+
+window.cargarComprobantes = cargarComprobantes;
+
+conectarBuscador();
 cargarComprobantes();
-</script>
 
+
+</script>

@@ -1,174 +1,142 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 
-const API_URL = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
-/* ===============================
-   CARGAR TABS
-=============================== */
-const res = await fetch(`${API_URL}/api/producto-tabs`, {
-  credentials: "include"
+const res = await fetch(`${API_URL}/producto-tabs`, {
+  credentials: "include",
+  cache: "no-store",
 });
 
 if (!res.ok) {
   throw new Error("Error cargando tabs");
 }
 
-const tabs = await res.json();
+const result = await res.json();
+const tabs = result.data ?? [];
 ---
 
 <AdminLayout title="Tabs de producto">
+  <div class="container-fluid">
+    <h3 class="fw-bold mb-4">
+      Tabs de producto
+    </h3>
 
-<div class="container-fluid">
+    <a href="/admin/productos/tab-nueva" class="btn btn-primary mb-3">
+      <i class="bi bi-plus-circle"></i> Nueva Tab
+    </a>
 
-<h3 class="fw-bold mb-4">
-Tabs de producto
-</h3>
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Slug</th>
+          <th>Orden</th>
+          <th>Activo</th>
+          <th style="width:200px">Acciones</th>
+        </tr>
+      </thead>
 
-<a href="/admin/productos/tab-nueva" class="btn btn-primary mb-3">
-<i class="bi bi-plus-circle"></i> Nueva Tab
-</a>
+      <tbody>
+        {tabs.map((tab: any) => (
+          <tr>
+            <td>{tab.id_tab}</td>
 
-<table class="table table-striped align-middle">
+            <td>{tab.nombre}</td>
 
-<thead>
-<tr>
-<th>ID</th>
-<th>Nombre</th>
-<th>Slug</th>
-<th>Orden</th>
-<th>Activo</th>
-<th style="width:200px">Acciones</th>
-</tr>
-</thead>
+            <td>
+              <span class="badge bg-secondary">
+                {tab.slug}
+              </span>
+            </td>
 
-<tbody>
+            <td>{tab.orden}</td>
 
-{tabs.map((tab:any) => (
+            <td>
+              {tab.activo ? (
+                <span class="badge bg-success">Activo</span>
+              ) : (
+                <span class="badge bg-danger">Inactivo</span>
+              )}
+            </td>
 
-<tr>
+            <td>
+              <button
+                class="btn btn-sm btn-warning toggle-tab"
+                data-id={tab.id_tab}
+              >
+                <i class="bi bi-arrow-repeat"></i>
+              </button>
 
-<td>{tab.id_tab}</td>
+              <a
+                href={`/admin/productos/tab-editar/${tab.id_tab}`}
+                class="btn btn-sm btn-info"
+              >
+                Editar
+              </a>
 
-<td>{tab.nombre}</td>
+              <button
+                class="btn btn-sm btn-danger delete-tab"
+                data-id={tab.id_tab}
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
 
-<td>
-<span class="badge bg-secondary">
-{tab.slug}
-</span>
-</td>
+  <script is:inline>
+    const API_URL = "http://localhost:3000/api/v1";
 
-<td>{tab.orden}</td>
+    document.querySelectorAll(".delete-tab").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
 
-<td>
+        if (!confirm("¿Eliminar esta tab?")) return;
 
-{tab.activo ? (
-<span class="badge bg-success">Activo</span>
-) : (
-<span class="badge bg-danger">Inactivo</span>
-)}
+        try {
+          const res = await fetch(`${API_URL}/producto-tabs/${id}`, {
+            method: "DELETE",
+            credentials: "include",
+          });
 
-</td>
+          if (!res.ok) {
+            alert("Error eliminando tab");
+            return;
+          }
 
-<td>
+          location.reload();
+        } catch (err) {
+          alert("Error eliminando tab");
+        }
+      });
+    });
 
-<button
-class="btn btn-sm btn-warning toggle-tab"
-data-id={tab.id_tab}
->
-<i class="bi bi-arrow-repeat"></i>
-</button>
+    document.querySelectorAll(".toggle-tab").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
 
-<a
-href={`/admin/productos/tab-editar/${tab.id_tab}`}
-class="btn btn-sm btn-info"
->
-Editar
-</a>
+        try {
+          const res = await fetch(`${API_URL}/producto-tabs/${id}/toggle`, {
+            method: "PATCH",
+            credentials: "include",
+          });
 
-<button
-class="btn btn-sm btn-danger delete-tab"
-data-id={tab.id_tab}
->
-<i class="bi bi-trash"></i>
-</button>
+          if (!res.ok) {
+            alert("Error cambiando estado");
+            return;
+          }
 
-</td>
-
-</tr>
-
-))}
-
-</tbody>
-
-</table>
-
-</div>
-
-
-<script is:inline>
-
-/* ===============================
-   ELIMINAR TAB
-=============================== */
-
-document.querySelectorAll(".delete-tab").forEach(btn => {
-
-btn.addEventListener("click", async () => {
-
-const id = btn.dataset.id;
-
-if(!confirm("¿Eliminar esta tab?")) return;
-
-try{
-
-await fetch(`http://localhost:3000/api/producto-tabs/${id}`,{
-method:"DELETE",
-credentials:"include"
-});
-
-location.reload();
-
-}catch(err){
-
-alert("Error eliminando tab");
-
-}
-
-});
-
-});
-
-
-/* ===============================
-   ACTIVAR / DESACTIVAR
-=============================== */
-
-document.querySelectorAll(".toggle-tab").forEach(btn => {
-
-btn.addEventListener("click", async () => {
-
-const id = btn.dataset.id;
-
-try{
-
-await fetch(`http://localhost:3000/api/producto-tabs/${id}/toggle`,{
-method:"PATCH",
-credentials:"include"
-});
-
-location.reload();
-
-}catch(err){
-
-alert("Error cambiando estado");
-
-}
-
-});
-
-});
-
-</script>
-
+          location.reload();
+        } catch (err) {
+          alert("Error cambiando estado");
+        }
+      });
+    });
+  </script>
 </AdminLayout>

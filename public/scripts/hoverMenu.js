@@ -13,23 +13,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       console.log("📡 Consultando API...");
 
-      const res = await fetch("http://localhost:3000/categorias");
+      const res = await fetch("/api/categorias");
+
       console.log("📡 Respuesta API:", res);
 
-      const categorias = await res.json();
+      const result = await res.json();
+
+      const categorias = Array.isArray(result.data) ? result.data : [];
+
       console.log("📦 Categorías:", categorias);
 
-      menu.innerHTML = categorias
-        .map(
-          (c) =>
-            `<a href="/categorias/${c.id_categoria}">${c.nombre_categoria}</a>`
-        )
-        .join("");
+      menu.replaceChildren();
+
+      categorias.forEach((c) => {
+        const id = Number(c.id_categoria);
+
+        if (!Number.isInteger(id) || id <= 0) {
+          return;
+        }
+
+        const link = document.createElement("a");
+
+        link.href = `/productos?categoria=${encodeURIComponent(id)}`;
+
+        link.textContent = c.nombre_categoria || "Sin nombre";
+
+        menu.appendChild(link);
+      });
+
+      if (menu.children.length === 0) {
+        const p = document.createElement("p");
+        p.className = "loading";
+        p.textContent = "No hay categorías";
+        menu.appendChild(p);
+      }
 
       console.log("📌 Categorías insertadas");
     } catch (err) {
       console.error("❌ Error API:", err);
-      menu.innerHTML = `<p class="loading">Error al cargar</p>`;
+
+      menu.replaceChildren();
+
+      const p = document.createElement("p");
+      p.className = "loading";
+      p.textContent = "Error al cargar";
+
+      menu.appendChild(p);
     }
   }
 

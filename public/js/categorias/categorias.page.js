@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const archivo = pond.getFiles()[0].file;
 
         const formData = new FormData();
-        formData.append("file", archivo);
+        formData.append("imagen", archivo);
 
         const res = await fetch(
           `${apiUrl}/categorias/subir-imagen/${categoriaId}`,

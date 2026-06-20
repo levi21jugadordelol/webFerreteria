@@ -6,13 +6,14 @@ import carritoStore from "../../../store/carritoStore";
 <div class="form-container">
   <form id="form-compra" class="form-compra">
 
-    <h3 class="sec-title">Datos de facturación</h3>
+    <h3 class="sec-title">Datos de compra</h3>
 
     <div class="grid-2">
       <div>
         <label>Nombre *</label>
         <input type="text" id="nombre" required />
       </div>
+
       <div>
         <label>Apellidos *</label>
         <input type="text" id="apellidos" required />
@@ -22,6 +23,23 @@ import carritoStore from "../../../store/carritoStore";
     <div>
       <label>Teléfono *</label>
       <input type="tel" id="telefono" required />
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <label>Tipo documento</label>
+        <select id="tipo_documento">
+          <option value="SIN_DOCUMENTO">Sin documento</option>
+          <option value="DNI">DNI</option>
+          <option value="RUC">RUC</option>
+          <option value="CE">CE</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Número documento</label>
+        <input type="text" id="numero_documento" />
+      </div>
     </div>
 
     <div>
@@ -52,29 +70,27 @@ import carritoStore from "../../../store/carritoStore";
       Selecciona un método de pago para continuar
     </p>
 
-    <!-- DETALLES DE PAGO -->
     <div class="pago-detalle">
 
       <div id="transferencia-box" class="box hidden">
         <p><strong>Banco:</strong> BCP</p>
         <p><strong>Cuenta:</strong> 123-4567890</p>
-        <p><strong>Monto:</strong> S/ <span id="transferencia-monto"></span></p>
+        <p><strong>Monto referencial:</strong> S/ <span id="transferencia-monto"></span></p>
       </div>
 
       <div id="yape-box" class="box hidden">
         <img src={qrImage.src} class="yape-img" />
-        <p>Monto: <strong>S/ <span id="yape-monto"></span></strong></p>
+        <p>Monto referencial: <strong>S/ <span id="yape-monto"></span></strong></p>
       </div>
 
       <div id="comprobante-box" class="box hidden">
         <label>Sube tu comprobante *</label>
 
-        <!-- 🔥 CLAVE: name="file" para que multer lo reciba -->
         <input
           type="file"
           id="comprobante-file"
-          name="file"
-          accept="image/*"
+          name="imagen"
+          accept="image/jpeg,image/png,image/webp"
         />
 
         <div id="preview-comprobante"></div>
@@ -88,7 +104,6 @@ import carritoStore from "../../../store/carritoStore";
 
     </div>
 
-    <!-- ESTADO DE ENVÍO -->
     <div id="estado-envio" class="estado hidden"></div>
 
     <button type="submit" class="btn-pedido" id="btn-submit">
@@ -126,7 +141,8 @@ import carritoStore from "../../../store/carritoStore";
 
 .form-compra input[type="text"],
 .form-compra input[type="tel"],
-.form-compra input[type="file"] {
+.form-compra input[type="file"],
+.form-compra select {
   width: 100%;
   background: var(--color-input-bg);
   border: 1px solid var(--color-border);
@@ -290,7 +306,7 @@ const transferenciaMonto = document.getElementById("transferencia-monto");
 let enviando = false;
 
 // ⚙️ Ajusta tu backend base URL (según tu puerto)
-const API_BASE = "http://localhost:3000/api";
+const API_BASE = "http://localhost:3000/api/v1";
 
 
 function setEstado(tipo, mensaje) {
@@ -308,7 +324,7 @@ function getTotal() {
 function resetUI() {
   [yapeBox, transferenciaBox, comprobanteBox, contraBox]
     .forEach(b => b.classList.add("hidden"));
-  preview.innerHTML = "";
+  preview.replaceChildren();
   comprobanteFile.value = "";
 }
 
@@ -334,7 +350,7 @@ radios.forEach(radio => {
     if (radio.value === "contra") {
       contraBox.classList.remove("hidden");
       btnWhatsapp.href =
-        `https://wa.me/51999999999?text=Pedido%20contra%20entrega%20Total:%20S/%20${total}`;
+  "https://wa.me/51999999999?text=Hola,%20deseo%20coordinar%20un%20pedido%20contra%20entrega";
     }
   });
 });
@@ -350,12 +366,37 @@ comprobanteFile.addEventListener("change", () => {
     size: file.size
   });
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    preview.innerHTML =
-      `<img src="${reader.result}" style="max-width:100%;border-radius:8px;margin-top:.5rem;">`;
-  };
-  reader.readAsDataURL(file);
+  const tiposPermitidos = ["image/jpeg", "image/png", "image/webp"];
+const maxSize = 5 * 1024 * 1024;
+
+if (!tiposPermitidos.includes(file.type)) {
+  setEstado("error", "Solo se permiten imágenes JPG, PNG o WEBP");
+  comprobanteFile.value = "";
+  preview.replaceChildren();
+  return;
+}
+
+if (file.size > maxSize) {
+  setEstado("error", "La imagen no debe superar 5MB");
+  comprobanteFile.value = "";
+  preview.replaceChildren();
+  return;
+}
+
+const reader = new FileReader();
+
+reader.onload = () => {
+  const img = document.createElement("img");
+  img.src = reader.result;
+  img.alt = "Vista previa del comprobante";
+  img.style.maxWidth = "100%";
+  img.style.borderRadius = "8px";
+  img.style.marginTop = ".5rem";
+
+  preview.replaceChildren(img);
+};
+
+reader.readAsDataURL(file);
 });
 
 // 🔥 helpers fetch
@@ -370,9 +411,19 @@ async function postJSON(url, bodyObj) {
 
   const data = await res.json().catch(() => ({}));
   console.log("📥 [FRONT] Resp JSON <=", res.status, data);
+console.log("🚨 ERRORES BACKEND:", data.errores);
+console.log("🚨 RESPUESTA COMPLETA:", JSON.stringify(data, null, 2));
 
-  if (!res.ok) {
-  const error = new Error(data?.msg || "Error en POST JSON");
+if (!res.ok) {
+  const mensaje =
+    data?.msg ||
+    data?.message ||
+    data?.errores?.[0]?.msg ||
+    data?.errores?.[0]?.message ||
+    data?.errores?.[0]?.path ||
+    "Error en POST JSON";
+
+  const error = new Error(mensaje);
   error.producto_id = data?.producto_id;
   throw error;
 }
@@ -395,6 +446,18 @@ async function postFormData(url, formData) {
 
   const data = await res.json().catch(() => ({}));
   console.log("📥 [FRONT] Resp FormData <=", res.status, data);
+
+  if (!res.ok) {
+  console.error("🚨 VALIDACION BACKEND:");
+  console.error(data);
+  console.error(data.errores);
+
+  throw new Error(
+    data?.msg ||
+    data?.message ||
+    "Error en POST JSON"
+  );
+}
 
   if (!res.ok) throw new Error(data?.msg || "Error en POST FormData");
   return data;
@@ -422,34 +485,113 @@ form.addEventListener("submit", async (e) => {
 
   try {
     // 1) Crear pedido (JSON)
-    const carrito = carritoStore.get().map(p => ({
-      id: p.id,
-      cantidad: p.cantidad,
-      precio: p.precio
-    }));
+  const carrito = carritoStore.get().map(p => ({
+  id: p.id,
+  cantidad: p.cantidad,
+}));
 
-    const nombre = document.getElementById("nombre").value.trim();
-    const apellidos = document.getElementById("apellidos").value.trim();
-    const telefono = document.getElementById("telefono").value.trim();
-    const direccion = document.getElementById("direccion").value.trim();
-    const total = getTotal();
+   const nombre = document.getElementById("nombre").value.trim();
+const apellidos = document.getElementById("apellidos").value.trim();
+const telefono = document.getElementById("telefono").value.trim();
+const direccion = document.getElementById("direccion").value.trim();
 
-    // ⚠️ Ajusta si tu backend usa "dni" sí o sí.
-    // En tu pedidoController pide { nombre, dni, telefono, total, metodo_pago, carrito }
-    const pedidoPayload = {
-      nombre: `${nombre} ${apellidos}`.trim(),
-      dni: "00000000",                 // 🔧 CAMBIA por tu input real si tienes DNI
-      telefono,
-      total,
-      metodo_pago: selected.value,
-      carrito,
-      direccion,                       // si tu backend no lo usa, no pasa nada
-    };
+const tipo_documento =
+  document.getElementById("tipo_documento").value;
 
-    const pedidoResp = await postJSON(`${API_BASE}/pedidos`, pedidoPayload);
+const numero_documento =
+  document.getElementById("numero_documento")
+    .value
+    .trim();
 
-    const pedido_id = pedidoResp?.pedido?.id_pedido || pedidoResp?.pedido?.id;
-    console.log("🧾 [FRONT] pedido_id obtenido:", pedido_id);
+/* =========================
+   VALIDACIONES
+========================= */
+
+if (
+  tipo_documento !== "SIN_DOCUMENTO" &&
+  !numero_documento
+) {
+  setEstado(
+    "error",
+    "Debe ingresar el número de documento"
+  );
+
+  enviando = false;
+  btn.classList.remove("loading");
+  btn.disabled = false;
+
+  return;
+}
+
+if (
+  tipo_documento === "DNI" &&
+  numero_documento.length !== 8
+) {
+  setEstado(
+    "error",
+    "El DNI debe tener 8 dígitos"
+  );
+
+  enviando = false;
+  btn.classList.remove("loading");
+  btn.disabled = false;
+
+  return;
+}
+
+
+if (
+  tipo_documento === "RUC" &&
+  numero_documento.length !== 11
+) {
+  setEstado(
+    "error",
+    "El RUC debe tener 11 dígitos"
+  );
+
+  enviando = false;
+  btn.classList.remove("loading");
+  btn.disabled = false;
+
+  return;
+}
+
+
+
+
+/* =========================
+   PAYLOAD
+========================= */
+
+const pedidoPayload = {
+  nombre: `${nombre} ${apellidos}`.trim(),
+  telefono,
+  direccion,
+  tipo_documento,
+  numero_documento:
+    tipo_documento === "SIN_DOCUMENTO"
+      ? null
+      : numero_documento,
+  metodo_pago:
+    selected.value === "contra"
+      ? "contra"
+      : "online",
+  carrito,
+};
+
+const pedidoResp =
+  await postJSON(
+    `${API_BASE}/pedidos`,
+    pedidoPayload
+  );
+
+console.log("🧾 [FRONT] pedidoResp completa:", pedidoResp);
+
+const pedido_id =
+  pedidoResp?.id_pedido ||
+  pedidoResp?.pedido?.id_pedido ||
+  pedidoResp?.data?.id_pedido ||
+  pedidoResp?.data?.pedido?.id_pedido;
 
     if (!pedido_id) {
       throw new Error("No se obtuvo pedido_id del backend");
@@ -458,8 +600,11 @@ form.addEventListener("submit", async (e) => {
     // 2) Subir comprobante (FormData) si NO es contra
     if (selected.value !== "contra") {
       const fd = new FormData();
-      fd.append("pedido_id", String(pedido_id));
-      fd.append("file", comprobanteFile.files[0]); // coincide con multer.single("file")
+fd.append("pedido_id", String(pedido_id));
+
+fd.append("imagen", comprobanteFile.files[0]);
+
+// coincide con multer.single("imagen")
 
       await postFormData(`${API_BASE}/pagos/comprobante`, fd);
     }

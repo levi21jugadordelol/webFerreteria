@@ -1,56 +1,85 @@
 ---
 import BuscadorLayout from "../../layouts/buscador/BuscadorLayout.astro";
-const apiUrl = "http://localhost:3000";
+
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+
+const UPLOADS_URL =
+  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
 
 const q = Astro.url.searchParams.get("q") || "";
+
 let productos = [];
 
 if (q) {
-  const res = await fetch(`${apiUrl}/productos?search=${encodeURIComponent(q)}`);
-  productos = await res.json();
+  try {
+    const res = await fetch(
+      `${API_URL}/productos?search=${encodeURIComponent(q)}`,
+      { cache: "no-store" }
+    );
+
+    if (res.ok) {
+      const result = await res.json();
+      productos = result.data ?? [];
+    } else {
+      console.error("Error buscando productos:", res.status, res.statusText);
+    }
+  } catch (error) {
+    console.error("Error buscando productos:", error);
+  }
 }
 ---
 
 <BuscadorLayout>
   <h2>Resultados de búsqueda para: <strong>{q}</strong></h2>
 
-{productos.length === 0 && (
-  <p class="text-muted">No se encontraron productos.</p>
-)}
+  {productos.length === 0 && (
+    <p class="text-muted">No se encontraron productos.</p>
+  )}
 
-<div class="productos-grid">
-  {productos.map((p: any) => (
-    <a href={`/producto/${p.id_producto}`} class="producto-card">
-      <img src={`${apiUrl}/uploads/${p.url_imagen}`} alt={p.nombre_producto}/>
-      <h4>{p.nombre_producto}</h4>
-      <p>S/ {p.precio}</p>
-    </a>
-  ))}
-</div>
+  <div class="productos-grid">
+    {productos.map((p: any) => (
+      <a href={`/producto/${p.id_producto}`} class="producto-card">
+        <img
+          src={
+            p.url_imagen
+              ? `${UPLOADS_URL}/${p.url_imagen}`
+              : "/img/no-image.png"
+          }
+          alt={p.nombre_producto}
+        />
 
+        <h4>{p.nombre_producto}</h4>
+        <p>S/ {p.precio}</p>
+      </a>
+    ))}
+  </div>
 
-<style>
-.productos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 18px;
-  margin-top: 20px;
-}
-.producto-card {
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  text-decoration: none;
-  color: #222;
-}
-.producto-card:hover {
-  border-color: #0d6efd;
-}
-.producto-card img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-</style>
+  <style>
+    .productos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .producto-card {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      text-decoration: none;
+      color: #222;
+    }
+
+    .producto-card:hover {
+      border-color: #0d6efd;
+    }
+
+    .producto-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+  </style>
 </BuscadorLayout>

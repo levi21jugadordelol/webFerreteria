@@ -8,16 +8,67 @@ type Footer = {
   social?: { icon: string; url: string }[];
 };
 
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+
 let footer: Footer = {};
 
 try {
-  const res = await fetch("http://localhost:3000/api/site-settings?key=footer");
+  const res = await fetch(`${API_URL}/site-settings`, {
+    cache: "no-store",
+  });
 
   if (res.ok) {
-    footer = await res.json();
+    const result = await res.json();
+    footer = result.data?.footer ?? {};
   }
 } catch (error) {
   console.error("Error cargando footer:", error);
+}
+
+/* =========================
+   HELPERS
+========================= */
+
+function safeUrl(url = "") {
+  const value = String(url).trim();
+
+  if (!value) return "#";
+
+  // enlaces internos
+  if (value.startsWith("/")) {
+    return value;
+  }
+
+  try {
+    const parsed = new URL(value);
+
+    if (
+      parsed.protocol === "http:" ||
+      parsed.protocol === "https:"
+    ) {
+      return value;
+    }
+
+    return "#";
+  } catch {
+    return "#";
+  }
+}
+
+const ICONOS_VALIDOS = [
+  "facebook",
+  "instagram",
+  "tiktok",
+  "youtube",
+  "linkedin",
+  "whatsapp",
+];
+
+function safeIcon(icon = "") {
+  return ICONOS_VALIDOS.includes(icon)
+    ? icon
+    : "facebook";
 }
 ---
 
@@ -31,22 +82,26 @@ try {
           {footer?.titulo || "Enlaces de interés"}
         </h5>
 
-        <ul class="list-unstyled">
-          {footer?.enlaces?.length
-            ? footer.enlaces.map((item:any) => (
-              <li>
-                <a href={item.url} class="footer-link">
-                  {item.label}
-                </a>
-              </li>
-            ))
-            : (
-              <li>
-                <a href="#" class="footer-link">Sin enlaces</a>
-              </li>
-            )
-          }
-        </ul>
+       <ul class="list-unstyled">
+  {footer?.enlaces?.length ? (
+    footer.enlaces.map((item:any) => (
+      <li>
+        <a
+          href={safeUrl(item.url)}
+          class="footer-link"
+        >
+          {item.label}
+        </a>
+      </li>
+    ))
+  ) : (
+    <li>
+      <a href="#" class="footer-link">
+        Sin enlaces
+      </a>
+    </li>
+  )}
+</ul>
       </div>
 
       <!-- Columna 2 -->
@@ -66,13 +121,19 @@ try {
           {footer?.titulo3 || "Redes"}
         </h5>
 
-        <div class="social-icons d-flex gap-3">
-          {footer?.social?.map((s:any) => (
-            <a href={s.url} target="_blank" class="social-link">
-              <i class={`fab fa-${s.icon}`}></i>
-            </a>
-          ))}
-        </div>
+       <div class="social-icons d-flex gap-3">
+  {footer?.social?.map((s:any) => (
+    <a
+      href={safeUrl(s.url)}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="social-link"
+      aria-label={safeIcon(s.icon)}
+    >
+      <i class={`fab fa-${safeIcon(s.icon)}`}></i>
+    </a>
+  ))}
+</div>
       </div>
 
     </div>

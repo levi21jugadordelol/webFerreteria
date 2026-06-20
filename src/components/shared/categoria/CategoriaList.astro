@@ -1,9 +1,8 @@
 ---
-import ModalEditCategoria from "../../ui/categoria/ModalEditCategoria.astro"
+import ModalEditCategoria from "../../ui/categoria/ModalEditCategoria.astro";
 ---
 
 <div class="container my-4">
-
   <div class="d-flex justify-content-between align-items-center mb-3">
     <a href="/admin/categoria-nueva" class="btn btn-primary">
       ➕ Nueva Categoría
@@ -12,141 +11,199 @@ import ModalEditCategoria from "../../ui/categoria/ModalEditCategoria.astro"
 
   <p id="contador" class="text-muted">Cargando categorías...</p>
 
-  <!-- 🔥 ESTE DIV ES CLAVE -->
   <div id="lista-categorias" class="d-flex flex-column gap-3 mt-3">
     <p class="text-muted">Cargando...</p>
   </div>
-
 </div>
 
-<!-- 🔥 MODAL DE EDICIÓN -->
 <ModalEditCategoria id="modal-editar-categoria" />
 
-<!-- @ts-ignore -->
 <script is:client>
-  const apiUrl = "http://localhost:3000";
+  const apiUrl = "http://localhost:3000/api/v1";
+  const uploadsUrl = "http://localhost:3000/uploads";
+
+  async function fetchJSON(url, options = {}) {
+    const res = await fetch(url, {
+      credentials: "include",
+      ...options,
+    });
+
+    const result = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(result?.message || result?.msg || "Error en la API");
+    }
+
+    return result.data ?? result;
+  }
+
+  function escapeHTML(value = "") {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function safeUploadUrl(fileName) {
+    if (!fileName) return "/img/no-image.png";
+
+    const clean = String(fileName).replace(/^\/?uploads\//, "");
+
+    if (
+      clean.includes("..") ||
+      clean.includes("<") ||
+      clean.includes(">") ||
+      clean.includes('"') ||
+      clean.includes("'")
+    ) {
+      return "/img/no-image.png";
+    }
+
+    return `${uploadsUrl}/${encodeURIComponent(clean)}`;
+  }
 
   async function cargarCategorias() {
     const contenedor = document.getElementById("lista-categorias");
     const contador = document.getElementById("contador");
 
     try {
-      const res = await fetch(`${apiUrl}/categorias`, {
-        credentials: "include",
+      const categorias = await fetchJSON(`${apiUrl}/categorias`, {
         cache: "no-store",
       });
 
-      if (!res.ok) {
-        contenedor.innerHTML = `<p class="text-danger">❌ Error ${res.status}: ${res.statusText}</p>`;
-        contador.textContent = "Error al cargar categorías";
-        return;
-      }
+      const lista = Array.isArray(categorias) ? categorias : [];
 
-      const categorias = await res.json();
-      contador.textContent = `Total categorías: ${categorias.length}`;
+contador.textContent = `Total categorías: ${lista.length}`;
 
-      if (categorias.length === 0) {
-        contenedor.innerHTML =
-          "<p class='text-center text-muted'>No hay categorías aún.</p>";
-        return;
-      }
+     if (lista.length === 0) {
+  contenedor.innerHTML =
+    "<p class='text-center text-muted'>No hay categorías aún.</p>";
+  return;
+}
 
       contenedor.innerHTML = categorias
         .map((c) => {
-          const imagenUrl = c.url_imagen
-            ? `${apiUrl}/uploads/${c.url_imagen}`
-            : "https://via.placeholder.com/100";
+          const idCategoria = Number(c.id_categoria) || 0;
+          const imagenUrl = safeUploadUrl(c.url_imagen);
+          const nombre = escapeHTML(c.nombre_categoria ?? "-");
+          const descripcion = escapeHTML(c.descripcion || "Sin descripción");
 
           return `
-            <div class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3" data-id="${c.id_categoria}">
-              <img src="${imagenUrl}" width="100" height="100" class="rounded" />
+            <div
+              class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3"
+              data-id="${idCategoria}"
+            >
+              <img
+                src="${imagenUrl}"
+                width="100"
+                height="100"
+                class="rounded"
+                alt="${nombre}"
+              />
+
               <div class="flex-grow-1">
-                <h5 class="mb-1">${c.nombre_categoria}</h5>
-                <p class="text-muted mb-1">${c.descripcion || "Sin descripción"}</p>
+                <h5 class="mb-1">${nombre}</h5>
+                <p class="text-muted mb-1">${descripcion}</p>
               </div>
+
               <div class="d-flex gap-2">
-                <button class="btn btn-warning btn-sm btn-editar">✏️ Editar</button>
-                <button class="btn btn-danger btn-sm btn-eliminar">🗑️ Eliminar</button>
+                <button class="btn btn-warning btn-sm btn-editar">
+                  ✏️ Editar
+                </button>
+
+                <button class="btn btn-danger btn-sm btn-eliminar">
+                  🗑️ Eliminar
+                </button>
               </div>
-            </div>`;
+            </div>
+          `;
         })
         .join("");
 
-      /* ✏️ Editar */
       contenedor.querySelectorAll(".btn-editar").forEach((btn) =>
         btn.addEventListener("click", async (e) => {
           const card = e.target.closest(".card");
-          const id = card.dataset.id;
+          const id = Number(card.dataset.id);
 
-          const res = await fetch(`${apiUrl}/categorias/${id}`, {
-            credentials: "include",
-            cache: "no-store",
-          });
-          const categoria = await res.json();
+          if (!id) {
+            alert("ID de categoría inválido");
+            return;
+          }
 
-          document.getElementById("cat-id").value = categoria.id_categoria;
-          document.getElementById("cat-nombre").value = categoria.nombre_categoria;
-          document.getElementById("cat-descripcion").value =
-            categoria.descripcion || "";
-          document.getElementById("cat-img-preview").src = categoria.url_imagen
-            ? `${apiUrl}/uploads/${categoria.url_imagen}`
-            : "https://via.placeholder.com/120";
+          try {
+            const categoria = await fetchJSON(`${apiUrl}/categorias/${id}`, {
+              cache: "no-store",
+            });
 
-          document
-            .getElementById("modal-editar-categoria")
-            .classList.add("visible");
+            document.getElementById("cat-id").value =
+              categoria.id_categoria;
+
+            document.getElementById("cat-nombre").value =
+              categoria.nombre_categoria ?? "";
+
+            document.getElementById("cat-descripcion").value =
+              categoria.descripcion || "";
+
+            document.getElementById("cat-img-preview").src =
+              safeUploadUrl(categoria.url_imagen);
+
+            document
+              .getElementById("modal-editar-categoria")
+              .classList.add("visible");
+          } catch (error) {
+            alert("❌ Error cargando categoría");
+          }
         })
-
       );
 
-      /* 🗑️ Eliminar */
-contenedor.querySelectorAll(".btn-eliminar").forEach((btn) =>
-  btn.addEventListener("click", async (e) => {
-    const card = e.target.closest(".card");
-    const id = card.dataset.id;
+      contenedor.querySelectorAll(".btn-eliminar").forEach((btn) =>
+        btn.addEventListener("click", async (e) => {
+          const card = e.target.closest(".card");
+          const id = Number(card.dataset.id);
 
-    const confirmar = confirm(
-      "¿Estás seguro de eliminar esta categoría?\nEsta acción no se puede deshacer."
-    );
+          if (!id) {
+            alert("ID de categoría inválido");
+            return;
+          }
 
-    if (!confirmar) return;
+          const confirmar = confirm(
+            "¿Estás seguro de eliminar esta categoría?\nEsta acción no se puede deshacer."
+          );
 
-    try {
-      const res = await fetch(`${apiUrl}/categorias/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+          if (!confirmar) return;
 
-      if (!res.ok) {
-        alert("❌ Error al eliminar la categoría");
-        return;
-      }
+          try {
+            await fetchJSON(`${apiUrl}/categorias/${id}`, {
+              method: "DELETE",
+            });
 
-      // 🔄 Recargar lista
-      cargarCategorias();
+            await cargarCategorias();
+          } catch (error) {
+            console.error("💥 Error eliminando:", error);
+            alert("❌ Error al eliminar la categoría");
+          }
+        })
+      );
     } catch (err) {
-      console.error("💥 Error eliminando:", err);
-      alert("Error de conexión");
-    }
-  })
-);
+      contenedor.innerHTML = `
+        <p class="text-danger">
+          ❌ Error: ${escapeHTML(err.message)}
+        </p>
+      `;
 
-    } catch (err) {
-      contenedor.innerHTML = `<p class="text-danger">❌ Error: ${err.message}</p>`;
       contador.textContent = "Error de conexión";
     }
   }
 
-  // 🔥 CLAVE DE LA OPCIÓN A
   window.cargarCategorias = cargarCategorias;
 
   document.addEventListener("DOMContentLoaded", cargarCategorias);
 </script>
 
-
 <style>
-.card img {
-  object-fit: cover;
-}
+  .card img {
+    object-fit: cover;
+  }
 </style>
-

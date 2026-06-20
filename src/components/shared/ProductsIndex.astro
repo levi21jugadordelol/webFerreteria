@@ -17,26 +17,36 @@ const {
   subtitle = "Explora nuestros mejores productos",
   tipo = "destacados",
   limit = 8,
-  showButton = true
+  showButton = true,
 } = Astro.props;
 
-const apiUrl = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
-const res = await fetch(
-  `${apiUrl}/productos/home?tipo=${tipo}&limit=${limit}`
-);
+const UPLOADS_URL =
+  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
 
-const productos = await res.json();
+let productos: any[] = [];
 
-console.log("🧪 showButton:", showButton);
-console.log("🧪 productos.length:", productos.length);
+try {
+  const res = await fetch(
+    `${API_URL}/productos/home?tipo=${tipo}&limit=${limit}`,
+    { cache: "no-store" }
+  );
 
+  if (!res.ok) {
+    console.error("Error cargando productos home:", res.status, res.statusText);
+  } else {
+    const result = await res.json();
+    productos = result.data ?? [];
+  }
+} catch (error) {
+  console.error("Error cargando productos home:", error);
+}
 ---
 
 <section class="products-section">
-
   <div class="container">
-
     <Title>{title}</Title>
     <Subtitulo>{subtitle}</Subtitulo>
 
@@ -48,38 +58,32 @@ console.log("🧪 productos.length:", productos.length);
 
     {productos.length > 0 && (
       <div class="products-grid">
-    {productos.map((p: any) => (
-  <TarjetaProducto
-    id={p.id_producto}
-    titulo={p.nombre_producto}
-    precio={`${p.precio}`}
-    descripcion={p.descripcion}
-    stock={p.stock}
-    imagen={{
-      src: p.url_imagen
-        ? `${apiUrl}/uploads/${p.url_imagen}`
-        : "https://via.placeholder.com/300x300?text=Sin+imagen"
-    }}
-    agotado={p.stock <= 0}
-  />
-))}
+        {productos.map((p: any) => (
+        <TarjetaProducto
+  id={p.id_producto}
+  titulo={p.nombre_producto}
+  precio={`${p.precio}`}
+  descripcion={p.descripcion}
+  stock={p.stock_disponible}
+  imagen={{
+    src: p.url_imagen
+      ? `${UPLOADS_URL}/${p.url_imagen}`
+      : "/img/no-image.png",
+  }}
+  agotado={p.agotado}
+/>
+        ))}
       </div>
     )}
 
-  {showButton && (
-  <>
-    {console.log("✅ Botón renderizado en SSR")}
-    <div class="text-center mt-4">
-      <Button href="/productos">
-        Ver todos los productos
-      </Button>
-    </div>
-  </>
-)}
-
-
+    {showButton && (
+      <div class="text-center mt-4">
+        <Button href="/productos">
+          Ver todos los productos
+        </Button>
+      </div>
+    )}
   </div>
-
 </section>
 
 <style>
@@ -93,31 +97,20 @@ console.log("🧪 productos.length:", productos.length);
   margin: 0 auto;
 }
 
-/* 🔥 Grid PRO tipo e-commerce */
 .products-grid {
   display: grid;
   gap: 32px;
   grid-template-columns: repeat(auto-fit, minmax(260px, 300px));
-  justify-content: center; /* centra las cards */
+  justify-content: center;
 }
 
-/* 👇 Hace que todas las tarjetas tengan misma altura */
 .products-grid > * {
   height: 100%;
 }
 
-/* Espacio correcto antes del botón */
 .products-section .text-center {
   margin-top: 3rem;
   display: flex;
   justify-content: center;
 }
 </style>
-
-
-
-
-
-
-
-

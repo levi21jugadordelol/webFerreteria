@@ -125,111 +125,125 @@ try {
 </AdminLayout>
 
 <script is:inline>
-
 const API_URL = "http://localhost:3000";
 
 const form = document.getElementById("footerForm");
+const mensaje = document.getElementById("mensaje");
 
-/* =========================
-   SUBMIT (CORREGIDO)
-========================= */
+function mostrarMensaje(tipo, texto) {
+  const div = document.createElement("div");
+  div.className = `alert ${tipo}`;
+  div.textContent = texto || "Operación procesada";
+  mensaje.replaceChildren(div);
+}
+
+function crearInput(clase, placeholder) {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = `form-control ${clase}`;
+  input.placeholder = placeholder;
+  return input;
+}
+
+function crearBotonEliminar(clase) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `btn btn-danger btn-sm ${clase}`;
+  button.textContent = "✕";
+  return button;
+}
+
+function crearFilaEnlace() {
+  const div = document.createElement("div");
+  div.className = "d-flex gap-2 mb-2";
+
+  div.append(
+    crearInput("enlace-label", "Texto"),
+    crearInput("enlace-url", "/ruta"),
+    crearBotonEliminar("remove-enlace")
+  );
+
+  return div;
+}
+
+function crearFilaSocial() {
+  const div = document.createElement("div");
+  div.className = "d-flex gap-2 mb-2";
+
+  div.append(
+    crearInput("social-icon", "facebook"),
+    crearInput("social-url", "https://..."),
+    crearBotonEliminar("remove-social")
+  );
+
+  return div;
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // 🔹 recoger enlaces
   const enlaces = Array.from(
     document.querySelectorAll("#enlacesContainer .d-flex")
-  ).map(el => ({
-    label: el.querySelector(".enlace-label").value,
-    url: el.querySelector(".enlace-url").value
-  })).filter(e => e.label && e.url); // 🔥 evita vacíos
+  )
+    .map((el) => ({
+      label: el.querySelector(".enlace-label").value.trim(),
+      url: el.querySelector(".enlace-url").value.trim(),
+    }))
+    .filter((e) => e.label && e.url);
 
-  // 🔹 recoger redes
   const social = Array.from(
     document.querySelectorAll("#socialContainer .d-flex")
-  ).map(el => ({
-    icon: el.querySelector(".social-icon").value,
-    url: el.querySelector(".social-url").value
-  })).filter(s => s.icon && s.url);
+  )
+    .map((el) => ({
+      icon: el.querySelector(".social-icon").value.trim(),
+      url: el.querySelector(".social-url").value.trim(),
+    }))
+    .filter((s) => s.icon && s.url);
 
   const data = {
     footer: {
-      titulo: document.getElementById("titulo").value,
-      titulo2: document.getElementById("titulo2").value,
-      titulo3: document.getElementById("titulo3").value,
-      parrafo: document.getElementById("parrafo").value,
+      titulo: document.getElementById("titulo").value.trim(),
+      titulo2: document.getElementById("titulo2").value.trim(),
+      titulo3: document.getElementById("titulo3").value.trim(),
+      parrafo: document.getElementById("parrafo").value.trim(),
       enlaces,
-      social
-    }
+      social,
+    },
   };
 
   try {
     const res = await fetch(`${API_URL}/api/site-settings`, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
-
-    if (!res.ok) {
-      throw new Error("Error al guardar");
-    }
 
     const result = await res.json();
 
-    document.getElementById("mensaje").innerHTML =
-      `<div class="alert alert-success">${result.msg}</div>`;
+    if (!res.ok) {
+      mostrarMensaje("alert-danger", result.msg || "Error al guardar");
+      return;
+    }
 
+    mostrarMensaje("alert-success", result.msg || "Footer guardado");
   } catch (error) {
-    document.getElementById("mensaje").innerHTML =
-      `<div class="alert alert-danger">Error guardando footer</div>`;
+    mostrarMensaje("alert-danger", "Error guardando footer");
   }
 });
 
-
-/* =========================
-   AGREGAR ENLACE
-========================= */
 document.getElementById("addEnlace").addEventListener("click", () => {
   const container = document.getElementById("enlacesContainer");
-
-  const div = document.createElement("div");
-  div.className = "d-flex gap-2 mb-2";
-
-  div.innerHTML = `
-    <input type="text" class="form-control enlace-label" placeholder="Texto" />
-    <input type="text" class="form-control enlace-url" placeholder="/ruta" />
-    <button type="button" class="btn btn-danger btn-sm remove-enlace">✕</button>
-  `;
-
-  container.appendChild(div);
+  container.appendChild(crearFilaEnlace());
 });
 
-
-/* =========================
-   AGREGAR SOCIAL
-========================= */
 document.getElementById("addSocial").addEventListener("click", () => {
   const container = document.getElementById("socialContainer");
-
-  const div = document.createElement("div");
-  div.className = "d-flex gap-2 mb-2";
-
-  div.innerHTML = `
-    <input type="text" class="form-control social-icon" placeholder="facebook" />
-    <input type="text" class="form-control social-url" placeholder="https://..." />
-    <button type="button" class="btn btn-danger btn-sm remove-social">✕</button>
-  `;
-
-  container.appendChild(div);
+  container.appendChild(crearFilaSocial());
 });
 
-
-/* =========================
-   ELIMINAR (IMPORTANTE)
-========================= */
 document.addEventListener("click", (e) => {
   if (
     e.target.classList.contains("remove-enlace") ||
@@ -238,5 +252,4 @@ document.addEventListener("click", (e) => {
     e.target.parentElement.remove();
   }
 });
-
 </script>

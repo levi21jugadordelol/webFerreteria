@@ -6,49 +6,50 @@ import ImageLeft from "../components/templates/ImagenLeft.astro";
 import ImageRight from "../components/templates/ImagenRight.astro";
 import HeroTemplate from "../components/templates/HeroTemplate.astro";
 
-const API = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+
 const { slug } = Astro.params;
 
 if (slug?.includes(".")) {
   return Astro.redirect("/");
 }
 
-const res = await fetch(`${API}/api/paginas/${slug}`);
+let pagina = null;
 
-if (!res.ok) {
+try {
+  const res = await fetch(`${API_URL}/paginas/${slug}`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Página no encontrada");
+  }
+
+  const result = await res.json();
+  pagina = result.data ?? result;
+} catch (error) {
   throw new Error("Página no encontrada");
 }
-
-const pagina = await res.json();
 ---
 
 <BaseLayout
   title={pagina.meta_title || pagina.titulo}
   description={pagina.meta_description || pagina.titulo}
 >
-
-{
-  pagina.template === "image-left" && (
+  {pagina.template === "image-left" && (
     <ImageLeft pagina={pagina} />
-  )
-}
+  )}
 
-{
-  pagina.template === "image-right" && (
+  {pagina.template === "image-right" && (
     <ImageRight pagina={pagina} />
-  )
-}
+  )}
 
-{
-  pagina.template === "hero" && (
+  {pagina.template === "hero" && (
     <HeroTemplate pagina={pagina} />
-  )
-}
+  )}
 
-{
-  (!pagina.template || pagina.template === "default") && (
+  {(!pagina.template || pagina.template === "default") && (
     <DefaultTemplate pagina={pagina} />
-  )
-}
-
+  )}
 </BaseLayout>

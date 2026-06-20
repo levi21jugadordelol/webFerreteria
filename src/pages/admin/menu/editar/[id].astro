@@ -44,7 +44,7 @@ const { id } = Astro.params;
 
 <script is:client>
 
-const API = "http://localhost:3000"
+
 const id = window.location.pathname.split("/").pop()
 
 const parentSelect = document.getElementById("parentSelect")
@@ -53,9 +53,9 @@ const parentSelect = document.getElementById("parentSelect")
    CARGAR PADRES
 ---------------------------*/
 async function cargarPadres(){
-  const res = await fetch(API + "/api/menu/admin/lista", {
-    credentials:"include"
-  })
+  const res = await fetch("/api/menu/admin/lista", {
+  credentials:"include"
+})
 
   const menus = await res.json()
 
@@ -74,10 +74,9 @@ async function cargarPadres(){
 ---------------------------*/
 async function cargar(){
 
- const res = await fetch(
-  API + "/api/menu/admin/" + id,
-  { credentials:"include" }
- )
+ const res = await fetch("/api/menu/admin/" + id, {
+  credentials:"include"
+})
 
  const m = await res.json()
 
@@ -106,15 +105,12 @@ document
   parent_id: parentSelect.value || null
  }
 
- await fetch(
-  API + "/api/menu/admin/" + id, // ✅ CORREGIDO
-  {
-   method:"PUT",
-   headers:{ "Content-Type":"application/json" },
-   body:JSON.stringify(data),
-   credentials:"include"
-  }
- )
+await fetch("/api/menu/admin/" + id, {
+  method:"PUT",
+  headers:{ "Content-Type":"application/json" },
+  body:JSON.stringify(data),
+  credentials:"include"
+})
 
  window.location="/admin/menu/lista"
 

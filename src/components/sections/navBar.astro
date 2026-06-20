@@ -2,99 +2,114 @@
 import Buscador from "../ui/Buscador.astro";
 import CarritoCounter from "../ui/carrito/CarritoCounter.astro";
 import ThemeToggle from "../ui/themeToggle/ThemeToggle.astro";
+import { loadNavbarData } from "../../api/services/navbar.service";
 
-
-
-const API = "http://localhost:3000";
-
-const resSettings = await fetch(`${API}/api/site-settings`);
-const config = await resSettings.json();
-
-const logo = config.site_content?.logo || "/img/logo-default.png";
-
+/* =========================
+   TIPOS
+========================= */
 interface MenuItem {
   url: string;
   titulo: string;
   tipo?: string;
-  children?: MenuItem[]; // 🔥 AGREGA ESTO
+  children?: MenuItem[];
 }
 
-const res = await fetch(`${API}/api/menu`);
-const data = await res.json();
+/* =========================
+   SSR DATA
+========================= */
+let logo: string = "";
+let links: MenuItem[] = [];
 
-const links: MenuItem[] = Array.isArray(data) ? data : [];
+const urlSegura = (url = "") => {
+  return /^\/[a-zA-Z0-9/_?=&-]*$/.test(url) ? url : "/";
+};
+
+const logoSeguro = (url = "") => {
+  return /^(https?:\/\/|\/)[^\s"'<>]+$/.test(url) ? url : "";
+};
+
+try {
+  const { menu, settings } = await loadNavbarData();
+
+  logo = settings?.site_content?.logo || logo;
+  links = Array.isArray(menu) ? (menu as MenuItem[]) : [];
+
+} catch (error) {
+  console.error("Navbar error:", error);
+}
 ---
 
 <nav class="nav-container">
 
-<div class="nav-inner">
+  <div class="nav-inner">
 
-<a href="/" class="logo">
-  <img src={logo} alt="logo" />
+    <!-- LOGO -->
+   <a href="/" class="logo">
+  {logoSeguro(logo) ? (
+  <img src={logoSeguro(logo)} alt="logo" />
+) : (
+  <span>Logo</span>
+)}
 </a>
 
-<div class="nav-links">
+    <!-- LINKS -->
+    <div class="nav-links">
+      {links.map((item) => (
+        <div class="nav-item">
 
-{links.map((item) => (
+          <a
+            href={urlSegura(item.url)}
+            class={`nav-link 
+            ${item.titulo === "categoria" ? "nav-link-categorias" : ""}
+            ${item.titulo === "marcas" ? "nav-link-marcas" : ""}
+            `}
+          >
+            {item.titulo}
+          </a>
 
-<div class="nav-item">
+          {/* SUBMENÚ DESDE BD */}
+          {item.children && item.children.length > 0 && (
+            <div class="mega-menu">
+              {item.children.map(child => (
+                <a href={urlSegura(child.url)} class="categoria-item">
+                  {child.titulo}
+                </a>
+              ))}
+            </div>
+          )}
 
-<a
- href={item.url}
- class={`nav-link 
- ${item.titulo === "categoria" ? "nav-link-categorias" : ""}
- ${item.titulo === "marcas" ? "nav-link-marcas" : ""}
- `}
->
- {item.titulo}
-</a>
+          {/* CATEGORÍAS DINÁMICAS */}
+          {item.titulo === "categoria" && (
+            <div id="mega-categorias" class="mega-menu">
+              <p>Cargando...</p>
+            </div>
+          )}
 
-{/* 🔥 SUBMENÚ DESDE BD */}
-{item.children && item.children.length > 0 && (
-  <div class="mega-menu">
-    {item.children.map(child => (
-      <a href={child.url} class="categoria-item">
-        {child.titulo}
-      </a>
-    ))}
+          {/* MARCAS DINÁMICAS */}
+          {item.titulo === "marcas" && (
+            <div id="mega-marcas" class="mega-menu">
+              <p>Cargando...</p>
+            </div>
+          )}
+
+        </div>
+      ))}
+    </div>
+
+    <!-- BUSCADOR -->
+    <div class="buscador-wrapper">
+      <Buscador />
+    </div>
+
+    <!-- ICONOS -->
+    <div class="icons">
+      <CarritoCounter />
+      <ThemeToggle />
+    </div>
+
   </div>
-)}
-
-{/* 🔥 CATEGORÍAS DINÁMICAS */}
-{item.titulo === "categoria" && (
-  <div id="mega-categorias" class="mega-menu">
-    <p>Cargando...</p>
-  </div>
-)}
-
-{/* 🔥 MARCAS DINÁMICAS */}
-{item.titulo === "marcas" && (
-  <div id="mega-marcas" class="mega-menu">
-    <p>Cargando...</p>
-  </div>
-)}
-
-</div>
-
-))}
-
-</div>
-
-<div class="buscador-wrapper">
-<Buscador />
-</div>
-
-<div class="icons">
-<CarritoCounter />
-<ThemeToggle />
-</div>
-
-</div>
 
 </nav>
-
-
-
 
 <style>
 /* ------ NAVBAR ------ */
@@ -105,7 +120,7 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
   background: #fff;
   z-index: 3000;
   border-bottom: 1px solid #eee;
-   backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .nav-inner {
@@ -124,37 +139,12 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
   gap: 18px;
 }
 
-.icons a,
-.icons button {
-  background: transparent;
-  border: none;
-  padding: 8px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--color-text);
-  transition: all 0.2s ease;
-}
-
-.icons a:hover,
-.icons button:hover {
-  background: var(--color-border);
-  transform: translateY(-1px);
-}
-
-
-
-
-/* LOGO */
 .logo img {
   width: 55px;
   height: 55px;
-  border-radius: 12px; /* 🔥 le da estilo moderno */
+  border-radius: 12px;
 }
 
-/* LINKS */
 .nav-links {
   display: flex;
   gap: 18px;
@@ -170,15 +160,12 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
   padding: 8px 12px;
   border-radius: 6px;
   transition: all 0.2s ease;
-  
 }
 
 .nav-link:hover {
   background: #f3f3f3;
-  transform: translateY(-1px);
 }
 
-/* MEGA MENU */
 .mega-menu {
   position: absolute;
   top: 50px;
@@ -186,29 +173,19 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
   width: 230px;
   background: white;
   padding: 10px 0;
-
   opacity: 0;
   visibility: hidden;
-  transform: translateY(10px) scale(0.98);
-  filter: blur(2px);
-
-  transition: 
-    opacity 0.25s ease,
-    transform 0.25s ease,
-    filter 0.25s ease,
-    visibility 0.25s;
-
+  transform: translateY(10px);
+  transition: all 0.25s ease;
   border-radius: 10px;
   border: 1px solid #e5e5eb;
   box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-    pointer-events: none;
 }
 
 .mega-menu.visible {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0) scale(1);
-  filter: blur(0);
+  transform: translateY(0);
 }
 
 :global(.categoria-item) {
@@ -221,110 +198,175 @@ const links: MenuItem[] = Array.isArray(data) ? data : [];
 :global(.categoria-item:hover) {
   background: #f7f7f7;
 }
-
-/* CARRITO BADGE */
-.cart-count-badge {
-  position: absolute;
-  top: -6px;
-  right: -8px;
-  background: var(--color-primary);
-  color: white;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 999px;
-  min-width: 18px;
-  text-align: center;
-  display: none;
-}
-
-
-/* WHATSAPP BUTTON */
-.whatsapp-wrapper .whatsapp-float {
-  position: fixed;
-  bottom: 22px;
-  right: 22px;
-  width: 62px;
-  height: 62px;
-  background: #25D366;
-  border-radius: 50%;
-  color: white !important;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 3000;
-}
-
-
 </style>
 
-<!-- ========== JS MEGA MENÚ ========== -->
-<script is:inline>
-
+<!-- JS CLIENTE -->
+<script type="module">
 document.addEventListener("DOMContentLoaded", () => {
-  const apiUrl = "http://localhost:3000";
-
-  /* --------------------
-     CATEGORÍAS
-  ---------------------*/
   const catLink = document.querySelector(".nav-link-categorias");
   const megaCat = document.getElementById("mega-categorias");
-  let catLoaded = false;
 
-  async function cargarCategorias() {
-    const res = await fetch(apiUrl + "/categorias");
-    const cats = await res.json();
-    megaCat.innerHTML = cats
-      .map(c => `<a href="/productos?categoria=${c.id_categoria}" class="categoria-item">${c.nombre_categoria}</a>`)
-      .join("");
-    catLoaded = true;
-  }
-
-  if (catLink && megaCat) {
-    catLink.addEventListener("mouseenter", () => {
-      megaCat.classList.add("visible");
-      if (!catLoaded) cargarCategorias();
-    });
-
-    megaCat.addEventListener("mouseenter", () => megaCat.classList.add("visible"));
-    catLink.addEventListener("mouseleave", () => {
-      setTimeout(() => {
-        if (!megaCat.matches(":hover")) megaCat.classList.remove("visible");
-      }, 150);
-    });
-    megaCat.addEventListener("mouseleave", () => megaCat.classList.remove("visible"));
-  }
-
-  /* --------------------
-     MARCAS
-  ---------------------*/
   const marLink = document.querySelector(".nav-link-marcas");
   const megaMar = document.getElementById("mega-marcas");
+
+  let catLoaded = false;
   let marLoaded = false;
+  let closeTimer = null;
+
+  function closeAllMenus() {
+    megaCat?.classList.remove("visible");
+    megaMar?.classList.remove("visible");
+  }
+
+  function openMenu(menu) {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+    }
+
+    closeAllMenus();
+    menu?.classList.add("visible");
+  }
+
+  function scheduleClose() {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+    }
+
+    closeTimer = setTimeout(() => {
+      closeAllMenus();
+    }, 120);
+  }
+
+  function cancelClose() {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+    }
+  }
+
+
+  function crearItemMenu(texto, href) {
+  const a = document.createElement("a");
+  a.className = "categoria-item";
+  a.href = href;
+  a.textContent = texto || "Sin nombre";
+  return a;
+}
+
+function crearMensajeMenu(texto) {
+  const p = document.createElement("p");
+  p.className = "categoria-item";
+  p.textContent = texto;
+  return p;
+}
+
+function idSeguro(valor) {
+  const numero = Number(valor);
+  return Number.isInteger(numero) && numero > 0 ? numero : null;
+}
+
+  async function cargarCategorias() {
+  if (catLoaded || !megaCat) return;
+
+  try {
+    const res = await fetch("http://localhost:3000/api/v1/categorias", {
+      credentials: "include",
+    });
+
+    const result = await res.json();
+    const cats = Array.isArray(result.data) ? result.data : [];
+
+    megaCat.replaceChildren();
+
+    cats.forEach((c) => {
+      const id = idSeguro(c.id_categoria);
+      if (!id) return;
+
+      megaCat.appendChild(
+        crearItemMenu(
+          c.nombre_categoria,
+          `/productos?categoria=${encodeURIComponent(id)}`
+        )
+      );
+    });
+
+    if (megaCat.children.length === 0) {
+      megaCat.appendChild(crearMensajeMenu("No hay categorías"));
+    }
+
+    catLoaded = true;
+  } catch (error) {
+    megaCat.replaceChildren(
+      crearMensajeMenu("Error al cargar categorías")
+    );
+    console.error("Error cargando categorías navbar:", error);
+  }
+}
 
   async function cargarMarcas() {
-    const res = await fetch(apiUrl + "/marcas");
-    const marcas = await res.json();
-    megaMar.innerHTML = marcas
-      .map(m => `<a href="/productos?marca=${m.id_marca}" class="categoria-item">${m.nombre_marca}</a>`)
-      .join("");
+  if (marLoaded || !megaMar) return;
+
+  try {
+    const res = await fetch("http://localhost:3000/api/v1/marcas", {
+      credentials: "include",
+    });
+
+    const result = await res.json();
+    const marcas = Array.isArray(result.data) ? result.data : [];
+
+    megaMar.replaceChildren();
+
+    marcas.forEach((m) => {
+      const id = idSeguro(m.id_marca);
+      if (!id) return;
+
+      megaMar.appendChild(
+        crearItemMenu(
+          m.nombre_marca,
+          `/productos?marca=${encodeURIComponent(id)}`
+        )
+      );
+    });
+
+    if (megaMar.children.length === 0) {
+      megaMar.appendChild(crearMensajeMenu("No hay marcas"));
+    }
+
     marLoaded = true;
+  } catch (error) {
+    megaMar.replaceChildren(
+      crearMensajeMenu("Error al cargar marcas")
+    );
+    console.error("Error cargando marcas navbar:", error);
+  }
+}
+
+  if (catLink && megaCat) {
+    catLink.addEventListener("mouseenter", async () => {
+      openMenu(megaCat);
+      await cargarCategorias();
+    });
+
+    catLink.addEventListener("mouseleave", scheduleClose);
+    megaCat.addEventListener("mouseenter", cancelClose);
+    megaCat.addEventListener("mouseleave", scheduleClose);
   }
 
   if (marLink && megaMar) {
-    marLink.addEventListener("mouseenter", () => {
-      megaMar.classList.add("visible");
-      if (!marLoaded) cargarMarcas();
+    marLink.addEventListener("mouseenter", async () => {
+      openMenu(megaMar);
+      await cargarMarcas();
     });
 
-    megaMar.addEventListener("mouseenter", () => megaMar.classList.add("visible"));
-    marLink.addEventListener("mouseleave", () => {
-      setTimeout(() => {
-        if (!megaMar.matches(":hover")) megaMar.classList.remove("visible");
-      }, 150);
-    });
-    megaMar.addEventListener("mouseleave", () => megaMar.classList.remove("visible"));
+    marLink.addEventListener("mouseleave", scheduleClose);
+    megaMar.addEventListener("mouseenter", cancelClose);
+    megaMar.addEventListener("mouseleave", scheduleClose);
   }
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeAllMenus();
+    }
+  });
 });
 </script>
 

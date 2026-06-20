@@ -4,37 +4,51 @@ export const prerender = false;
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 import HeroSortable from "../../../components/admin/HeroSortable.astro";
 
-// 🔹 obtener carrusel
-const resCarousel = await fetch("http://localhost:3000/api/hero?type=carousel");
-const heroSlides = await resCarousel.json();
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
-// 🔹 obtener banners triple
-const resTriple = await fetch("http://localhost:3000/api/hero?type=triple");
-const tripleSlides = await resTriple.json();
+let heroSlides = [];
+let tripleSlides = [];
+
+try {
+  const resCarousel = await fetch(`${API_URL}/hero?type=carousel`, {
+    cache: "no-store",
+  });
+
+  if (resCarousel.ok) {
+    const result = await resCarousel.json();
+    heroSlides = result.data ?? [];
+  }
+
+  const resTriple = await fetch(`${API_URL}/hero?type=triple`, {
+    cache: "no-store",
+  });
+
+  if (resTriple.ok) {
+    const result = await resTriple.json();
+    tripleSlides = result.data ?? [];
+  }
+} catch (error) {
+  console.error("Error cargando hero admin:", error);
+}
 ---
 
 <AdminLayout title="Gestión Hero">
+  <h2>Hero Carrusel</h2>
 
-<h2>Hero Carrusel</h2>
+  <a href="/admin/hero/nuevo" class="btn btn-primary mb-4">
+    ➕ Nuevo Slide
+  </a>
 
-<a href="/admin/hero/nuevo" class="btn btn-primary mb-4">
-➕ Nuevo Slide
-</a>
+  <HeroSortable slides={heroSlides} />
 
-<HeroSortable slides={heroSlides} />
+  <hr class="my-5" />
 
-<hr class="my-5"/>
+  <h2>Hero Triple Promocional</h2>
 
-<h2>Hero Triple Promocional</h2>
+  <a href="/admin/hero/nuevo?layout=triple" class="btn btn-primary mb-4">
+    ➕ Nuevo Banner Triple
+  </a>
 
-<a href="/admin/hero/nuevo?layout=triple" class="btn btn-primary mb-4">
-➕ Nuevo Banner Triple
-</a>
-
-<HeroSortable slides={tripleSlides} />
-
+  <HeroSortable slides={tripleSlides} />
 </AdminLayout>
-
-
-
-

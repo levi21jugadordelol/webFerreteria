@@ -1,104 +1,91 @@
 ---
 import TarjetaCollection from "../ui/tarjetaCollection.astro";
 
-const apiUrl = "http://localhost:3000";
+const API_URL =
+  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+
+const UPLOADS_URL =
+  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
 
 interface Categoria {
   id_categoria: number;
   nombre_categoria: string;
   descripcion?: string;
-  url_imagen?: string;
+  url_imagen?: string | null;
 }
 
 let categorias: Categoria[] = [];
 
 try {
-  const res = await fetch(`${apiUrl}/categorias`, { cache: "no-store" });
-  if (res.ok) {
-    categorias = await res.json() as Categoria[];
+  const res = await fetch(`${API_URL}/categorias`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    console.error("Error al cargar categorías:", res.status, res.statusText);
   } else {
-    console.error("Error al cargar categorías:", res.statusText);
+    const result = await res.json();
+    categorias = result.data ?? [];
   }
 } catch (err) {
-  console.error("❌ Error de conexión con el backend:", err);
+  console.error("Error de conexión con el backend:", err);
 }
 ---
 
-
-
 <div class="collection-carrusel container position-relative">
-
- 
-
   <div class="carrusel-container">
-
-    <!-- Flecha izquierda -->
     <button id="prevBtn" class="btn-flecha btn-left" aria-label="Anterior">
-  <i class="fa-solid fa-chevron-left"></i>
-</button>
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
 
-    <!-- Carrusel -->
-  <div id="carrusel" class="carrusel">
-  {categorias.map((c) => (
-  <div class="item">
-  <a href={`/productos?categoria=${c.id_categoria}`} class="categoria-link">
-    <TarjetaCollection
-      title={c.nombre_categoria}
-      imageUrl={
-        c.url_imagen
-          ? `${apiUrl}/uploads/${c.url_imagen}`
-          : "https://via.placeholder.com/300x260?text=Sin+imagen"
-      }
-    />
-  </a>
-</div>
+    <div id="carrusel" class="carrusel">
+      {categorias.map((c) => (
+        <div class="item">
+          <a href={`/productos?categoria=${c.id_categoria}`} class="categoria-link">
+            <TarjetaCollection
+              title={c.nombre_categoria}
+              imageUrl={
+                c.url_imagen
+                  ? `${UPLOADS_URL}/${c.url_imagen}`
+                  : "https://via.placeholder.com/300x260?text=Sin+imagen"
+              }
+            />
+          </a>
+        </div>
+      ))}
+    </div>
 
-  ))}
-</div>
-
-
-    <!-- Flecha derecha -->
     <button id="nextBtn" class="btn-flecha btn-right" aria-label="Siguiente">
-  <i class="fa-solid fa-chevron-right"></i>
-</button>
-
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
   </div>
 </div>
 
-
-<!-- @ts-ignore -->
-<script is:client>
+<script>
   const carrusel = document.getElementById("carrusel");
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
 
-  function anchoItem() {
-    const item = carrusel.querySelector(".item");
-    return item ? item.offsetWidth + 24 : 324; // ancho + gap
-  }
+ function anchoItem(): number {
+  const item = carrusel?.querySelector<HTMLElement>(".item");
 
-  prevBtn.addEventListener("click", () => {
-    carrusel.scrollBy({ left: -anchoItem(), behavior: "smooth" });
+  return item ? item.offsetWidth + 24 : 324;
+}
+
+  prevBtn?.addEventListener("click", () => {
+    carrusel?.scrollBy({ left: -anchoItem(), behavior: "smooth" });
   });
 
-  nextBtn.addEventListener("click", () => {
-    carrusel.scrollBy({ left: anchoItem(), behavior: "smooth" });
+  nextBtn?.addEventListener("click", () => {
+    carrusel?.scrollBy({ left: anchoItem(), behavior: "smooth" });
   });
 </script>
 
-
-
-
-
 <style>
-.carrusel-container {
+.collection-carrusel {
   position: relative;
-  width: 100%;
-  max-width: 1100px;
-  margin: auto;
 }
 
-/* CARRUSEL BASE */
 .carrusel-container {
   position: relative;
   width: 100%;
@@ -125,40 +112,9 @@ try {
   transform: translateY(-5px);
 }
 
-.card {
-  cursor: pointer;
-}
-
-
 .item {
-  flex: 0 0 300px;  /* 🔥 ANCHO FIJO DE CADA TARJETA */
+  flex: 0 0 300px;
 }
-
-/************ DESKTOP: 3 TARJETAS ************/
-@media (min-width: 768px) {
-  .item {
-    flex: 0 0 calc((100% / 3) - 1rem);
-  }
-}
-
-/************ MOBILE: 1 TARJETA ************/
-@media (max-width: 767px) {
-  .carrusel {
-    overflow-x: auto;              /* 🔥 scroll visible */
-    scroll-snap-type: x mandatory;
-  }
-
-  .item {
-    flex: 0 0 100%;                /* 🔥 SOLO 1 TARJETA */
-    scroll-snap-align: start;
-  }
-}
-
-
-
-/* =========================
-   🎯 CARRUSEL FLECHAS PRO
-========================= */
 
 .btn-flecha {
   position: absolute;
@@ -191,24 +147,37 @@ try {
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
-/* Posiciones */
-.btn-left { left: -55px; }
-.btn-right { right: -55px; }
+.btn-left {
+  left: -55px;
+}
 
-/* Dark mode ajuste */
+.btn-right {
+  right: -55px;
+}
+
 html[data-theme="dark"] .btn-flecha {
   background: rgba(30,30,30,0.8);
 }
 
+@media (min-width: 768px) {
+  .item {
+    flex: 0 0 calc((100% / 3) - 1rem);
+  }
+}
 
-/* MOBILE — OCULTAR FLECHAS PORQUE NO SE USAN */
 @media (max-width: 767px) {
+  .carrusel {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .item {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+  }
+
   .btn-flecha {
     display: none;
   }
 }
-
 </style>
-
-
-
