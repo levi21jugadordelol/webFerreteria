@@ -11,18 +11,60 @@ import {
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 import uploadHero from "../../shared/middleware/uploadHero.js";
 
+import {
+  validarCrearHero,
+  validarActualizarHero,
+  validarIdHero,
+  validarOrdenHero,
+} from "./hero.validator.js";
+
+import { validateResult } from "../../shared/middleware/validateResult.js";
+
 const router = express.Router();
 
-/* PUBLICO */
+/* =========================
+   🟢 PUBLICO
+========================= */
 router.get("/", getHeroSlides);
-router.get("/:id", getHeroById);
 
-/* ADMIN */
-router.post("/", protegerRuta, uploadHero.single("imagen"), createHeroSlide);
+router.get("/:id", validarIdHero, validateResult, getHeroById);
 
-router.put("/orden", protegerRuta, updateHeroOrden);
+/* =========================
+   🔒 ADMIN
+========================= */
+router.post(
+  "/",
+  protegerRuta,
+  uploadHero,
+  validarCrearHero,
+  validateResult,
+  createHeroSlide,
+);
 
-router.put("/:id", protegerRuta, uploadHero.single("imagen"), updateHeroSlide);
-router.delete("/:id", protegerRuta, deleteHeroSlide);
+router.put(
+  "/orden",
+  protegerRuta,
+  validarOrdenHero,
+  validateResult,
+  updateHeroOrden,
+);
+
+router.put(
+  "/:id",
+  protegerRuta,
+  uploadHero,
+  validarIdHero,
+  validarActualizarHero,
+  validateResult,
+  updateHeroSlide,
+);
+
+router.delete(
+  "/:id",
+  protegerRuta,
+  validarIdHero,
+  validateResult,
+  deleteHeroSlide,
+);
 
 export default router;

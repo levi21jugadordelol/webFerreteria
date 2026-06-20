@@ -1,26 +1,19 @@
-import PagoAuditoria from "../audit-payments/auditPayment.model.js";
 import logger from "../../shared/logger/logger.js";
+import asyncHandler from "../../shared/utils/asyncHandler.js";
 
-export const listarAuditoriaPagos = async (req, res) => {
-  try {
-    logger.info({
-      message: "Fetching payment audit logs",
-      user: req.admin?.id_administrador,
-    });
+import { listarAuditoriaPagosService } from "./auditPayment.service.js";
 
-    const logs = await PagoAuditoria.findAll({
-      order: [["fecha", "DESC"]],
-    });
+export const listarAuditoriaPagos = asyncHandler(async (req, res) => {
+  logger.info({
+    message: "Fetching payment audit logs",
+    adminId: req.admin?.id_administrador,
+    hasDesde: Boolean(req.query?.desde),
+    hasHasta: Boolean(req.query?.hasta),
+  });
 
-    return res.json(logs);
-  } catch (error) {
-    logger.error({
-      message: "Error fetching payment audit logs",
-      error: error.message,
-    });
+  const logs = await listarAuditoriaPagosService(req.query);
 
-    return res.status(500).json({
-      msg: "Error al obtener auditoría de pagos",
-    });
-  }
-};
+  return res.success({
+    data: logs,
+  });
+});

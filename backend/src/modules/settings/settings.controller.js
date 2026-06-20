@@ -1,61 +1,33 @@
-// controllers/siteSettings.controller.js
+import asyncHandler from "../../shared/utils/asyncHandler.js";
 
-import logger from "../../shared/logger/logger.js";
 import {
   getSiteSettings,
   getSettingByKey,
   updateSettings,
 } from "../settings/settings.services.js";
 
-/* 🟢 GET /api/site-settings
-   🟢 GET /api/site-settings?key=footer */
-export const getSiteSettingsController = async (req, res) => {
-  try {
-    const { key } = req.query;
+import logger from "../../shared/logger/logger.js";
 
-    if (key) {
-      const setting = await getSettingByKey(key);
-      return res.json(setting || {});
-    }
+export const getSiteSettingsController = asyncHandler(async (req, res) => {
+  const { key } = req.query;
 
-    const settings = await getSiteSettings();
-    return res.json(settings);
-  } catch (error) {
-    logger.error({
-      message: "Error obteniendo site settings",
-      error: error.message,
-    });
+  const data = key ? await getSettingByKey(key) : await getSiteSettings();
 
-    return res.status(500).json({
-      msg: "Error al cargar configuración",
-    });
-  }
-};
+  return res.success({
+    data: data || {},
+  });
+});
 
-/* 🔒 PUT /api/site-settings */
-export const updateSiteSettingsController = async (req, res) => {
-  try {
-    const data = req.body;
+export const updateSiteSettingsController = asyncHandler(async (req, res) => {
+  await updateSettings(req.body);
 
-    if (!data || typeof data !== "object") {
-      return res.status(400).json({
-        msg: "Datos inválidos",
-      });
-    }
+  logger.info({
+    event: "SETTINGS_UPDATED",
+    adminId: req.admin?.id_administrador,
+    keys: Object.keys(req.body || {}),
+  });
 
-    await updateSettings(data);
-
-    return res.json({
-      msg: "Configuración actualizada correctamente",
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error actualizando site settings",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      msg: "Error al actualizar configuración",
-    });
-  }
-};
+  return res.success({
+    message: "Configuración actualizada correctamente",
+  });
+});

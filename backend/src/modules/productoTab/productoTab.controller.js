@@ -1,204 +1,87 @@
-import ProductoTab from "./productoTab.model.js";
+import { ProductoTabService } from "./productoTab.service.js";
 import logger from "../../shared/logger/logger.js";
-import { generarSlugUnico } from "../../shared/helpers/generarSlugUnico.js";
+import asyncHandler from "../../shared/utils/asyncHandler.js";
 
-/* ===============================
-   LISTAR TABS
-================================ */
-export const listarTabs = async (req, res) => {
-  try {
-    logger.info({
-      message: "Fetching product tabs",
-    });
+/* =============================
+   LISTAR
+============================= */
+export const listarTabs = asyncHandler(async (req, res) => {
+  logger.info({ message: "Fetching product tabs" });
 
-    const tabs = await ProductoTab.findAll({
-      order: [
-        ["orden", "ASC"],
-        ["id_tab", "ASC"],
-      ],
-    });
+  const tabs = await ProductoTabService.listarTabs();
 
-    return res.json(tabs);
-  } catch (error) {
-    logger.error({
-      message: "Error listing product tabs",
-      error: error.message,
-    });
+  return res.success({
+    data: tabs,
+  });
+});
 
-    return res.status(500).json({ msg: "Error al listar tabs" });
-  }
-};
+/* =============================
+   CREAR
+============================= */
+export const crearTab = asyncHandler(async (req, res) => {
+  logger.info({
+    message: "Creating product tab",
+    nombre: req.body?.nombre,
+  });
 
-/* ===============================
-   CREAR TAB
-================================ */
-export const crearTab = async (req, res) => {
-  try {
-    let { nombre, slug, orden } = req.body;
+  const tab = await ProductoTabService.crearTab(req.body);
 
-    logger.info({
-      message: "Creating product tab",
-      body: req.body,
-    });
+  logger.info({
+    message: "Product tab created",
+    tabId: tab.id_tab,
+  });
 
-    if (!nombre) {
-      return res.status(400).json({
-        msg: "Nombre es obligatorio",
-      });
-    }
+  return res.success({
+    status: 201,
+    message: "Tab creada",
+    data: tab,
+  });
+});
 
-    if (!slug) {
-      slug = await generarSlugUnico(nombre);
-    }
+/* =============================
+   ACTUALIZAR
+============================= */
+export const actualizarTab = asyncHandler(async (req, res) => {
+  const tab = await ProductoTabService.actualizarTab(req.params.id, req.body);
 
-    const existe = await ProductoTab.findOne({
-      where: { slug },
-    });
+  logger.info({
+    message: "Product tab updated",
+    tabId: Number(req.params.id),
+  });
 
-    if (existe) {
-      return res.status(400).json({
-        msg: "El slug ya existe",
-      });
-    }
+  return res.success({
+    message: "Tab actualizada",
+    data: tab,
+  });
+});
 
-    const nueva = await ProductoTab.create({
-      nombre,
-      slug,
-      orden: orden || 0,
-      activo: true,
-    });
+/* =============================
+   TOGGLE
+============================= */
+export const toggleTab = asyncHandler(async (req, res) => {
+  await ProductoTabService.toggleTab(req.params.id);
 
-    logger.info({
-      message: "Product tab created",
-      id: nueva.id_tab,
-    });
+  logger.info({
+    message: "Product tab toggled",
+    tabId: Number(req.params.id),
+  });
 
-    return res.json({
-      msg: "Tab creada",
-      tab: nueva,
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error creating product tab",
-      error: error.message,
-    });
+  return res.success({
+    message: "Estado actualizado",
+  });
+});
 
-    return res.status(500).json({
-      msg: "Error al crear tab",
-    });
-  }
-};
-
-/* ===============================
-   ACTUALIZAR TAB
-================================ */
-export const actualizarTab = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nombre, slug, orden } = req.body;
-
-    logger.info({
-      message: "Updating product tab",
-      id,
-      body: req.body,
-    });
-
-    const tab = await ProductoTab.findByPk(id);
-
-    if (!tab) {
-      return res.status(404).json({
-        msg: "Tab no encontrada",
-      });
-    }
-
-    await tab.update({
-      nombre,
-      slug,
-      orden,
-    });
-
-    return res.json({
-      msg: "Tab actualizada",
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error updating product tab",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      msg: "Error al actualizar tab",
-    });
-  }
-};
-
-/* ===============================
-   ACTIVAR / DESACTIVAR
-================================ */
-export const toggleTab = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    logger.info({
-      message: "Toggling product tab",
-      id,
-    });
-
-    const tab = await ProductoTab.findByPk(id);
-
-    if (!tab) {
-      return res.status(404).json({
-        msg: "Tab no encontrada",
-      });
-    }
-
-    tab.activo = !tab.activo;
-    await tab.save();
-
-    return res.json({
-      msg: "Estado actualizado",
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error toggling product tab",
-      error: error.message,
-    });
-
-    return res.status(500).json({ msg: "Error al cambiar estado" });
-  }
-};
-
-/* ===============================
+/* =============================
    ELIMINAR
-================================ */
-export const eliminarTab = async (req, res) => {
-  try {
-    const { id } = req.params;
+============================= */
+export const eliminarTab = asyncHandler(async (req, res) => {
+  await ProductoTabService.eliminarTab(req.params.id);
 
-    logger.info({
-      message: "Deleting product tab",
-      id,
-    });
-
-    const tab = await ProductoTab.findByPk(id);
-
-    if (!tab) {
-      return res.status(404).json({
-        msg: "Tab no encontrada",
-      });
-    }
-
-    await tab.destroy();
-
-    return res.json({
-      msg: "Tab eliminada",
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error deleting product tab",
-      error: error.message,
-    });
-
-    return res.status(500).json({ msg: "Error al eliminar tab" });
-  }
-};
+  logger.info({
+    message: "Product tab deleted",
+    tabId: Number(req.params.id),
+  });
+  return res.success({
+    message: "Tab eliminada",
+  });
+});

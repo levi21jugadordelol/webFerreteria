@@ -1,6 +1,4 @@
-// routes/marcaRouter.js
 import express from "express";
-import { body } from "express-validator";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 import uploadMarca from "../../shared/middleware/uploadMarca.js";
 
@@ -13,30 +11,48 @@ import {
   subirLogoMarca,
 } from "../../modules/brands/marca.controller.js";
 
+import {
+  validarCrearMarca,
+  validarActualizarMarca,
+  validarId,
+} from "../../modules/brands/marca.validator.js";
+
+import { validateResult } from "../../shared/middleware/validateResult.js";
+
 const router = express.Router();
 
-// 🟢 Públicas
+/* =========================
+   🟢 Públicas
+========================= */
 router.get("/", listarMarcas);
-router.get("/:id", obtenerMarca);
 
-// 🔒 Protegidas
-router.post(
-  "/",
+router.get("/:id", validarId, validateResult, obtenerMarca);
+
+/* =========================
+   🔒 Protegidas
+========================= */
+router.post("/", protegerRuta, validarCrearMarca, validateResult, crearMarca);
+
+router.put(
+  "/:id",
   protegerRuta,
-  body("nombre_marca")
-    .notEmpty()
-    .withMessage("El nombre de la marca es obligatorio"),
-  crearMarca,
+  validarId,
+  validarActualizarMarca,
+  validateResult,
+  actualizarMarca,
 );
 
-router.put("/:id", protegerRuta, actualizarMarca);
-router.delete("/:id", protegerRuta, eliminarMarca);
+router.delete("/:id", protegerRuta, validarId, validateResult, eliminarMarca);
 
-// 🖼️ Subida de logo
+/* =========================
+   🖼️ Subida de logo
+========================= */
 router.post(
   "/subir-logo/:id",
   protegerRuta,
-  uploadMarca.single("file"), // ✅ CORRECTO
+  validarId,
+  validateResult,
+  uploadMarca,
   subirLogoMarca,
 );
 

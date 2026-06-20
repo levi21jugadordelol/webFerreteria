@@ -1,270 +1,117 @@
-import Pagina from "../../modules/pages/pagina.model.js";
 import logger from "../../shared/logger/logger.js";
+import asyncHandler from "../../shared/utils/asyncHandler.js";
 
-/* -----------------------------
-   Crear página
------------------------------ */
-export const crearPagina = async (req, res) => {
-  try {
-    logger.info({
-      message: "Creating page",
-      body: req.body,
-    });
+import {
+  crearPaginaService,
+  listarPaginasAdminService,
+  obtenerPaginaService,
+  obtenerPaginaAdminService,
+  actualizarPaginaService,
+  listarPaginasService,
+  eliminarPaginaService,
+} from "./pagina.service.js";
 
-    let {
-      titulo,
-      slug,
-      contenido,
-      template,
-      imagen_portada,
-      meta_description,
-    } = req.body;
+/* =============================
+   CREATE
+============================= */
+export const crearPagina = asyncHandler(async (req, res) => {
+  logger.info({
+    message: "Creating page",
+    titulo: req.body?.titulo,
+    slug: req.body?.slug,
+    template: req.body?.template,
+  });
 
-    if (!titulo || !slug || !contenido) {
-      return res.status(400).json({
-        msg: "Todos los campos son obligatorios",
-      });
-    }
+  const pagina = await crearPaginaService(req.body);
 
-    slug = slug
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
+  logger.info({
+    event: "PAGE_CREATED",
+    adminId: req.admin?.id_administrador,
+    pageId: pagina.id_pagina,
+    slug: pagina.slug,
+  });
 
-    const existe = await Pagina.findOne({ where: { slug } });
+  return res.success({
+    status: 201,
+    message: "Página creada correctamente",
+    data: pagina,
+  });
+});
 
-    if (existe) {
-      return res.status(400).json({
-        msg: "Ya existe una página con ese slug",
-      });
-    }
+/* =============================
+   ADMIN LIST
+============================= */
+export const listarPaginasAdmin = asyncHandler(async (req, res) => {
+  const paginas = await listarPaginasAdminService();
 
-    if (template !== "default" && !imagen_portada) {
-      return res.status(400).json({
-        msg: "Este template requiere imagen",
-      });
-    }
+  return res.success({
+    data: paginas,
+  });
+});
 
-    const pagina = await Pagina.create({
-      titulo,
-      slug,
-      contenido,
-      template: template || "default",
-      imagen_portada,
-      meta_description,
-      activo: true,
-    });
+/* =============================
+   PUBLIC GET
+============================= */
+export const obtenerPagina = asyncHandler(async (req, res) => {
+  const pagina = await obtenerPaginaService(req.params.slug);
 
-    logger.info({
-      message: "Page created",
-      slug: pagina.slug,
-    });
+  return res.success({
+    data: pagina,
+  });
+});
 
-    return res.status(201).json(pagina);
-  } catch (error) {
-    logger.error({
-      message: "Error creating page",
-      error: error.message,
-    });
+/* =============================
+   ADMIN GET
+============================= */
+export const obtenerPaginaAdmin = asyncHandler(async (req, res) => {
+  const pagina = await obtenerPaginaAdminService(req.params.id);
 
-    return res.status(500).json({
-      msg: "Error al crear página",
-    });
-  }
-};
+  return res.success({
+    data: pagina,
+  });
+});
 
-/* -----------------------------
-   Listar páginas ADMIN
------------------------------ */
-export const listarPaginasAdmin = async (req, res) => {
-  try {
-    logger.info({
-      message: "Fetching admin pages",
-    });
+/* =============================
+   UPDATE
+============================= */
+export const actualizarPagina = asyncHandler(async (req, res) => {
+  await actualizarPaginaService(req.params.id, req.body);
 
-    const paginas = await Pagina.findAll({
-      order: [["createdAt", "DESC"]],
-    });
+  logger.info({
+    event: "PAGE_UPDATED",
+    adminId: req.admin?.id_administrador,
+    pageId: Number(req.params.id),
+  });
 
-    return res.json(paginas);
-  } catch (error) {
-    logger.error({
-      message: "Error listing admin pages",
-      error: error.message,
-    });
+  return res.success({
+    message: "Página actualizada",
+  });
+});
 
-    return res.status(500).json({
-      msg: "Error al listar páginas",
-      error: error.message,
-    });
-  }
-};
+/* =============================
+   PUBLIC LIST
+============================= */
+export const listarPaginas = asyncHandler(async (req, res) => {
+  const paginas = await listarPaginasService();
 
-/* -----------------------------
-   Obtener página pública
------------------------------ */
-export const obtenerPagina = async (req, res) => {
-  const { slug } = req.params;
+  return res.success({
+    data: paginas,
+  });
+});
 
-  try {
-    logger.info({
-      message: "Fetching public page",
-      slug,
-    });
+/* =============================
+   DELETE
+============================= */
+export const eliminarPagina = asyncHandler(async (req, res) => {
+  await eliminarPaginaService(req.params.id);
 
-    const pagina = await Pagina.findOne({
-      where: { slug, activo: true },
-    });
+  logger.info({
+    event: "PAGE_DELETED",
+    adminId: req.admin?.id_administrador,
+    pageId: Number(req.params.id),
+  });
 
-    if (!pagina) {
-      return res.status(404).json({
-        msg: "Página no encontrada",
-      });
-    }
-
-    return res.json(pagina);
-  } catch (error) {
-    logger.error({
-      message: "Error fetching public page",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      msg: "Error al obtener página",
-    });
-  }
-};
-
-/* -----------------------------
-   Obtener página ADMIN
------------------------------ */
-export const obtenerPaginaAdmin = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const pagina = await Pagina.findByPk(id);
-
-    if (!pagina) {
-      return res.status(404).json({
-        msg: "Página no encontrada",
-      });
-    }
-
-    return res.json(pagina);
-  } catch (error) {
-    logger.error({
-      message: "Error fetching page by id (admin)",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      msg: "Error al obtener página",
-    });
-  }
-};
-
-/* -----------------------------
-   Actualizar página
------------------------------ */
-export const actualizarPagina = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    logger.info({
-      message: "Updating page",
-      id,
-      body: req.body,
-    });
-
-    const pagina = await Pagina.findByPk(id);
-
-    if (!pagina) {
-      return res.status(404).json({
-        msg: "Página no encontrada",
-      });
-    }
-
-    await pagina.update(req.body);
-
-    return res.json({
-      msg: "Página actualizada",
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error updating page",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      msg: "Error al actualizar página",
-    });
-  }
-};
-
-/* -----------------------------
-   Listar páginas públicas
------------------------------ */
-export const listarPaginas = async (req, res) => {
-  try {
-    logger.info({
-      message: "Fetching public pages list",
-    });
-
-    const paginas = await Pagina.findAll({
-      where: { activo: true },
-      attributes: ["titulo", "slug"],
-      order: [["titulo", "ASC"]],
-    });
-
-    return res.json(paginas);
-  } catch (error) {
-    logger.error({
-      message: "Error listing public pages",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      msg: "Error al listar páginas",
-      error: error.message,
-    });
-  }
-};
-
-/* -----------------------------
-   Eliminar página
------------------------------ */
-export const eliminarPagina = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    logger.info({
-      message: "Deleting page",
-      id,
-    });
-
-    const pagina = await Pagina.findByPk(id);
-
-    if (!pagina) {
-      return res.status(404).json({
-        msg: "Página no encontrada",
-      });
-    }
-
-    await pagina.destroy();
-
-    return res.json({
-      msg: "Página eliminada",
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error deleting page",
-      error: error.message,
-    });
-
-    return res.status(500).json({
-      msg: "Error al eliminar página",
-    });
-  }
-};
+  return res.success({
+    message: "Página eliminada",
+  });
+});

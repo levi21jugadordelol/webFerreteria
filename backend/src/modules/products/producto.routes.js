@@ -1,7 +1,15 @@
 import express from "express";
-import { body } from "express-validator";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 import uploadProducto from "../../shared/middleware/uploadProducto.js";
+import { validateResult } from "../../shared/middleware/validateResult.js";
+
+import {
+  validarCrearProducto,
+  validarIdProducto,
+  validarSlug,
+  validarCaracteristica,
+  validarActualizarProducto,
+} from "./producto.validator.js";
 
 import {
   listarProductosPublicos,
@@ -33,49 +41,113 @@ const router = express.Router();
 router.get("/home", listarProductosHome);
 router.get("/precio", filtrarPorPrecio);
 
-router.get("/:slug/relacionados", productosRelacionados);
-router.get("/:slug/full", obtenerProductoCompleto);
-router.get("/:slug/caracteristicas", obtenerCaracteristicas);
+router.get(
+  "/:slug/relacionados",
+  validarSlug,
+  validateResult,
+  productosRelacionados,
+);
+router.get("/:slug/full", validarSlug, validateResult, obtenerProductoCompleto);
+router.get(
+  "/:slug/caracteristicas",
+  validarSlug,
+  validateResult,
+  obtenerCaracteristicas,
+);
 
 router.get("/", listarProductosPublicos);
-router.get("/:slug", obtenerProducto);
+router.get("/:slug", validarSlug, validateResult, obtenerProducto);
 
 /* --------------------
    🔒 ADMIN
 -------------------- */
 router.use("/admin", protegerRuta);
 
+/* LISTADO / DETALLE */
 router.get("/admin/lista", listarProductosAdmin);
-router.get("/admin/:id", obtenerProductoAdmin);
-router.get("/admin/:id/caracteristicas", obtenerCaracteristicas);
 
+router.get(
+  "/admin/:id",
+  validarIdProducto,
+  validateResult,
+  obtenerProductoAdmin,
+);
+
+router.get(
+  "/admin/:id/caracteristicas",
+  validarIdProducto,
+  validateResult,
+  obtenerCaracteristicas,
+);
+
+/* CREAR */
 router.post(
   "/admin",
-  uploadProducto.single("imagen"),
-  body("nombre_producto").notEmpty(),
-  body("descripcion").optional(),
-  body("precio").isNumeric(),
-  body("stock").isNumeric(),
+  uploadProducto,
+  validarCrearProducto,
+  validateResult,
   crearProducto,
 );
 
-router.put("/admin/:id", actualizarProducto);
-router.delete("/admin/:id", eliminarProducto);
+/* UPDATE / DELETE */
+router.put(
+  "/admin/:id",
+  validarIdProducto,
+  validarActualizarProducto,
+  validateResult,
+  actualizarProducto,
+);
+router.delete(
+  "/admin/:id",
+  validarIdProducto,
+  validateResult,
+  eliminarProducto,
+);
 
-/* Imágenes */
-router.post("/admin/:id/imagen", uploadProducto.single("imagen"), subirImagen);
+/* IMÁGENES */
+router.post(
+  "/admin/:id/imagen",
+  validarIdProducto,
+  validateResult,
+  uploadProducto,
+  subirImagen,
+);
 
 router.post(
   "/admin/:id/imagenes",
-  uploadProducto.single("imagen"),
+  validarIdProducto,
+  validateResult,
+  uploadProducto,
   subirImagenExtra,
 );
 
-router.delete("/admin/:id/imagenes/:idImg", eliminarImagenExtra);
+router.delete(
+  "/admin/:id/imagenes/:idImg",
+  validarIdProducto,
+  validateResult,
+  eliminarImagenExtra,
+);
 
-/* Características */
-router.post("/admin/:id/caracteristicas", agregarCaracteristica);
-router.put("/admin/:id/caracteristicas/:idCarac", actualizarCaracteristica);
-router.delete("/admin/:id/caracteristicas/:idCarac", eliminarCaracteristica);
+/* CARACTERÍSTICAS */
+router.post(
+  "/admin/:id/caracteristicas",
+  validarIdProducto,
+  validarCaracteristica,
+  validateResult,
+  agregarCaracteristica,
+);
+
+router.put(
+  "/admin/:id/caracteristicas/:idCarac",
+  validarCaracteristica,
+  validateResult,
+  actualizarCaracteristica,
+);
+
+router.delete(
+  "/admin/:id/caracteristicas/:idCarac",
+  validateResult,
+  eliminarCaracteristica,
+);
 
 export default router;

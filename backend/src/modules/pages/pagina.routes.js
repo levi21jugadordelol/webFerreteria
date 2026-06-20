@@ -11,28 +11,42 @@ import {
   listarPaginas,
 } from "./pagina.controller.js";
 
+import {
+  validarCrearPagina,
+  validarActualizarPagina,
+  validarIdPagina,
+  validarBodyNoVacio,
+  validarSlugPagina,
+} from "./pagina.validator.js";
+
 const router = express.Router();
-
-/* -----------------------------
-   ADMIN (PROTEGIDO)
------------------------------ */
-
-router.get("/", listarPaginas);
-
-router.post("/admin", protegerRuta, crearPagina);
-
-router.get("/admin/lista", protegerRuta, listarPaginasAdmin);
-
-router.get("/admin/:id", protegerRuta, obtenerPaginaAdmin);
-
-router.put("/admin/:id", protegerRuta, actualizarPagina);
-
-router.delete("/admin/:id", protegerRuta, eliminarPagina);
 
 /* -----------------------------
    PUBLICO
 ----------------------------- */
 
-router.get("/:slug", obtenerPagina);
+router.get("/", listarPaginas);
+router.get("/:slug", validarSlugPagina, obtenerPagina);
+
+/* -----------------------------
+   ADMIN (PROTEGIDO)
+----------------------------- */
+
+router.post("/admin", protegerRuta, validarCrearPagina, crearPagina);
+
+router.get("/admin/lista", protegerRuta, listarPaginasAdmin);
+
+router.get("/admin/:id", protegerRuta, validarIdPagina, obtenerPaginaAdmin);
+
+router.put(
+  "/admin/:id",
+  protegerRuta,
+  validarIdPagina,
+  validarBodyNoVacio,
+  validarActualizarPagina,
+  actualizarPagina,
+);
+
+router.delete("/admin/:id", protegerRuta, validarIdPagina, eliminarPagina);
 
 export default router;

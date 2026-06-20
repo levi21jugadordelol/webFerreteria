@@ -1,147 +1,102 @@
-// controllers/marcaController.js
-import Marca from "../../modules/brands/marca.model.js";
-import { validationResult } from "express-validator";
-import fs from "fs";
-import path from "path";
 import logger from "../../shared/logger/logger.js";
+import asyncHandler from "../../shared/utils/asyncHandler.js";
 
-// 🟢 Crear marca
-export const crearMarca = async (req, res) => {
-  const errores = validationResult(req);
-  if (!errores.isEmpty())
-    return res.status(400).json({ errores: errores.array() });
+import {
+  crearMarcaService,
+  listarMarcasService,
+  obtenerMarcaService,
+  actualizarMarcaService,
+  eliminarMarcaService,
+  subirLogoMarcaService,
+} from "./marca.service.js";
 
-  try {
-    const { nombre_marca, descripcion } = req.body;
+/* =========================
+   CREAR MARCA
+========================= */
+export const crearMarca = asyncHandler(async (req, res) => {
+  const marca = await crearMarcaService(req.body);
 
-    const existe = await Marca.findOne({ where: { nombre_marca } });
-    if (existe)
-      return res
-        .status(400)
-        .json({ msg: "Ya existe una marca con ese nombre" });
+  logger.info({
+    message: "Brand created",
+    brandId: marca.id_marca,
+  });
 
-    const nueva = await Marca.create({
-      nombre_marca,
-      descripcion,
-    });
+  return res.success({
+    status: 201,
+    message: "Marca creada correctamente",
+    data: marca,
+  });
+});
 
-    logger.info({
-      message: "Marca creada",
-      nombre: nueva.nombre_marca,
-      id: nueva.id_marca,
-    });
+/* =========================
+   LISTAR MARCAS
+========================= */
+export const listarMarcas = asyncHandler(async (req, res) => {
+  const marcas = await listarMarcasService();
 
-    res.status(201).json({
-      msg: "Marca creada correctamente",
-      marca: nueva,
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error al crear marca",
-      error: error.message,
-    });
-    res.status(500).json({ msg: "Error interno del servidor" });
-  }
-};
+  return res.success({
+    data: marcas,
+  });
+});
 
-// 🔵 Listar marcas
-export const listarMarcas = async (req, res) => {
-  try {
-    const marcas = await Marca.findAll({
-      order: [["id_marca", "ASC"]],
-    });
-    res.json(marcas);
-  } catch (err) {
-    logger.error({
-      message: "Error al listar marcas",
-      error: err.message,
-    });
-    res.status(500).json({ msg: "Error al obtener marcas" });
-  }
-};
+/* =========================
+   OBTENER MARCA
+========================= */
+export const obtenerMarca = asyncHandler(async (req, res) => {
+  const marca = await obtenerMarcaService(req.params.id);
 
-// 🔵 Obtener una marca
-export const obtenerMarca = async (req, res) => {
-  try {
-    const marca = await Marca.findByPk(req.params.id);
-    if (!marca) return res.status(404).json({ msg: "Marca no encontrada" });
-    res.json(marca);
-  } catch (err) {
-    logger.error({
-      message: "Error al obtener marca",
-      error: err.message,
-    });
-    res.status(500).json({ msg: "Error al obtener marca" });
-  }
-};
+  return res.success({
+    data: marca,
+  });
+});
 
-// ✏️ Actualizar
-export const actualizarMarca = async (req, res) => {
-  try {
-    const marca = await Marca.findByPk(req.params.id);
-    if (!marca) return res.status(404).json({ msg: "Marca no encontrada" });
+/* =========================
+   ACTUALIZAR MARCA
+========================= */
+export const actualizarMarca = asyncHandler(async (req, res) => {
+  const marca = await actualizarMarcaService(req.params.id, req.body);
 
-    await marca.update(req.body);
-    res.json({ msg: "Marca actualizada correctamente", marca });
-  } catch (err) {
-    logger.error({
-      message: "Error al actualizar marca",
-      error: err.message,
-    });
-    res.status(500).json({ msg: "Error al actualizar marca" });
-  }
-};
+  logger.info({
+    message: "Brand updated",
+    brandId: marca.id_marca,
+  });
 
-// 🗑️ Eliminar
-export const eliminarMarca = async (req, res) => {
-  try {
-    const marca = await Marca.findByPk(req.params.id);
-    if (!marca) return res.status(404).json({ msg: "Marca no encontrada" });
+  return res.success({
+    message: "Marca actualizada correctamente",
+    data: marca,
+  });
+});
 
-    if (marca.url_logo) {
-      const ruta = path.join("uploads", marca.url_logo);
-      if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
-    }
+/* =========================
+   ELIMINAR MARCA
+========================= */
+export const eliminarMarca = asyncHandler(async (req, res) => {
+  await eliminarMarcaService(req.params.id);
 
-    await marca.destroy();
-    res.json({ msg: "Marca eliminada correctamente" });
-  } catch (err) {
-    logger.error({
-      message: "Error al eliminar marca",
-      error: err.message,
-    });
-    res.status(500).json({ msg: "Error al eliminar marca" });
-  }
-};
+  logger.info({
+    message: "Brand deleted",
+    brandId: Number(req.params.id),
+  });
 
-// 🖼️ Subir logo
-export const subirLogoMarca = async (req, res) => {
-  try {
-    const marca = await Marca.findByPk(req.params.id);
-    if (!marca) return res.status(404).json({ msg: "Marca no encontrada" });
+  return res.success({
+    message: "Marca eliminada correctamente",
+  });
+});
 
-    if (!req.file)
-      return res.status(400).json({ msg: "No se subió ningún logo" });
+/* =========================
+   SUBIR LOGO
+========================= */
+export const subirLogoMarca = asyncHandler(async (req, res) => {
+  const result = await subirLogoMarcaService(req.params.id, req.file);
 
-    // eliminar logo anterior
-    if (marca.url_logo) {
-      const ruta = path.join("uploads", marca.url_logo);
-      if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
-    }
+  logger.info({
+    message: "Brand logo uploaded",
+    brandId: Number(req.params.id),
+    hasFile: Boolean(req.file),
+  });
 
-    marca.url_logo = `marcas/${req.file.filename}`;
-
-    await marca.save();
-
-    res.json({
-      msg: "Logo de marca subido correctamente",
-      url_logo: marca.url_logo,
-    });
-  } catch (err) {
-    logger.error({
-      message: "Error al subir logo de marca",
-      error: err.message,
-    });
-    res.status(500).json({ msg: "Error al subir logo" });
-  }
-};
+  return res.success({
+    message: "Logo de marca subido correctamente",
+    data: result,
+  });
+});

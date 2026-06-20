@@ -10,31 +10,43 @@ import {
 
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 
+import {
+  validarCrearTab,
+  validarActualizarTab,
+  validarIdTab,
+} from "./productoTab.validator.js";
+
 const router = express.Router();
 
 /* ============================
-   LISTAR TABS
+   LISTAR TABS (PUBLICO)
 ============================ */
 router.get("/", listarTabs);
 
 /* ============================
-   CREAR TAB
+   CREAR TAB (ADMIN)
 ============================ */
-router.post("/", protegerRuta, crearTab);
+router.post("/", protegerRuta, validarCrearTab, crearTab);
 
 /* ============================
-   ACTUALIZAR TAB
+   ACTUALIZAR TAB (ADMIN)
 ============================ */
-router.put("/:id", protegerRuta, actualizarTab);
+router.put(
+  "/:id",
+  protegerRuta,
+  validarIdTab,
+  validarActualizarTab,
+  actualizarTab,
+);
 
 /* ============================
-   ACTIVAR / DESACTIVAR
+   ACTIVAR / DESACTIVAR (ADMIN)
 ============================ */
-router.patch("/:id/toggle", protegerRuta, toggleTab);
+router.patch("/:id/toggle", protegerRuta, validarIdTab, toggleTab);
 
 /* ============================
-   ELIMINAR TAB
+   ELIMINAR TAB (ADMIN)
 ============================ */
-router.delete("/:id", protegerRuta, eliminarTab);
+router.delete("/:id", protegerRuta, validarIdTab, eliminarTab);
 
 export default router;

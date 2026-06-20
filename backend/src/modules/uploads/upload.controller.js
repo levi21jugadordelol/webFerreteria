@@ -1,30 +1,10 @@
-import logger from "../../shared/logger/logger.js";
+import asyncHandler from "../../shared/utils/asyncHandler.js";
+import { subirImagenEditorService } from "./upload.service.js";
 
-export const subirImagenEditor = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({
-        msg: "Debe subir una imagen",
-      });
-    }
+export const subirImagenEditor = asyncHandler(async (req, res) => {
+  const result = await subirImagenEditorService(req.file, "editor"); // ← agregar "editor"
 
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
-    const url = `${baseUrl}/uploads/editor/${req.file.filename}`;
-
-    logger.info({
-      message: "Imagen subida editor",
-      url,
-    });
-
-    res.json({ url });
-  } catch (error) {
-    logger.error({
-      message: "Error subir imagen editor",
-      error: error.message,
-    });
-
-    res.status(500).json({
-      msg: "Error al subir imagen",
-    });
-  }
-};
+  return res.success({
+    data: result,
+  });
+});

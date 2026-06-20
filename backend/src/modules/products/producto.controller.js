@@ -1,575 +1,263 @@
-import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { Op } from "sequelize";
-import logger from "../../shared/logger/logger.js";
-
-import Producto from "./producto.model.js";
-import Categoria from "../categories/category.model.js";
-import ProductoImagen from "../productImagen/productImg.model.js";
-import ProductoCaracteristica from "../productCaracteristica/productCarac.model.js";
-import ProductoTab from "../productoTab/productoTab.model.js";
-
-import { validationResult } from "express-validator";
-
 import ProductoService from "./producto.service.js";
-
-import { getSiteSettings } from "../settings/settings.services.js";
-
-import { generarSlugUnico } from "../../shared/helpers/generarSlugUnico.js";
-
-/* -----------------------------
-   Multer
------------------------------ */
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/productos");
-  },
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + path.extname(file.originalname)),
-});
-
-const upload = multer({ storage });
+import asyncHandler from "../../shared/utils/asyncHandler.js";
+import logger from "../../shared/logger/logger.js";
 
 /* -----------------------------
    Crear Producto
 ----------------------------- */
-export const crearProducto = async (req, res) => {
-  logger.info("crearProducto invoked");
+export const crearProducto = asyncHandler(async (req, res) => {
+  const producto = await ProductoService.crearProducto(
+    req.body,
+    req.file,
+    req.admin,
+  );
 
-  logger.debug({
-    message: "Request data",
-    body: req.body,
-    hasFile: !!req.file,
+  logger.info({
+    message: "Product created",
+    productId: producto.id_producto,
+    adminId: req.admin?.id_administrador,
   });
 
-  const errores = validationResult(req);
-  if (!errores.isEmpty()) {
-    return res.status(400).json({ errores: errores.array() });
-  }
-
-  try {
-    const {
-      nombre_producto,
-      descripcion,
-      precio,
-      stock,
-      categoria_id,
-      marca_id,
-      es_destacado,
-      es_temporada,
-      temporada_inicio,
-      temporada_fin,
-    } = req.body;
-
-    const administrador_id = req.admin?.id_administrador;
-    if (!administrador_id) {
-      return res.status(401).json({ msg: "No autorizado" });
-    }
-
-    // 🔴 Validaciones básicas
-    if (!nombre_producto || nombre_producto.trim().length < 3) {
-      return res.status(400).json({ msg: "Nombre de producto inválido" });
-    }
-
-    if (!categoria_id || !marca_id) {
-      return res
-        .status(400)
-        .json({ msg: "Categoría y marca son obligatorias" });
-    }
-
-    if (Number(stock) < 0 || Number(precio) <= 0) {
-      return res.status(400).json({ msg: "Precio o stock inválido" });
-    }
-
-    if (es_temporada && (!temporada_inicio || !temporada_fin)) {
-      return res.status(400).json({
-        msg: "Los productos de temporada requieren fechas de inicio y fin",
-      });
-    }
-
-    // 🔴 Validación de duplicado (CLAVE)
-    const existe = await Producto.findOne({
-      where: {
-        nombre_producto,
-        marca_id,
-      },
-    });
-
-    if (existe) {
-      return res.status(400).json({
-        msg: "Ya existe un producto con ese nombre para esta marca",
-      });
-    }
-
-    // 🔴 Validación de imagen
-    if (req.file) {
-      const allowed = ["image/jpeg", "image/png", "image/webp"];
-      if (!allowed.includes(req.file.mimetype)) {
-        return res.status(400).json({
-          msg: "Formato de imagen no permitido",
-        });
-      }
-    }
-
-    const imagen = req.file ? `productos/${req.file.filename}` : null;
-
-    const slug = await generarSlugUnico({
-      modelo: Producto,
-      valor: nombre_producto,
-    });
-
-    const producto = await Producto.create({
-      nombre_producto,
-      slug,
-      descripcion,
-      precio,
-      stock,
-      categoria_id,
-      marca_id,
-      administrador_id,
-      url_imagen: imagen,
-      es_destacado: !!es_destacado,
-      es_temporada: !!es_temporada,
-      temporada_inicio: temporada_inicio || null,
-      temporada_fin: temporada_fin || null,
-    });
-
-    res.status(201).json({
-      msg: "Producto creado correctamente",
-      producto,
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error crearProducto",
-      error: error.message,
-    });
-    res.status(500).json({ msg: "Error al crear producto" });
-  }
-};
+  return res.success({
+    status: 201,
+    message: "Producto creado correctamente",
+    data: producto,
+  });
+});
 
 /* -----------------------------
    Subir imagen principal
 ----------------------------- */
-export const subirImagen = async (req, res) => {
-  try {
-    const producto = await Producto.findByPk(req.params.id);
+export const subirImagen = asyncHandler(async (req, res) => {
+  const url = await ProductoService.subirImagen(req.params.id, req.file);
 
-    if (!producto)
-      return res.status(404).json({ msg: "Producto no encontrado" });
+  logger.info({
+    message: "Product main image updated",
+    productId: Number(req.params.id),
+    hasFile: Boolean(req.file),
+  });
 
-    if (!req.file)
-      return res.status(400).json({ msg: "Debe subir una imagen" });
-
-    // borrar anterior
-    if (producto.url_imagen) {
-      const ruta = path.join("uploads", producto.url_imagen);
-      if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
-    }
-
-    producto.url_imagen = `productos/${req.file.filename}`;
-    await producto.save();
-
-    res.json({ msg: "Imagen actualizada", url_imagen: producto.url_imagen });
-  } catch (error) {
-    res.status(500).json({ msg: "Error al subir imagen" });
-  }
-};
+  return res.success({
+    message: "Imagen actualizada",
+    data: { url_imagen: url },
+  });
+});
 
 /* -----------------------------
    Subir imagen adicional
 ----------------------------- */
-export const subirImagenExtra = async (req, res) => {
-  try {
-    const { id } = req.params;
+export const subirImagenExtra = asyncHandler(async (req, res) => {
+  const imagen = await ProductoService.subirImagenExtra(
+    req.params.id,
+    req.file,
+  );
 
-    if (!req.file) {
-      return res.status(400).json({ msg: "No se subió imagen" });
-    }
+  logger.info({
+    message: "Product extra image uploaded",
+    productId: Number(req.params.id),
+    imageId: imagen.id_imagen ?? imagen.id_producto_imagen ?? null,
+    hasFile: Boolean(req.file),
+  });
 
-    const nueva = await ProductoImagen.create({
-      producto_id: id,
-      url: `productos/${req.file.filename}`, // ✅ AQUÍ ESTÁ EL FIX REAL
-    });
-
-    res.json({ msg: "Imagen guardada", imagen: nueva });
-  } catch (error) {
-    logger.error({
-      message: "Error subirImagenExtra",
-      error: error.message,
-    });
-    res.status(500).json({ msg: "Error al guardar imagen extra" });
-  }
-};
+  return res.success({
+    message: "Imagen guardada",
+    data: imagen,
+  });
+});
 
 /* -----------------------------
    Eliminar imagen extra
 ----------------------------- */
-export const eliminarImagenExtra = async (req, res) => {
-  try {
-    const { idImg } = req.params;
+export const eliminarImagenExtra = asyncHandler(async (req, res) => {
+  await ProductoService.eliminarImagenExtra(req.params.idImg);
 
-    const imagen = await ProductoImagen.findByPk(idImg);
-    if (!imagen) return res.status(404).json({ msg: "No encontrada" });
+  logger.info({
+    message: "Product extra image deleted",
+    imageId: Number(req.params.idImg),
+  });
 
-    const ruta = path.join("uploads", imagen.url); // ✅
-
-    if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
-
-    await imagen.destroy();
-
-    res.json({ msg: "Imagen eliminada" });
-  } catch (error) {
-    res.status(500).json({ msg: "Error al eliminar imagen" });
-  }
-};
+  return res.success({
+    message: "Imagen eliminada",
+  });
+});
 
 /* -----------------------------
    Agregar característica
 ----------------------------- */
-export const agregarCaracteristica = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { titulo, valor, tab_id } = req.body;
+export const agregarCaracteristica = asyncHandler(async (req, res) => {
+  const result = await ProductoService.agregarCaracteristica(
+    req.params.id,
+    req.body,
+  );
 
-    if (!titulo || !valor || !tab_id) {
-      return res.status(400).json({
-        msg: "Datos incompletos",
-      });
-    }
+  logger.info({
+    message: "Product feature added",
+    productId: Number(req.params.id),
+    featureId: result.id_caracteristica ?? null,
+  });
 
-    const tabId = Number(tab_id); // 🔴 FIX IMPORTANTE
-
-    /* =========================
-       OBTENER ÚLTIMO ORDEN
-    ========================= */
-
-    const ultimoOrden = await ProductoCaracteristica.max("orden", {
-      where: {
-        producto_id: id,
-        tab_id: tabId,
-      },
-    });
-
-    const nuevoOrden = (ultimoOrden ?? -1) + 1;
-
-    /* =========================
-       CREAR CARACTERÍSTICA
-    ========================= */
-
-    const nueva = await ProductoCaracteristica.create({
-      producto_id: id,
-      titulo,
-      valor,
-      tab_id: tabId, // 🔴 usar número
-      orden: nuevoOrden,
-    });
-
-    res.json({
-      msg: "Característica agregada",
-      caracteristica: nueva,
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error agregarCaracteristica",
-      error: error.message,
-    });
-
-    res.status(500).json({
-      msg: "Error al agregar característica",
-    });
-  }
-};
+  return res.success({
+    message: "Característica agregada",
+    data: result,
+  });
+});
 
 /* -----------------------------
    Editar característica
 ----------------------------- */
+export const actualizarCaracteristica = asyncHandler(async (req, res) => {
+  await ProductoService.actualizarCaracteristica(req.params.idCarac, req.body);
 
-export const actualizarCaracteristica = async (req, res) => {
-  try {
-    const { idCarac } = req.params;
-    const { titulo, valor, tab_id, orden } = req.body;
+  logger.info({
+    message: "Product feature updated",
+    featureId: Number(req.params.idCarac),
+  });
 
-    const carac = await ProductoCaracteristica.findByPk(idCarac);
-
-    if (!carac) {
-      return res.status(404).json({
-        msg: "Característica no encontrada",
-      });
-    }
-
-    await carac.update({
-      titulo,
-      valor,
-      tab_id,
-      orden,
-    });
-
-    res.json({
-      msg: "Característica actualizada",
-    });
-  } catch (error) {
-    res.status(500).json({
-      msg: "Error al actualizar característica",
-    });
-  }
-};
+  return res.success({
+    message: "Característica actualizada",
+  });
+});
 
 /* -----------------------------
    Eliminar característica
 ----------------------------- */
-export const eliminarCaracteristica = async (req, res) => {
-  try {
-    const { idCarac } = req.params;
+export const eliminarCaracteristica = asyncHandler(async (req, res) => {
+  await ProductoService.eliminarCaracteristica(req.params.idCarac);
 
-    const carac = await ProductoCaracteristica.findByPk(idCarac);
-    if (!carac) return res.status(404).json({ msg: "No encontrada" });
+  logger.info({
+    message: "Product feature deleted",
+    featureId: Number(req.params.idCarac),
+  });
 
-    await carac.destroy();
-
-    res.json({ msg: "Característica eliminada" });
-  } catch (error) {
-    res.status(500).json({ msg: "Error al eliminar característica" });
-  }
-};
+  return res.success({
+    message: "Característica eliminada",
+  });
+});
 
 /* -----------------------------
    Listar productos públicos
 ----------------------------- */
-export const listarProductosPublicos = async (req, res) => {
-  try {
-    const productos = await ProductoService.listarPublicos(req.query);
-    res.json(productos);
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
-  }
-};
+export const listarProductosPublicos = asyncHandler(async (req, res) => {
+  const productos = await ProductoService.listarPublicos(req.query);
+
+  return res.success({
+    data: productos,
+  });
+});
 
 /* -----------------------------
    Obtener producto
 ----------------------------- */
-export const obtenerProducto = async (req, res) => {
-  try {
-    const producto = await ProductoService.obtenerPorSlug(req.params.slug);
-    res.json(producto);
-  } catch (error) {
-    res.status(404).json({ msg: error.message });
-  }
-};
+export const obtenerProducto = asyncHandler(async (req, res) => {
+  const producto = await ProductoService.obtenerPorSlug(req.params.slug);
+
+  return res.success({
+    data: producto,
+  });
+});
 
 /* -----------------------------
    Productos relacionados
 ----------------------------- */
-export const productosRelacionados = async (req, res) => {
-  try {
-    const { slug } = req.params;
+export const productosRelacionados = asyncHandler(async (req, res) => {
+  const data = await ProductoService.productosRelacionados(req.params.slug);
 
-    const prod = await Producto.findOne({
-      where: { slug },
-    });
-
-    if (!prod) return res.status(404).json({ msg: "No existe" });
-
-    const relacionados = await Producto.findAll({
-      where: {
-        categoria_id: prod.categoria_id,
-        id_producto: { [Op.ne]: prod.id_producto },
-      },
-      limit: 6,
-    });
-
-    res.json(relacionados);
-  } catch (error) {
-    res.status(500).json({ msg: "Error al obtener relacionados" });
-  }
-};
+  return res.success({
+    data,
+  });
+});
 
 /* -----------------------------
    Listar admin
 ----------------------------- */
-export const listarProductosAdmin = async (req, res) => {
-  try {
-    const productos = await Producto.findAll({
-      include: [{ model: Categoria, as: "categoria" }],
-    });
+export const listarProductosAdmin = asyncHandler(async (req, res) => {
+  const productos = await ProductoService.listarAdmin();
 
-    res.json(productos);
-  } catch (error) {
-    res.status(500).json({ msg: "Error admin productos" });
-  }
-};
+  return res.success({
+    data: productos,
+  });
+});
 
 /* -----------------------------
    Actualizar
 ----------------------------- */
-export const actualizarProducto = async (req, res) => {
-  try {
-    const producto = await Producto.findByPk(req.params.id);
+export const actualizarProducto = asyncHandler(async (req, res) => {
+  const producto = await ProductoService.actualizarProducto(
+    req.params.id,
+    req.body,
+  );
 
-    if (!producto) {
-      return res.status(404).json({ msg: "No encontrado" });
-    }
+  logger.info({
+    message: "Product updated",
+    productId: producto.id_producto,
+    adminId: req.admin?.id_administrador,
+  });
 
-    const data = { ...req.body };
-
-    if (
-      data.nombre_producto &&
-      data.nombre_producto.trim() !== "" &&
-      data.nombre_producto !== producto.nombre_producto
-    ) {
-      data.slug = await generarSlugUnico({
-        modelo: Producto,
-        valor: data.nombre_producto,
-        excludeId: producto.id_producto,
-      });
-    }
-
-    await producto.update(data);
-
-    res.json({
-      msg: "Producto actualizado",
-      producto,
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error actualizarProducto",
-      error: error.message,
-    });
-    res.status(500).json({ msg: "Error al actualizar" });
-  }
-};
+  return res.success({
+    message: "Producto actualizado",
+    data: producto,
+  });
+});
 
 /* -----------------------------
    Eliminar
 ----------------------------- */
-export const eliminarProducto = async (req, res) => {
-  try {
-    const producto = await Producto.findByPk(req.params.id);
+export const eliminarProducto = asyncHandler(async (req, res) => {
+  await ProductoService.eliminarProducto(req.params.id);
 
-    if (!producto) return res.status(404).json({ msg: "No encontrado" });
+  logger.info({
+    message: "Product deleted",
+    productId: Number(req.params.id),
+    adminId: req.admin?.id_administrador,
+  });
 
-    // borrar imagen principal
-    if (producto.url_imagen) {
-      const ruta = path.join("uploads", producto.url_imagen);
-
-      if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
-    }
-
-    // borrar imágenes extra
-    const extras = await ProductoImagen.findAll({
-      where: { producto_id: producto.id_producto },
-    });
-
-    for (const img of extras) {
-      const ruta = path.join("uploads", img.url);
-      if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
-      await img.destroy();
-    }
-
-    // borrar características
-    await ProductoCaracteristica.destroy({
-      where: { producto_id: producto.id_producto },
-    });
-
-    await producto.destroy();
-
-    res.json({ msg: "Producto eliminado" });
-  } catch (error) {
-    res.status(500).json({ msg: "Error al eliminar" });
-  }
-};
+  return res.success({
+    message: "Producto eliminado",
+  });
+});
 
 /* -----------------------------
-   Productos HOME (temporada / destacados)
+   Productos HOME
 ----------------------------- */
-export const listarProductosHome = async (req, res) => {
-  try {
-    const { tipo, limit } = req.query; // tipo=temporada | destacados
-    const productos = await ProductoService.listarHome({ tipo, limit });
-    res.json(productos);
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
-  }
-};
+export const listarProductosHome = asyncHandler(async (req, res) => {
+  const { tipo, limit } = req.query;
 
-export const obtenerProductoCompleto = async (req, res) => {
-  try {
-    const { slug } = req.params;
+  const productos = await ProductoService.listarHome({ tipo, limit });
 
-    const producto = await ProductoService.obtenerPorSlug(slug);
-
-    if (!producto) {
-      return res.status(404).json({
-        msg: "Producto no encontrado",
-      });
-    }
-
-    const relacionados = await Producto.findAll({
-      where: {
-        categoria_id: producto.categoria_id,
-        id_producto: { [Op.ne]: producto.id_producto },
-      },
-      limit: 6,
-    });
-
-    const settings = await getSiteSettings();
-
-    res.json({
-      producto,
-      relacionados,
-      settings,
-    });
-  } catch (error) {
-    logger.error({
-      message: "Error obtenerProductoCompleto",
-      error: error.message,
-    });
-
-    res.status(500).json({
-      msg: "Error al cargar producto",
-    });
-  }
-};
+  return res.success({
+    data: productos,
+  });
+});
 
 /* -----------------------------
-   Obtener características de un producto
+   Obtener producto completo
 ----------------------------- */
-export const obtenerCaracteristicas = async (req, res) => {
-  try {
-    const { id } = req.params;
+export const obtenerProductoCompleto = asyncHandler(async (req, res) => {
+  const data = await ProductoService.obtenerProductoCompleto(req.params.slug);
 
-    const caracteristicas = await ProductoCaracteristica.findAll({
-      where: { producto_id: id },
+  return res.success({
+    data,
+  });
+});
 
-      include: [
-        {
-          model: ProductoTab,
-          as: "tab",
-          attributes: ["id_tab", "nombre"],
-        },
-      ],
+/* -----------------------------
+   Obtener características
+----------------------------- */
+export const obtenerCaracteristicas = asyncHandler(async (req, res) => {
+  const data = await ProductoService.obtenerCaracteristicas(req.params.id);
 
-      order: [["orden", "ASC"]],
-    });
+  return res.success({
+    data,
+  });
+});
 
-    res.json(caracteristicas);
-  } catch (error) {
-    logger.error({
-      message: "Error obtenerCaracteristicas",
-      error: error.message,
-    });
+/* -----------------------------
+   Obtener producto admin
+----------------------------- */
+export const obtenerProductoAdmin = asyncHandler(async (req, res) => {
+  const producto = await ProductoService.obtenerPorId(req.params.id);
 
-    res.status(500).json({
-      msg: "Error al obtener características",
-    });
-  }
-};
-
-export const obtenerProductoAdmin = async (req, res) => {
-  try {
-    const producto = await ProductoService.obtenerPorId(req.params.id);
-    res.json(producto);
-  } catch (error) {
-    res.status(404).json({ msg: error.message });
-  }
-};
+  return res.success({
+    data: producto,
+  });
+});

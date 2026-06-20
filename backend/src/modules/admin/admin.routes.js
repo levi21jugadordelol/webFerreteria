@@ -1,7 +1,15 @@
 import express from "express";
+
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
-import logger from "../../shared/logger/logger.js";
 import requireRole from "../../shared/middleware/requireRole.js";
+import { validateResult } from "../../shared/middleware/validateResult.js";
+
+import { validarLogin, validarRegistro } from "./admin.validator.js";
+
+import {
+  loginLimiter,
+  authLimiter,
+} from "../../shared/middleware/rateLimiters.js";
 
 import {
   formularioLogin,
@@ -17,49 +25,31 @@ const router = express.Router();
 /* =========================
    LOGIN
 ========================= */
-router.get("/login", (req, res) => {
-  logger.info({ message: "GET /auth/login" });
-  formularioLogin(req, res);
-});
+router.get("/login", authLimiter, formularioLogin);
 
-router.post("/login", (req, res, next) => {
-  logger.info({
-    message: "POST /auth/login",
-    email: req.body.correo,
-  });
-
-  autenticar(req, res, next);
-});
+router.post("/login", loginLimiter, validarLogin, validateResult, autenticar);
 
 /* =========================
    REGISTRO
 ========================= */
-router.get("/registro", (req, res) => {
-  logger.info({ message: "GET /auth/registro" });
-  formularioRegistro(req, res);
-});
+router.get("/registro", authLimiter, formularioRegistro);
 
 router.post(
   "/registro",
+  authLimiter,
   protegerRuta,
-  requireRole("SUPER_ADMIN"), // luego puedes usar "SUPER_ADMIN"
-  (req, res, next) => {
-    logger.info({
-      message: "POST /auth/registro",
-      email: req.body.correo,
-    });
-
-    registrar(req, res, next);
-  },
+  requireRole("SUPER_ADMIN"),
+  validarRegistro,
+  validateResult,
+  registrar,
 );
 
 /* =========================
    VALIDAR SESIÓN
 ========================= */
-router.get("/validar", protegerRuta, (req, res) => {
-  res.status(200).json({
-    ok: true,
-    admin: {
+router.get("/validar", authLimiter, protegerRuta, (req, res) => {
+  return res.success({
+    data: {
       id: req.admin.id_administrador,
       nombre: req.admin.nombre,
       rol: req.admin.rol,
@@ -70,11 +60,17 @@ router.get("/validar", protegerRuta, (req, res) => {
 /* =========================
    LISTAR ADMINS
 ========================= */
-router.get("/admins", protegerRuta, requireRole("SUPER_ADMIN"), listarAdmins);
+router.get(
+  "/admins",
+  authLimiter,
+  protegerRuta,
+  requireRole("SUPER_ADMIN"),
+  listarAdmins,
+);
 
 /* =========================
    LOGOUT
 ========================= */
-router.post("/logout", cerrarSesion);
+router.post("/logout", authLimiter, protegerRuta, cerrarSesion);
 
 export default router;

@@ -1,5 +1,4 @@
 import express from "express";
-import { body } from "express-validator";
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 import uploadCategoria from "../../shared/middleware/uploadCategoria.js";
 
@@ -12,31 +11,61 @@ import {
   subirImagenCategoria,
 } from "./category.controller.js";
 
+import {
+  validarCrearCategoria,
+  validarActualizarCategoria,
+  validarId,
+} from "./category.validator.js";
+
+import { validateResult } from "../../shared/middleware/validateResult.js";
+
 const router = express.Router();
 
-// 🟢 Públicas
+/* =========================
+   🟢 Públicas
+========================= */
 router.get("/", listarCategorias);
-router.get("/:id", obtenerCategoria);
 
-// 🔒 Protegidas
+router.get("/:id", validarId, validateResult, obtenerCategoria);
+
+/* =========================
+   🔒 Protegidas
+========================= */
 router.post(
   "/",
   protegerRuta,
-  uploadCategoria.single("file"), // 🔥 OBLIGATORIO
-  body("nombre_categoria")
-    .notEmpty()
-    .withMessage("El nombre de la categoría es obligatorio"),
+  uploadCategoria,
+  validarCrearCategoria,
+  validateResult,
   crearCategoria,
 );
 
-router.put("/:id", protegerRuta, actualizarCategoria);
-router.delete("/:id", protegerRuta, eliminarCategoria);
+router.put(
+  "/:id",
+  protegerRuta,
+  validarId,
+  validarActualizarCategoria,
+  validateResult,
+  actualizarCategoria,
+);
 
-// 🖼️ Subida de imagen
+router.delete(
+  "/:id",
+  protegerRuta,
+  validarId,
+  validateResult,
+  eliminarCategoria,
+);
+
+/* =========================
+   🖼️ Subida de imagen
+========================= */
 router.post(
   "/subir-imagen/:id",
   protegerRuta,
-  uploadCategoria.single("file"), // ✅ CORRECTO
+  validarId,
+  validateResult,
+  uploadCategoria,
   subirImagenCategoria,
 );
 

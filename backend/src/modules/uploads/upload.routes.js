@@ -5,6 +5,8 @@ import { subirImagenEditor } from "./upload.controller.js";
 
 import protegerRuta from "../../shared/middleware/protegerRuta.js";
 
+import { uploadLimiter } from "../../shared/middleware/rateLimiters.js";
+
 const router = express.Router();
 
 /* SUBIR IMAGEN EDITOR */
@@ -12,7 +14,8 @@ const router = express.Router();
 router.post(
   "/editor",
   protegerRuta,
-  uploadEditor.single("imagen"),
+  uploadLimiter,
+  uploadEditor,
   subirImagenEditor,
 );
 
