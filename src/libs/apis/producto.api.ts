@@ -1,6 +1,4 @@
-// libs/api/producto.api.ts
-
-const API_URL = "http://localhost:3000";
+import { apiFetch } from "../../api/client";
 
 /* =========================
    TIPOS
@@ -25,106 +23,49 @@ type ProductoResponse = {
 ========================= */
 
 /* LISTAR */
-export async function getProductos(params?: any): Promise<Producto[]> {
+export function getProductos(params?: any): Promise<Producto[]> {
   const query = new URLSearchParams(params || {}).toString();
-
-  const res = await fetch(`${API_URL}/productos${query ? `?${query}` : ""}`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al listar productos");
-  }
-
-  return data;
+  return apiFetch(`/productos${query ? `?${query}` : ""}`);
 }
 
 /* HOME */
-export async function getProductosHome(tipo?: string, limit?: number) {
+export function getProductosHome(tipo?: string, limit?: number) {
   const params = new URLSearchParams();
 
   if (tipo) params.append("tipo", tipo);
   if (limit) params.append("limit", String(limit));
 
-  const res = await fetch(`${API_URL}/productos/home?${params}`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error productos home");
-  }
-
-  return data;
+  return apiFetch(`/productos/home?${params}`);
 }
 
 /* POR SLUG */
-export async function getProducto(slug: string): Promise<Producto> {
-  const res = await fetch(`${API_URL}/productos/${slug}`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Producto no encontrado");
-  }
-
-  return data;
+export function getProducto(slug: string): Promise<Producto> {
+  return apiFetch(`/productos/${slug}`);
 }
 
 /* COMPLETO */
-export async function getProductoCompleto(slug: string) {
-  const res = await fetch(`${API_URL}/productos/${slug}/full`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error producto completo");
-  }
-
-  return data;
+export function getProductoCompleto(slug: string) {
+  return apiFetch(`/productos/${slug}/full`);
 }
 
 /* RELACIONADOS */
-export async function getRelacionados(slug: string) {
-  const res = await fetch(`${API_URL}/productos/${slug}/relacionados`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error relacionados");
-  }
-
-  return data;
+export function getRelacionados(slug: string) {
+  return apiFetch(`/productos/${slug}/relacionados`);
 }
 
 /* CARACTERÍSTICAS */
-export async function getCaracteristicas(id: string) {
-  const res = await fetch(`${API_URL}/productos/${id}/caracteristicas`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error características");
-  }
-
-  return data;
+export function getCaracteristicas(id: string) {
+  return apiFetch(`/productos/${id}/caracteristicas`);
 }
 
 /* FILTRO PRECIO */
-export async function filtrarPrecio(min?: number, max?: number) {
+export function filtrarPrecio(min?: number, max?: number) {
   const params = new URLSearchParams();
 
   if (min) params.append("min", String(min));
   if (max) params.append("max", String(max));
 
-  const res = await fetch(`${API_URL}/productos/precio?${params}`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error filtro precio");
-  }
-
-  return data;
+  return apiFetch(`/productos/precio?${params}`);
 }
 
 /* =========================
@@ -132,68 +73,36 @@ export async function filtrarPrecio(min?: number, max?: number) {
 ========================= */
 
 /* LISTAR ADMIN */
-export async function getProductosAdmin() {
-  const res = await fetch(`${API_URL}/productos/admin/lista`, {
-    credentials: "include",
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) throw new Error(data.msg);
-  return data;
+export function getProductosAdmin() {
+  return apiFetch(`/productos/admin/lista`);
 }
 
 /* OBTENER ADMIN */
-export async function getProductoAdmin(id: string) {
-  const res = await fetch(`${API_URL}/productos/admin/${id}`, {
-    credentials: "include",
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) throw new Error(data.msg);
-  return data;
+export function getProductoAdmin(id: string) {
+  return apiFetch(`/productos/admin/${id}`);
 }
 
 /* CREAR */
-export async function crearProducto(formData: FormData) {
-  const res = await fetch(`${API_URL}/productos/admin`, {
+export function crearProducto(formData: FormData) {
+  return apiFetch(`/productos/admin`, {
     method: "POST",
-    credentials: "include",
-    body: formData, // 🔥 imagen incluida
+    body: formData,
   });
-
-  const data = await res.json();
-
-  if (!res.ok) throw new Error(data.msg);
-  return data;
 }
 
 /* ACTUALIZAR */
-export async function actualizarProducto(id: string, data: any) {
-  const res = await fetch(`${API_URL}/productos/admin/${id}`, {
+export function actualizarProducto(id: string, data: any) {
+  return apiFetch(`/productos/admin/${id}`, {
     method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) throw new Error(result.msg);
-  return result;
 }
 
 /* ELIMINAR */
-export async function eliminarProducto(id: string) {
-  const res = await fetch(`${API_URL}/productos/admin/${id}`, {
+export function eliminarProducto(id: string) {
+  return apiFetch(`/productos/admin/${id}`, {
     method: "DELETE",
-    credentials: "include",
   });
-
-  const data = await res.json();
-
-  if (!res.ok) throw new Error(data.msg);
 }
 
 /* =========================
@@ -201,103 +110,58 @@ export async function eliminarProducto(id: string) {
 ========================= */
 
 /* PRINCIPAL */
-export async function subirImagen(id: string, file: File) {
+export function subirImagen(id: string, file: File) {
   const formData = new FormData();
   formData.append("imagen", file);
 
-  const res = await fetch(`${API_URL}/productos/admin/${id}/imagen`, {
+  return apiFetch(`/productos/admin/${id}/imagen`, {
     method: "POST",
-    credentials: "include",
     body: formData,
   });
-
-  const data = await res.json();
-
-  if (!res.ok) throw new Error(data.msg);
-  return data;
 }
 
 /* EXTRA */
-export async function subirImagenExtra(id: string, file: File) {
+export function subirImagenExtra(id: string, file: File) {
   const formData = new FormData();
   formData.append("imagen", file);
 
-  const res = await fetch(`${API_URL}/productos/admin/${id}/imagenes`, {
+  return apiFetch(`/productos/admin/${id}/imagenes`, {
     method: "POST",
-    credentials: "include",
     body: formData,
   });
-
-  const data = await res.json();
-
-  if (!res.ok) throw new Error(data.msg);
-  return data;
 }
 
 /* ELIMINAR EXTRA */
-export async function eliminarImagenExtra(id: string, idImg: string) {
-  const res = await fetch(
-    `${API_URL}/productos/admin/${id}/imagenes/${idImg}`,
-    {
-      method: "DELETE",
-      credentials: "include",
-    },
-  );
-
-  const data = await res.json();
-
-  if (!res.ok) throw new Error(data.msg);
+export function eliminarImagenExtra(id: string, idImg: string) {
+  return apiFetch(`/productos/admin/${id}/imagenes/${idImg}`, {
+    method: "DELETE",
+  });
 }
 
 /* =========================
    🧩 CARACTERÍSTICAS
 ========================= */
 
-export async function agregarCaracteristica(id: string, data: any) {
-  const res = await fetch(`${API_URL}/productos/admin/${id}/caracteristicas`, {
+export function agregarCaracteristica(id: string, data: any) {
+  return apiFetch(`/productos/admin/${id}/caracteristicas`, {
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) throw new Error(result.msg);
-  return result;
 }
 
-export async function actualizarCaracteristica(
+export function actualizarCaracteristica(
   id: string,
   idCarac: string,
   data: any,
 ) {
-  const res = await fetch(
-    `${API_URL}/productos/admin/${id}/caracteristicas/${idCarac}`,
-    {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    },
-  );
-
-  const result = await res.json();
-
-  if (!res.ok) throw new Error(result.msg);
-  return result;
+  return apiFetch(`/productos/admin/${id}/caracteristicas/${idCarac}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
 }
 
-export async function eliminarCaracteristica(id: string, idCarac: string) {
-  const res = await fetch(
-    `${API_URL}/productos/admin/${id}/caracteristicas/${idCarac}`,
-    {
-      method: "DELETE",
-      credentials: "include",
-    },
-  );
-
-  const data = await res.json();
-
-  if (!res.ok) throw new Error(data.msg);
+export function eliminarCaracteristica(id: string, idCarac: string) {
+  return apiFetch(`/productos/admin/${id}/caracteristicas/${idCarac}`, {
+    method: "DELETE",
+  });
 }

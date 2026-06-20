@@ -1,6 +1,4 @@
-// libs/api/categoria.api.ts
-
-const API_URL = "http://localhost:3000";
+import { apiFetch } from "../../api/client";
 
 /* =========================
    TIPOS
@@ -20,121 +18,64 @@ type CategoriaResponse = {
 /* =========================
    CREAR CATEGORÍA
 ========================= */
-export async function crearCategoria(
-  formData: FormData,
-): Promise<CategoriaResponse> {
-  const res = await fetch(`${API_URL}/categorias`, {
+export function crearCategoria(formData: FormData): Promise<CategoriaResponse> {
+  return apiFetch("/categorias", {
     method: "POST",
-    credentials: "include",
-    body: formData, // 🔥 importante (multer)
+    body: formData,
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al crear categoría");
-  }
-
-  return data;
 }
 
 /* =========================
    LISTAR
 ========================= */
-export async function getCategorias(): Promise<Categoria[]> {
-  const res = await fetch(`${API_URL}/categorias`, {
-    credentials: "include",
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al cargar categorías");
-  }
-
-  return data;
+export function getCategorias(): Promise<Categoria[]> {
+  return apiFetch("/categorias");
 }
 
 /* =========================
    OBTENER POR ID
 ========================= */
-export async function getCategoriaById(id: string): Promise<Categoria> {
-  const res = await fetch(`${API_URL}/categorias/${id}`, {
-    credentials: "include",
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al obtener categoría");
-  }
-
-  return data;
+export function getCategoriaById(id: string): Promise<Categoria> {
+  return apiFetch(`/categorias/${id}`);
 }
 
 /* =========================
    ACTUALIZAR
 ========================= */
-export async function actualizarCategoria(
+export function actualizarCategoria(
   id: string,
   data: {
     nombre_categoria?: string;
     descripcion?: string;
   },
 ): Promise<CategoriaResponse> {
-  const res = await fetch(`${API_URL}/categorias/${id}`, {
+  return apiFetch(`/categorias/${id}`, {
     method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    throw new Error(result.msg || "Error al actualizar categoría");
-  }
-
-  return result;
 }
 
 /* =========================
    ELIMINAR
 ========================= */
-export async function eliminarCategoria(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/categorias/${id}`, {
+export function eliminarCategoria(id: string): Promise<void> {
+  return apiFetch(`/categorias/${id}`, {
     method: "DELETE",
-    credentials: "include",
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al eliminar categoría");
-  }
 }
 
 /* =========================
    SUBIR IMAGEN
 ========================= */
-export async function subirImagenCategoria(
+export function subirImagenCategoria(
   id: string,
   file: File,
 ): Promise<CategoriaResponse> {
   const formData = new FormData();
-  formData.append("file", file); // 🔥 coincide con multer
+  formData.append("file", file);
 
-  const res = await fetch(`${API_URL}/categorias/subir-imagen/${id}`, {
+  return apiFetch(`/categorias/subir-imagen/${id}`, {
     method: "POST",
-    credentials: "include",
     body: formData,
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al subir imagen");
-  }
-
-  return data;
 }

@@ -1,6 +1,4 @@
-// libs/api/menu.api.ts
-
-const API_URL = "http://localhost:3000";
+import { apiFetch } from "../../api/client";
 
 /* =========================
    TIPOS
@@ -21,96 +19,54 @@ type MenuResponse = {
 /* =========================
    MENU PUBLICO
 ========================= */
-export async function getMenu(): Promise<MenuItem[]> {
-  const res = await fetch(`${API_URL}/menu`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al obtener menú");
-  }
-
-  return data;
+export function getMenu(): Promise<MenuItem[]> {
+  return apiFetch("/menu"); // 🔥 CAMBIO
 }
 
 /* =========================
    LISTAR ADMIN
 ========================= */
-export async function getMenuAdmin(): Promise<MenuItem[]> {
-  const res = await fetch(`${API_URL}/menu/admin/lista`, {
-    credentials: "include",
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al obtener menú admin");
-  }
-
-  return data;
+export function getMenuAdmin(): Promise<MenuItem[]> {
+  return apiFetch("/menu/admin/lista"); // 🔥 CAMBIO
 }
 
 /* =========================
    CREAR
 ========================= */
-export async function crearMenu(data: {
+export function crearMenu(data: {
   titulo: string;
   url: string;
   tipo?: string;
   orden?: number;
   activo?: boolean;
 }): Promise<MenuItem> {
-  const res = await fetch(`${API_URL}/menu/admin`, {
+  return apiFetch("/menu/admin", {
+    // 🔥 CAMBIO
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    throw new Error(result.msg || "Error al crear menú");
-  }
-
-  return result;
 }
 
 /* =========================
    ACTUALIZAR
 ========================= */
-export async function actualizarMenu(
+export function actualizarMenu(
   id: string,
   data: Partial<MenuItem>,
 ): Promise<MenuResponse> {
-  const res = await fetch(`${API_URL}/menu/admin/${id}`, {
+  return apiFetch(`/menu/admin/${id}`, {
+    // 🔥 CAMBIO
     method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    throw new Error(result.msg || "Error al actualizar menú");
-  }
-
-  return result;
 }
 
 /* =========================
    ELIMINAR
 ========================= */
-export async function eliminarMenu(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/menu/admin/${id}`, {
+export function eliminarMenu(id: string): Promise<void> {
+  return apiFetch(`/menu/admin/${id}`, {
+    // 🔥 CAMBIO
     method: "DELETE",
-    credentials: "include",
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al eliminar menú");
-  }
 }

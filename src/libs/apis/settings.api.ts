@@ -1,4 +1,4 @@
-// libs/api/settings.api.ts
+import { apiFetch } from "../../api/client";
 
 /* =========================
    TIPOS
@@ -12,39 +12,20 @@ type SettingsResponse = {
 };
 
 /* =========================
-   OBTENER SETTINGS (PUBLICO)
+   OBTENER SETTINGS
 ========================= */
-export async function getSiteSettings(): Promise<SiteSettings> {
-  const res = await fetch("/api/site-settings"); // ✅ proxy + ruta correcta
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al obtener configuración");
-  }
-
-  return data;
+export function getSiteSettings(): Promise<SiteSettings> {
+  return apiFetch("/site-settings");
 }
 
 /* =========================
-   ACTUALIZAR SETTINGS (ADMIN)
+   ACTUALIZAR SETTINGS
 ========================= */
-export async function updateSiteSettings(
+export function updateSiteSettings(
   data: SiteSettings,
 ): Promise<SettingsResponse> {
-  const res = await fetch("/api/site-settings", {
-    // ✅ igual aquí
+  return apiFetch("/site-settings", {
     method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    throw new Error(result.msg || "Error al actualizar configuración");
-  }
-
-  return result;
 }

@@ -1,6 +1,4 @@
-// libs/api/auth.api.ts
-
-const API_URL = ""; // 🔥 IMPORTANTE: usar proxy de Astro
+import { apiFetch } from "../../api/client";
 
 /* =========================
    TIPOS
@@ -34,99 +32,53 @@ type SessionResponse = {
 /* =========================
    LOGIN
 ========================= */
-export async function loginRequest({
+export function loginRequest({
   correo,
   password,
 }: LoginData): Promise<AuthResponse> {
-  const response = await fetch(`/auth/login`, {
+  return apiFetch("/auth/login", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ correo, password }),
-    credentials: "include",
   });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.msg || "Error en login");
-  }
-
-  return data;
 }
 
 /* =========================
    REGISTRO
 ========================= */
-export async function registerRequest({
+export function registerRequest({
   nombre,
   correo,
   password,
 }: RegisterData): Promise<AuthResponse> {
-  const response = await fetch(`/auth/registro`, {
+  return apiFetch("/auth/registro", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nombre, correo, password }),
-    credentials: "include",
   });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.msg || "Error en registro");
-  }
-
-  return data;
 }
 
 /* =========================
    VALIDAR SESIÓN
 ========================= */
 export async function validarSesion(): Promise<SessionResponse | null> {
-  const response = await fetch(`/auth/validar`, {
-    method: "GET",
-    credentials: "include",
-  });
-
-  if (!response.ok) {
+  try {
+    return await apiFetch("/auth/validar");
+  } catch {
     return null;
   }
-
-  const data = await response.json();
-  return data;
 }
 
 /* =========================
    LISTAR ADMINS
 ========================= */
-export async function getAdminsRequest(): Promise<Admin[]> {
-  const response = await fetch(`/auth/admins`, {
-    method: "GET",
-    credentials: "include",
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.msg || "Error al obtener admins");
-  }
-
-  return data;
+export function getAdminsRequest(): Promise<Admin[]> {
+  return apiFetch("/auth/admins");
 }
 
 /* =========================
    LOGOUT
 ========================= */
-export async function logoutRequest(): Promise<AuthResponse> {
-  const response = await fetch(`/auth/logout`, {
+export function logoutRequest(): Promise<AuthResponse> {
+  return apiFetch("/auth/logout", {
     method: "POST",
-    credentials: "include",
   });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.msg || "Error al cerrar sesión");
-  }
-
-  return data;
 }
