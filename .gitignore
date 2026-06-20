@@ -24,3 +24,8 @@ pnpm-debug.log*
 .idea/
 
 backend/uploads/
+
+
+backend/.env
+backend/.env.*
+!backend/.env.example
