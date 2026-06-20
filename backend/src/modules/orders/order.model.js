@@ -9,14 +9,23 @@ const Pedido = db.define(
       autoIncrement: true,
       primaryKey: true,
     },
+
     nombre_comprador: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    dni_comprador: {
-      type: DataTypes.STRING(15), // suficiente para DNI o RUC
+
+    tipo_documento: {
+      type: DataTypes.ENUM("DNI", "RUC", "CE", "SIN_DOCUMENTO"),
       allowNull: false,
+      defaultValue: "SIN_DOCUMENTO",
     },
+
+    numero_documento: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+
     direccion_envio: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -26,24 +35,27 @@ const Pedido = db.define(
       type: DataTypes.STRING(15),
       allowNull: false,
     },
+
     fecha_hora: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
+
     estado_pedido: {
       type: DataTypes.ENUM("pendiente", "pagado", "entregado", "cancelado"),
       allowNull: false,
       defaultValue: "pendiente",
     },
+
     total_pedido: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
   },
   {
-    tableName: "pedidos", // nombre de la tabla en plural
-    timestamps: false, // si no usas createdAt/updatedAt
+    tableName: "pedidos",
+    timestamps: false,
   },
 );
 

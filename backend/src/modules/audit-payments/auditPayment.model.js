@@ -15,6 +15,11 @@ const PagoAuditoria = db.define(
       allowNull: false,
     },
 
+    pedido_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+
     accion: {
       type: DataTypes.STRING,
       allowNull: false,

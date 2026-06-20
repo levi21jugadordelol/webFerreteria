@@ -4,8 +4,12 @@ import Pedido from "../orders/order.model.js";
 import DetallePedido from "../orderDetails/orderDetail.model.js";
 import Producto from "../products/producto.model.js";
 import PagoAuditoria from "../audit-payments/auditPayment.model.js";
-import { Op } from "sequelize";
+import { Op, where, col } from "sequelize";
 import logger from "../../shared/logger/logger.js";
+import AppError from "../../shared/utils/AppError.js";
+import fs from "fs/promises";
+import path from "path";
+import crypto from "crypto";
 
 class PagoService {
   /* ---------------------------------
@@ -18,10 +22,10 @@ class PagoService {
         lock: t.LOCK.UPDATE,
       });
 
-      if (!comprobante) throw new Error("Comprobante no encontrado");
+      if (!comprobante) throw new AppError("Comprobante no encontrado", 404);
 
       if (comprobante.estado_validacion === "validado") {
-        throw new Error("Este comprobante ya fue validado");
+        throw new AppError("Este comprobante ya fue validado", 400);
       }
 
       const pedido = await Pedido.findByPk(comprobante.pedido_id, {
@@ -29,7 +33,7 @@ class PagoService {
         lock: t.LOCK.UPDATE,
       });
 
-      if (!pedido) throw new Error("Pedido no encontrado");
+      if (!pedido) throw new AppError("Pedido no encontrado", 404);
 
       const detalles = await DetallePedido.findAll({
         where: { pedido_id: pedido.id_pedido },
@@ -43,16 +47,26 @@ class PagoService {
         });
 
         if (!producto) {
-          throw new Error(`Producto ${d.producto_id} no encontrado`);
+          throw new AppError(`Producto ${d.producto_id} no encontrado`, 404);
         }
 
-        if (producto.stock < d.cantidad) {
-          throw new Error(
+        const disponible = producto.stock_total - producto.stock_reservado;
+
+        if (disponible < d.cantidad) {
+          throw new AppError(
             `Stock insuficiente para ${producto.nombre_producto}`,
+            400,
+            {
+              producto_id: producto.id_producto,
+              stock_disponible: disponible,
+              type: "STOCK_ERROR",
+            },
           );
         }
 
-        producto.stock -= d.cantidad;
+        producto.stock_reservado -= d.cantidad;
+        producto.stock_total -= d.cantidad;
+
         await producto.save({ transaction: t });
       }
 
@@ -66,6 +80,7 @@ class PagoService {
       await PagoAuditoria.create(
         {
           comprobante_id: comprobante.id_comprobante,
+          pedido_id: pedido.id_pedido,
           accion: "validado",
           admin_usuario: admin?.nombre || admin,
           estado_anterior: "pendiente",
@@ -76,8 +91,8 @@ class PagoService {
 
       logger.info({
         message: "Payment validated",
-        id,
-        admin: admin?.nombre || admin,
+        comprobanteId: Number(id),
+        adminId: admin?.id_administrador ?? null,
       });
 
       return true;
@@ -94,10 +109,12 @@ class PagoService {
         lock: t.LOCK.UPDATE,
       });
 
-      if (!comprobante) throw new Error("Comprobante no encontrado");
+      if (!comprobante) {
+        throw new AppError("Comprobante no encontrado", 404);
+      }
 
       if (comprobante.estado_validacion !== "validado") {
-        throw new Error("Solo se pueden revertir pagos validados");
+        throw new AppError("Solo se pueden revertir pagos validados", 400);
       }
 
       const pedido = await Pedido.findByPk(comprobante.pedido_id, {
@@ -105,7 +122,9 @@ class PagoService {
         lock: t.LOCK.UPDATE,
       });
 
-      if (!pedido) throw new Error("Pedido no encontrado");
+      if (!pedido) {
+        throw new AppError("Pedido no encontrado", 404);
+      }
 
       const detalles = await DetallePedido.findAll({
         where: { pedido_id: pedido.id_pedido },
@@ -119,10 +138,13 @@ class PagoService {
         });
 
         if (!producto) {
-          throw new Error(`Producto ${d.producto_id} no encontrado`);
+          throw new AppError(`Producto ${d.producto_id} no encontrado`, 404);
         }
 
-        producto.stock += d.cantidad;
+        // Al validar se descontó de stock_total.
+        // Al revertir, se devuelve ese stock al inventario.
+        producto.stock_total += d.cantidad;
+
         await producto.save({ transaction: t });
       }
 
@@ -136,6 +158,7 @@ class PagoService {
       await PagoAuditoria.create(
         {
           comprobante_id: comprobante.id_comprobante,
+          pedido_id: pedido.id_pedido,
           accion: "revertido",
           admin_usuario: admin?.nombre || admin,
           estado_anterior: "validado",
@@ -146,8 +169,8 @@ class PagoService {
 
       logger.info({
         message: "Payment reverted",
-        id,
-        admin: admin?.nombre || admin,
+        comprobanteId: Number(id),
+        adminId: admin?.id_administrador ?? null,
       });
 
       return true;
@@ -160,28 +183,298 @@ class PagoService {
     const comprobantes = await ComprobantePago.findAll({
       where: {
         estado_validacion: "pendiente",
-        fecha_hora: {
-          [Op.lt]: limite,
+        fecha_hora: { [Op.lt]: limite },
+      },
+    });
+
+    for (const comprobante of comprobantes) {
+      await db.transaction(async (t) => {
+        const c = await ComprobantePago.findByPk(comprobante.id_comprobante, {
+          transaction: t,
+          lock: t.LOCK.UPDATE,
+        });
+
+        if (!c || c.estado_validacion !== "pendiente") return;
+
+        const pedido = await Pedido.findByPk(c.pedido_id, {
+          transaction: t,
+          lock: t.LOCK.UPDATE,
+        });
+
+        if (!pedido) return;
+
+        const detalles = await DetallePedido.findAll({
+          where: { pedido_id: pedido.id_pedido },
+          transaction: t,
+        });
+
+        for (const d of detalles) {
+          const producto = await Producto.findByPk(d.producto_id, {
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+          });
+
+          if (!producto) continue;
+
+          producto.stock_reservado = Math.max(
+            0,
+            producto.stock_reservado - d.cantidad,
+          );
+
+          await producto.save({ transaction: t });
+        }
+
+        pedido.estado_pedido = "cancelado";
+        await pedido.save({ transaction: t });
+
+        c.estado_validacion = "vencido";
+        await c.save({ transaction: t });
+
+        await PagoAuditoria.create(
+          {
+            comprobante_id: c.id_comprobante,
+            pedido_id: pedido.id_pedido,
+            accion: "vencido",
+            admin_usuario: "sistema",
+            estado_anterior: "pendiente",
+            estado_nuevo: "vencido",
+          },
+          { transaction: t },
+        );
+      });
+    }
+  }
+
+  static async subirComprobante(data, file) {
+    const { pedido_id } = data;
+
+    if (!file) throw new AppError("Debe subir una imagen", 400);
+
+    const pedido = await Pedido.findByPk(pedido_id);
+    if (!pedido) throw new AppError("Pedido no encontrado", 404);
+
+    const comprobantePendienteOValidado = await ComprobantePago.findOne({
+      where: {
+        pedido_id,
+        estado_validacion: {
+          [Op.in]: ["pendiente", "validado"],
         },
       },
     });
 
-    for (const c of comprobantes) {
-      c.estado_validacion = "vencido";
-      await c.save();
-
-      await PagoAuditoria.create({
-        comprobante_id: c.id_comprobante,
-        accion: "vencido",
-        admin_usuario: "sistema",
-        estado_anterior: "pendiente",
-        estado_nuevo: "vencido",
-      });
+    if (comprobantePendienteOValidado) {
+      throw new AppError(
+        "Este pedido ya tiene un comprobante pendiente o validado",
+        400,
+      );
     }
 
+    const intentosRechazados = await ComprobantePago.count({
+      where: {
+        pedido_id,
+        estado_validacion: "rechazado",
+      },
+    });
+
+    if (intentosRechazados >= 3) {
+      logger.warn({
+        event: "PAYMENT_MULTIPLE_FAILED_ATTEMPTS",
+        pedidoId: Number(pedido_id),
+        failedAttempts: intentosRechazados,
+      });
+
+      throw new AppError(
+        "Este pedido superó el número máximo de intentos de comprobante",
+        429,
+      );
+    }
+
+    const extension =
+      file.mimetype === "image/png"
+        ? "png"
+        : file.mimetype === "image/webp"
+          ? "webp"
+          : "jpg";
+
+    const filename = `comprobante-${Date.now()}-${crypto.randomUUID()}.${extension}`;
+
+    const uploadDir = path.join(
+      process.cwd(),
+      "public",
+      "uploads",
+      "comprobantes",
+    );
+
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    await fs.writeFile(path.join(uploadDir, filename), file.buffer);
+
+    const comprobante = await ComprobantePago.create({
+      pedido_id,
+      url_imagen: `/uploads/comprobantes/${filename}`,
+      estado_validacion: "pendiente",
+    });
+
     logger.info({
-      message: "Expired payment proofs",
-      total: comprobantes.length,
+      event: "PAYMENT_PROOF_UPLOADED",
+      pedidoId: Number(pedido_id),
+      comprobanteId: comprobante.id_comprobante,
+      failedAttemptsBefore: intentosRechazados,
+    });
+
+    return comprobante;
+  }
+
+  static async listarComprobantes({ search = "", page = 1, limit = 10 } = {}) {
+    await this.expirarComprobantes();
+
+    const pageNumber = Math.max(Number(page) || 1, 1);
+    const limitNumber = Math.min(Math.max(Number(limit) || 10, 1), 50);
+    const offset = (pageNumber - 1) * limitNumber;
+
+    const include = [
+      {
+        model: Pedido,
+        as: "pedido",
+        required: true,
+        include: [
+          {
+            model: DetallePedido,
+            as: "detalles",
+            include: [
+              {
+                model: Producto,
+                as: "producto",
+                attributes: [
+                  "id_producto",
+                  "nombre_producto",
+                  "slug",
+                  "url_imagen",
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const whereComprobante = {};
+
+    if (search && search.trim()) {
+      const q = search.trim();
+
+      whereComprobante[Op.or] = [
+        where(col("pedido.nombre_comprador"), {
+          [Op.like]: `%${q}%`,
+        }),
+        where(col("pedido.numero_documento"), {
+          [Op.like]: `%${q}%`,
+        }),
+        where(col("pedido.telefono_comprador"), {
+          [Op.like]: `%${q}%`,
+        }),
+        where(col("pedido.id_pedido"), {
+          [Op.eq]: Number(q) || 0,
+        }),
+        where(col("pedido->detalles->producto.nombre_producto"), {
+          [Op.like]: `%${q}%`,
+        }),
+      ];
+    }
+
+    const { rows, count } = await ComprobantePago.findAndCountAll({
+      where: whereComprobante,
+      include,
+      distinct: true,
+      limit: limitNumber,
+      offset,
+      order: [["fecha_hora", "DESC"]],
+    });
+
+    return {
+      items: rows,
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        total: count,
+        totalPages: Math.ceil(count / limitNumber),
+      },
+    };
+  }
+
+  static async rechazarComprobante(id, admin = "admin") {
+    return await db.transaction(async (t) => {
+      const comprobante = await ComprobantePago.findByPk(id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (!comprobante) {
+        throw new AppError("Comprobante no encontrado", 404);
+      }
+
+      if (comprobante.estado_validacion !== "pendiente") {
+        throw new AppError(
+          "Solo se pueden rechazar comprobantes pendientes",
+          400,
+        );
+      }
+
+      const pedido = await Pedido.findByPk(comprobante.pedido_id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (!pedido) {
+        throw new AppError("Pedido no encontrado", 404);
+      }
+
+      const detalles = await DetallePedido.findAll({
+        where: { pedido_id: pedido.id_pedido },
+        transaction: t,
+      });
+
+      for (const d of detalles) {
+        const producto = await Producto.findByPk(d.producto_id, {
+          transaction: t,
+          lock: t.LOCK.UPDATE,
+        });
+
+        if (!producto) continue;
+
+        producto.stock_reservado = Math.max(
+          0,
+          producto.stock_reservado - d.cantidad,
+        );
+
+        await producto.save({ transaction: t });
+      }
+
+      pedido.estado_pedido = "cancelado";
+      await pedido.save({ transaction: t });
+
+      comprobante.estado_validacion = "rechazado";
+      await comprobante.save({ transaction: t });
+
+      await PagoAuditoria.create(
+        {
+          comprobante_id: comprobante.id_comprobante,
+          pedido_id: pedido.id_pedido,
+          accion: "rechazado",
+          admin_usuario: admin?.nombre || admin,
+          estado_anterior: "pendiente",
+          estado_nuevo: "rechazado",
+        },
+        { transaction: t },
+      );
+
+      logger.info({
+        message: "Payment rejected",
+        comprobanteId: Number(id),
+        adminId: admin?.id_administrador ?? null,
+      });
+
+      return true;
     });
   }
 }
