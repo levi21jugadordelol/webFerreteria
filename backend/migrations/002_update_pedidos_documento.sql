@@ -1,0 +1,4 @@
+ALTER TABLE pedidos
+ADD COLUMN tipo_documento ENUM('DNI', 'RUC', 'CE', 'SIN_DOCUMENTO')
+NOT NULL DEFAULT 'DNI',
+ADD COLUMN numero_documento VARCHAR(20) NULL;
