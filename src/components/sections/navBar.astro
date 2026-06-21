@@ -3,6 +3,7 @@ import Buscador from "../ui/Buscador.astro";
 import CarritoCounter from "../ui/carrito/CarritoCounter.astro";
 import ThemeToggle from "../ui/themeToggle/ThemeToggle.astro";
 import { loadNavbarData } from "../../api/services/navbar.service";
+import { API_URL } from "../../config/api";
 
 /* =========================
    TIPOS
@@ -39,7 +40,7 @@ try {
 }
 ---
 
-<nav class="nav-container">
+<nav class="nav-container" data-api-url={API_URL}>
 
   <div class="nav-inner">
 
@@ -203,6 +204,14 @@ try {
 <!-- JS CLIENTE -->
 <script type="module">
 document.addEventListener("DOMContentLoaded", () => {
+
+const API_URL = document.querySelector(".nav-container")?.dataset.apiUrl;
+
+if (!API_URL) {
+  console.error("No se encontró API_URL en navbar");
+  return;
+}
+
   const catLink = document.querySelector(".nav-link-categorias");
   const megaCat = document.getElementById("mega-categorias");
 
@@ -268,7 +277,7 @@ function idSeguro(valor) {
   if (catLoaded || !megaCat) return;
 
   try {
-    const res = await fetch("http://localhost:3000/api/v1/categorias", {
+    const res = await fetch(`${API_URL}/categorias`, {
       credentials: "include",
     });
 
@@ -306,7 +315,7 @@ function idSeguro(valor) {
   if (marLoaded || !megaMar) return;
 
   try {
-    const res = await fetch("http://localhost:3000/api/v1/marcas", {
+    const res = await fetch(`${API_URL}/marcas`, {
       credentials: "include",
     });
 

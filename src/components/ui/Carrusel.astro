@@ -4,11 +4,7 @@ import Button from "../ui/Button.astro";
 
 export const prerender = false;
 
-const API_URL =
-  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
-
-const UPLOADS_URL =
-  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
+import { API_URL, UPLOADS_URL } from "../../config/api";
 
   const imagenHeroSegura = (path = "") => {
   const cleanPath = String(path || "").replace(/^\/+/, "");
