@@ -1,5 +1,4 @@
-const API_URL =
-  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+import { API_URL } from "../config/api";
 
 function isJSON(res: Response) {
   return (res.headers.get("content-type") || "").includes("application/json");
