@@ -62,7 +62,7 @@ function escapeHTML(value = "") {
 function safeComprobanteUrl(url = "") {
   const value = String(url || "").trim();
 
-  if (!value.startsWith("/uploads/")) {
+  if (!value) {
     return "#";
   }
 
@@ -70,7 +70,17 @@ function safeComprobanteUrl(url = "") {
     return "#";
   }
 
-  return `${BACKEND_URL}${value}`;
+  // Cloudinary
+  if (value.startsWith("https://res.cloudinary.com/")) {
+    return value;
+  }
+
+  // Compatibilidad con comprobantes antiguos
+  if (value.startsWith("/uploads/")) {
+    return `${BACKEND_URL}${value}`;
+  }
+
+  return "#";
 }
 
 function tiempoDesde(fecha) {

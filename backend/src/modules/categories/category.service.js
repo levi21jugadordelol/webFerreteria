@@ -1,8 +1,6 @@
 import Categoria from "./category.model.js";
 import AppError from "../../shared/utils/AppError.js";
-import fs from "fs";
-import path from "path";
-
+import { subirImagenEditorService } from "../uploads/upload.service.js";
 import sanitizeHtml from "sanitize-html";
 
 const sanitizarTexto = (valor = "") => {
@@ -29,10 +27,17 @@ export const crearCategoriaService = async (data, file) => {
     throw new AppError("Ya existe una categoría", 400);
   }
 
+  let urlImagen = null;
+
+  if (file) {
+    const upload = await subirImagenEditorService(file, "categorias");
+    urlImagen = upload.url;
+  }
+
   return await Categoria.create({
     nombre_categoria: nombreCategoria,
     descripcion,
-    url_imagen: file ? `categorias/${file.filename}` : null,
+    url_imagen: urlImagen,
   });
 };
 
@@ -62,12 +67,9 @@ export const eliminarCategoriaService = async (id) => {
     throw new AppError("Categoría no encontrada", 404);
   }
 
-  if (categoria.url_imagen) {
-    const ruta = path.join("uploads", categoria.url_imagen);
-    if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
-  }
-
   await categoria.destroy();
+
+  return true;
 };
 
 /* ACTUALIZAR */
@@ -111,12 +113,9 @@ export const subirImagenCategoriaService = async (id, file) => {
     throw new AppError("No se subió ninguna imagen", 400);
   }
 
-  if (categoria.url_imagen) {
-    const ruta = path.join("uploads", categoria.url_imagen);
-    if (fs.existsSync(ruta)) fs.unlinkSync(ruta);
-  }
+  const upload = await subirImagenEditorService(file, "categorias");
 
-  categoria.url_imagen = `categorias/${file.filename}`;
+  categoria.url_imagen = upload.url;
   await categoria.save();
 
   return {

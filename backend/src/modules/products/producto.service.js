@@ -9,6 +9,8 @@ import { generarSlugUnico } from "../../shared/helpers/generarSlugUnico.js";
 
 import sanitizeHtml from "sanitize-html";
 
+import { subirImagenEditorService } from "../uploads/upload.service.js";
+
 const sanitizarDescripcionProducto = (html = "") => {
   return sanitizeHtml(String(html), {
     allowedTags: [
@@ -105,7 +107,8 @@ class ProductoService {
         throw new AppError("Formato de imagen no permitido", 400);
       }
 
-      imagen = `productos/${file.filename}`;
+      const upload = await subirImagenEditorService(file, "productos");
+      imagen = upload.url;
     }
 
     const slug = await generarSlugUnico({
@@ -366,9 +369,11 @@ class ProductoService {
       throw new AppError("No se subió imagen", 400);
     }
 
+    const upload = await subirImagenEditorService(file, "productos");
+
     return await ProductoImagen.create({
       producto_id: productoId,
-      url: `productos/${file.filename}`,
+      url: upload.url,
     });
   }
 
@@ -417,7 +422,9 @@ class ProductoService {
       throw new AppError("Debe subir una imagen", 400);
     }
 
-    producto.url_imagen = `productos/${file.filename}`;
+    const upload = await subirImagenEditorService(file, "productos");
+
+    producto.url_imagen = upload.url;
     await producto.save();
 
     return producto.url_imagen;

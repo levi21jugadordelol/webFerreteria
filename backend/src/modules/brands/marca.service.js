@@ -1,6 +1,5 @@
 import Marca from "../../modules/brands/marca.model.js";
-import fs from "fs";
-import path from "path";
+import { subirImagenEditorService } from "../uploads/upload.service.js";
 import AppError from "../../shared/utils/AppError.js";
 import sanitizeHtml from "sanitize-html";
 
@@ -99,15 +98,6 @@ export const eliminarMarcaService = async (id) => {
     throw new AppError("Marca no encontrada", 404);
   }
 
-  // eliminar logo si existe
-  if (marca.url_logo) {
-    const ruta = path.join("uploads", marca.url_logo);
-
-    if (fs.existsSync(ruta)) {
-      fs.unlinkSync(ruta);
-    }
-  }
-
   await marca.destroy();
 
   return true;
@@ -127,16 +117,9 @@ export const subirLogoMarcaService = async (id, file) => {
     throw new AppError("No se subió ningún logo", 400);
   }
 
-  // eliminar logo anterior
-  if (marca.url_logo) {
-    const ruta = path.join("uploads", marca.url_logo);
+  const upload = await subirImagenEditorService(file, "marcas");
 
-    if (fs.existsSync(ruta)) {
-      fs.unlinkSync(ruta);
-    }
-  }
-
-  marca.url_logo = `marcas/${file.filename}`;
+  marca.url_logo = upload.url;
 
   await marca.save();
 

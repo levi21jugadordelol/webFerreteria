@@ -7,9 +7,7 @@ import PagoAuditoria from "../audit-payments/auditPayment.model.js";
 import { Op, where, col } from "sequelize";
 import logger from "../../shared/logger/logger.js";
 import AppError from "../../shared/utils/AppError.js";
-import fs from "fs/promises";
-import path from "path";
-import crypto from "crypto";
+import { subirImagenEditorService } from "../uploads/upload.service.js";
 
 class PagoService {
   /* ---------------------------------
@@ -289,29 +287,11 @@ class PagoService {
       );
     }
 
-    const extension =
-      file.mimetype === "image/png"
-        ? "png"
-        : file.mimetype === "image/webp"
-          ? "webp"
-          : "jpg";
-
-    const filename = `comprobante-${Date.now()}-${crypto.randomUUID()}.${extension}`;
-
-    const uploadDir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "comprobantes",
-    );
-
-    await fs.mkdir(uploadDir, { recursive: true });
-
-    await fs.writeFile(path.join(uploadDir, filename), file.buffer);
+    const upload = await subirImagenEditorService(file, "comprobantes");
 
     const comprobante = await ComprobantePago.create({
       pedido_id,
-      url_imagen: `/uploads/comprobantes/${filename}`,
+      url_imagen: upload.url,
       estado_validacion: "pendiente",
     });
 

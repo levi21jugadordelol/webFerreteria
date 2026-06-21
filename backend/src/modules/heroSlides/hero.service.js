@@ -1,8 +1,7 @@
 // hero.service.js
 import HeroSlide from "./hero.model.js";
 import { Op } from "sequelize";
-import fs from "fs";
-import path from "path";
+import { subirImagenEditorService } from "../uploads/upload.service.js";
 import AppError from "../../shared/utils/AppError.js";
 
 /* =========================
@@ -27,16 +26,6 @@ const validarTipoLayout = (tipoLayout) => {
 
   if (!permitidos.includes(tipoLayout)) {
     throw new AppError("Tipo de layout inválido", 400);
-  }
-};
-
-const eliminarImagenLocal = (imagen) => {
-  if (!imagen) return;
-
-  const ruta = path.join("uploads", imagen);
-
-  if (fs.existsSync(ruta)) {
-    fs.unlinkSync(ruta);
   }
 };
 
@@ -122,10 +111,12 @@ export const crearSlide = async (data, file) => {
     throw new AppError("Debe completar texto y URL del botón", 400);
   }
 
+  const upload = await subirImagenEditorService(file, "hero");
+
   return await HeroSlide.create({
     titulo1: titulo1 || null,
     titulo2: titulo2 || null,
-    imagen: `hero/${file.filename}`,
+    imagen: upload.url,
     tipo_layout: tipoLayout,
     mostrar_boton: mostrarBoton,
     boton_texto: mostrarBoton ? botonTexto : null,
@@ -167,8 +158,8 @@ export const actualizarSlide = async (id, data, file) => {
   }
 
   if (file) {
-    eliminarImagenLocal(slide.imagen);
-    slide.imagen = `hero/${file.filename}`;
+    const upload = await subirImagenEditorService(file, "hero");
+    slide.imagen = upload.url;
   }
 
   const titulo1 =
@@ -256,8 +247,6 @@ export const eliminarSlide = async (id) => {
   if (!slide) {
     throw new AppError("Hero slide no encontrado", 404);
   }
-
-  eliminarImagenLocal(slide.imagen);
 
   await slide.destroy();
 
