@@ -20,11 +20,10 @@ interface Producto {
   agotado: boolean;
 }
 
-const API_URL =
-  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
-
-const UPLOADS_URL =
-  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
+import {
+  API_URL,
+  UPLOADS_URL
+} from "../../config/api";
 
 const urlParams = Astro.url.searchParams;
 

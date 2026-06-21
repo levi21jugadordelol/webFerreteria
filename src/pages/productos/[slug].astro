@@ -6,8 +6,10 @@ interface ImagenExtra {
   url: string;
 }
 
-const API_URL = "http://localhost:3000/api/v1";
-const UPLOADS_URL = "http://localhost:3000/uploads";
+import {
+  API_URL,
+  UPLOADS_URL
+} from "../../config/api";
 
 const { slug } = Astro.params;
 
