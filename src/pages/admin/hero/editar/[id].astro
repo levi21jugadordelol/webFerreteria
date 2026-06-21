@@ -3,9 +3,7 @@ export const prerender = false;
 
 import AdminLayout from "../../../../layouts/AdminLayout.astro";
 import HeroForm from "../../../../components/admin/HeroForm.astro";
-
-const API_URL =
-  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+import { API_URL } from "../../../../config/api";
 
 const { id } = Astro.params;
 

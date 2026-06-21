@@ -1,4 +1,6 @@
 ---
+import { API_URL, UPLOADS_URL } from "../../config/api";
+
 interface Slide {
   id_hero: number;
   titulo1: string | null;
@@ -11,7 +13,7 @@ interface Slide {
 const { slides } = Astro.props as { slides: Slide[] };
 ---
 
-<div class="hero-list heroList">
+<div class="hero-list heroList" data-api-url={API_URL}>
 
   {slides.map((slide) => (
     <div class="hero-row" data-id={slide.id_hero}>
@@ -21,7 +23,7 @@ const { slides } = Astro.props as { slides: Slide[] };
       <!-- 🔵 IMAGEN DEL SLIDE -->
       {slide.imagen && (
         <img
-          src={`http://localhost:3000/uploads/${slide.imagen}`}
+          src={`${UPLOADS_URL}/${slide.imagen}`}
           class="hero-thumb"
         />
       )}
@@ -61,7 +63,12 @@ const { slides } = Astro.props as { slides: Slide[] };
 
 <script is:inline>
 document.addEventListener("DOMContentLoaded", function () {
-  const API_URL = "http://localhost:3000/api/v1";
+  const API_URL = document.querySelector(".heroList")?.dataset.apiUrl;
+
+if (!API_URL) {
+  console.error("No se encontró API_URL");
+  return;
+}
 
   document.querySelectorAll(".heroList").forEach(heroList => {
     new Sortable(heroList, {

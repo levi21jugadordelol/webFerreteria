@@ -1,4 +1,7 @@
 ---
+
+import { API_URL, UPLOADS_URL } from "../../config/api";
+
 interface HeroSlide {
   id_hero?: number;
   titulo1?: string;
@@ -22,10 +25,11 @@ const isEdit = !!slide;
 
   <div class="editor-form card shadow-sm p-4">
 
-    <form
+  <form
   id="heroForm"
   enctype="multipart/form-data"
   data-id={slide?.id_hero ?? ""}
+  data-api-url={API_URL}
 >
 
       <!-- Layout -->
@@ -216,7 +220,7 @@ Puedes elegir un destino rápido o escribir cualquier URL.
           <label class="form-label">Imagen actual</label>
 
           <img
-            src={`http://localhost:3000/uploads/${slide.imagen}`}
+            src={`${UPLOADS_URL}/${slide.imagen}`}
             class="img-fluid rounded"
             style="max-height:200px"
           />
@@ -540,7 +544,12 @@ function mostrarMensaje(tipo, texto) {
 
     const id = form.dataset.id;
 
-    const API_URL = "http://localhost:3000/api/v1";
+   const API_URL = form.dataset.apiUrl;
+
+if (!API_URL) {
+  mostrarMensaje("alert-danger", "No se encontró API_URL");
+  return;
+}
 
 const url = id
   ? `${API_URL}/hero/${id}`
