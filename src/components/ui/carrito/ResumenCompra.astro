@@ -1,8 +1,9 @@
 ---
+import { API_URL } from "../../../config/api";
 import carritoStore from "../../../store/carritoStore.js";
 ---
 
-<div class="resumen-container">
+<div class="resumen-container" data-api-url={API_URL}>
   <h2 class="titulo">Resumen de compra</h2>
 
   <div id="lista-items" class="items"></div>
@@ -91,6 +92,12 @@ import carritoStore from "../../../store/carritoStore.js";
 </style>
 
 <script is:client type="module">
+  const root = document.querySelector(".resumen-container");
+const API_URL = root?.dataset.apiUrl;
+
+if (!API_URL) {
+  console.error("No se encontró API_URL en ResumenCompra");
+}
   const contenedor = document.getElementById("lista-items");
   const totalElemento = document.getElementById("total-precio");
 
@@ -163,7 +170,7 @@ mensaje += "%0A🙏 Gracias";
   let telefono = "";
 
   try {
-    const res = await fetch("http://localhost:3000/api/site-settings");
+    const res = await fetch(`${API_URL}/site-settings`);
     const config = await res.json();
     telefono = config.site_content?.whatsapp || "";
   } catch {}

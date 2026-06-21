@@ -1,10 +1,11 @@
 ---
 import qrImage from "../../../assets/qrlenin.jpeg";
 import carritoStore from "../../../store/carritoStore";
+import { API_URL } from "../../../config/api";
 ---
 
 <div class="form-container">
-  <form id="form-compra" class="form-compra">
+  <form id="form-compra" class="form-compra" data-api-url={API_URL}>
 
     <h3 class="sec-title">Datos de compra</h3>
 
@@ -306,7 +307,11 @@ const transferenciaMonto = document.getElementById("transferencia-monto");
 let enviando = false;
 
 // ⚙️ Ajusta tu backend base URL (según tu puerto)
-const API_BASE = "http://localhost:3000/api/v1";
+const API_BASE = form?.dataset.apiUrl;
+
+if (!API_BASE) {
+  console.error("No se encontró API_BASE en FormularioCompra");
+}
 
 
 function setEstado(tipo, mensaje) {
