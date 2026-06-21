@@ -1,5 +1,6 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { API_URL, BACKEND_URL } from "../../../config/api";
 ---
 
 <AdminLayout title="Validar Comprobantes de Pago">
@@ -17,9 +18,14 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 
 </AdminLayout>
 
+<script is:inline define:vars={{ API_URL, BACKEND_URL }}>
+  window.API_URL = API_URL;
+  window.BACKEND_URL = BACKEND_URL;
+</script>
+
 <script is:client>
-const API_BASE = "http://localhost:3000/api/v1/pagos";
-const BACKEND_URL = "http://localhost:3000";
+const API_BASE = `${window.API_URL}/pagos`;
+const BACKEND_URL = window.BACKEND_URL;
 const container = document.getElementById("app-comprobantes");
 
 async function fetchJSON(url, options = {}) {

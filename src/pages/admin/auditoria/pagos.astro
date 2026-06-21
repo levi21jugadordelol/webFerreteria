@@ -9,7 +9,9 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 </AdminLayout>
 
 <script is:client>
-const API = "http://localhost:3000/api/v1/auditoria/pagos";
+import { API_URL } from "../../../config/api";
+const API = `${API_URL}/auditoria/pagos`;
+
 const cont = document.getElementById("tabla-auditoria");
 
 function crearCelda(texto) {

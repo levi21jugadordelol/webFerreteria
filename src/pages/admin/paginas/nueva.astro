@@ -1,5 +1,6 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { BACKEND_URL } from "../../../config/api";
 ---
 
 <AdminLayout title="Nueva página">
@@ -140,10 +141,15 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 }
 </style>
 
+
+<script is:inline define:vars={{ API_URL: BACKEND_URL }}>
+  window.API_URL = API_URL;
+</script>
+
 <script is:client>
 window.addEventListener("DOMContentLoaded", () => {
 
-const API = "http://localhost:3000";
+const API = window.API_URL;
 
 /* --------------------------
    VERIFICAR QUILL

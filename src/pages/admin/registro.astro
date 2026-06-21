@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import RegistroLayout from "../../layouts/RegistroLayout.astro";
+import { BACKEND_URL } from "../../config/api";
 
 let error = "";
 let exito = "";
@@ -13,7 +14,7 @@ if (Astro.request.method === "POST") {
     const correo = formData.get("correo");
     const password = formData.get("password");
 
-    const response = await fetch("http://localhost:3000/auth/registro", {
+    const response = await fetch(`${BACKEND_URL}/auth/registro`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nombre, correo, password }),

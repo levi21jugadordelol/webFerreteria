@@ -1,5 +1,6 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { API_URL } from "../../../config/api";
 ---
 
 <AdminLayout title="Páginas">
@@ -36,8 +37,12 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 
 </AdminLayout>
 
+<script is:inline define:vars={{ API_URL }}>
+  window.API_URL = API_URL;
+</script>
+
 <script is:client>
-const API = "http://localhost:3000/api/v1";
+const API = window.API_URL;
 const tabla = document.getElementById("tablaPaginas");
 
 function escapeHTML(value = "") {

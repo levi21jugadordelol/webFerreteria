@@ -1,5 +1,6 @@
 ---
 import AdminLayout from "../../layouts/AdminLayout.astro";
+import { API_URL } from "../../config/api";
 ---
 
 <AdminLayout title="Panel Administrativo">
@@ -69,8 +70,13 @@ import AdminLayout from "../../layouts/AdminLayout.astro";
 </AdminLayout>
 
 
+<script is:inline define:vars={{ API_URL }}>
+  window.API_URL = API_URL;
+</script>
+
+
 <script is:client>
-const API_URL = "http://localhost:3000/api/v1";
+const API_URL = window.API_URL;
 
 async function fetchJSON(url) {
   const res = await fetch(url, {

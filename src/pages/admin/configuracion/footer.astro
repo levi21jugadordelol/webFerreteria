@@ -1,7 +1,7 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 
-const API_URL = "http://localhost:3000";
+import { BACKEND_URL } from "../../../config/api";
 
 type Footer = {
   titulo?: string;
@@ -15,7 +15,7 @@ type Footer = {
 let footer: Footer = {};
 
 try {
-  const res = await fetch(`${API_URL}/api/site-settings?key=footer`);
+  const res = await fetch(`${BACKEND_URL}/api/site-settings?key=footer`);
 
   if (res.ok) {
     footer = await res.json();
@@ -124,8 +124,12 @@ try {
   </div>
 </AdminLayout>
 
+<script is:inline define:vars={{ API_URL: BACKEND_URL }}>
+  window.API_URL = API_URL;
+</script>
+
 <script is:inline>
-const API_URL = "http://localhost:3000";
+const API_URL = window.API_URL;
 
 const form = document.getElementById("footerForm");
 const mensaje = document.getElementById("mensaje");

@@ -1,6 +1,8 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 import "../../../styles/admin/menu.css";
+
+import { API_URL } from "../../../config/api";
 ---
 
 <AdminLayout title="Menú del sitio">
@@ -15,9 +17,16 @@ import "../../../styles/admin/menu.css";
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
+
+<script is:inline define:vars={{ API_URL }}>
+
+  window.API_URL = API_URL;
+
+</script>
+
 <script is:inline>
 document.addEventListener("DOMContentLoaded", async function () {
-  const API = "http://localhost:3000/api/v1";
+  const API = window.API_URL;
 
   async function fetchJSON(url, options = {}) {
     const res = await fetch(url, {
