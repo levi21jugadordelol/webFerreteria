@@ -1,6 +1,6 @@
-// libs/api/hero.api.ts
+// src/libs/apis/hero.api.ts
 
-const API_URL = "http://localhost:3000";
+import { apiFetch } from "../../api/client";
 
 /* =========================
    TIPOS
@@ -27,116 +27,65 @@ type HeroResponse = {
 /* =========================
    GET PUBLICO (con filtros)
 ========================= */
-export async function getHeroSlides(type?: string): Promise<HeroSlide[]> {
-  let url = `${API_URL}/hero`;
+export function getHeroSlides(type?: string): Promise<HeroSlide[]> {
+  const params = new URLSearchParams();
 
   if (type) {
-    url += `?type=${type}`;
+    params.append("type", type);
   }
 
-  const res = await fetch(url);
+  const query = params.toString();
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al obtener hero slides");
-  }
-
-  return data;
+  return apiFetch(`/hero${query ? `?${query}` : ""}`);
 }
 
 /* =========================
    GET POR ID
 ========================= */
-export async function getHeroById(id: string): Promise<HeroSlide> {
-  const res = await fetch(`${API_URL}/hero/${id}`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al obtener hero slide");
-  }
-
-  return data;
+export function getHeroById(id: string): Promise<HeroSlide> {
+  return apiFetch(`/hero/${id}`);
 }
 
 /* =========================
    CREAR SLIDE
 ========================= */
-export async function createHeroSlide(
-  formData: FormData,
-): Promise<HeroResponse> {
-  const res = await fetch(`${API_URL}/hero`, {
+export function createHeroSlide(formData: FormData): Promise<HeroResponse> {
+  return apiFetch(`/hero`, {
     method: "POST",
-    credentials: "include",
-    body: formData, // 🔥 usa multer
+    body: formData,
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al crear hero slide");
-  }
-
-  return data;
 }
 
 /* =========================
    ACTUALIZAR SLIDE
 ========================= */
-export async function updateHeroSlide(
+export function updateHeroSlide(
   id: string,
   formData: FormData,
 ): Promise<HeroResponse> {
-  const res = await fetch(`${API_URL}/hero/${id}`, {
+  return apiFetch(`/hero/${id}`, {
     method: "PUT",
-    credentials: "include",
-    body: formData, // 🔥 permite imagen + campos
+    body: formData,
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al actualizar hero slide");
-  }
-
-  return data;
 }
 
 /* =========================
    ACTUALIZAR ORDEN
 ========================= */
-export async function updateHeroOrden(
+export function updateHeroOrden(
   slides: { id_hero: number; orden: number }[],
 ): Promise<{ msg: string }> {
-  const res = await fetch(`${API_URL}/hero/orden`, {
+  return apiFetch(`/hero/orden`, {
     method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ slides }),
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al actualizar orden");
-  }
-
-  return data;
 }
 
 /* =========================
    ELIMINAR
 ========================= */
-export async function deleteHeroSlide(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/hero/${id}`, {
+export function deleteHeroSlide(id: string): Promise<void> {
+  return apiFetch(`/hero/${id}`, {
     method: "DELETE",
-    credentials: "include",
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al eliminar hero slide");
-  }
 }

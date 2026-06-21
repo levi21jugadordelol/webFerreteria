@@ -1,18 +1,13 @@
-// libs/api/order.api.ts
+// src/libs/apis/order.api.ts
 
-const API_URL = "http://localhost:3000";
+import { API_URL } from "../../config/api";
 
-/* =========================
-   TIPOS
-========================= */
 type PedidoData = {
   nombre_comprador: string;
   dni_comprador: string;
   direccion_envio: string;
   telefono_comprador: string;
   total_pedido: number;
-
-  // 👇 importante: tu service probablemente usa esto
   detalles: {
     producto_id: number;
     cantidad: number;
@@ -26,9 +21,6 @@ type PedidoResponse = {
   };
 };
 
-/* =========================
-   CREAR PEDIDO
-========================= */
 export async function crearPedido(data: PedidoData): Promise<PedidoResponse> {
   const res = await fetch(`${API_URL}/pedidos`, {
     method: "POST",

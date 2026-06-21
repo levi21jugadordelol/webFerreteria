@@ -1,10 +1,7 @@
-// libs/api/payment.api.ts
+// src/libs/apis/payment.api.ts
 
-const API_URL = "http://localhost:3000";
+import { API_URL } from "../../config/api";
 
-/* =========================
-   TIPOS
-========================= */
 type Comprobante = {
   id_comprobante: number;
   pedido_id: number;
@@ -18,15 +15,12 @@ type ComprobanteResponse = {
   comprobante?: Comprobante;
 };
 
-/* =========================
-   SUBIR COMPROBANTE (CLIENTE)
-========================= */
 export async function subirComprobante(
   pedido_id: number,
   file: File,
 ): Promise<ComprobanteResponse> {
   const formData = new FormData();
-  formData.append("file", file); // 🔥 coincide con multer
+  formData.append("file", file);
   formData.append("pedido_id", String(pedido_id));
 
   const res = await fetch(`${API_URL}/pagos/comprobante`, {
@@ -43,9 +37,6 @@ export async function subirComprobante(
   return data;
 }
 
-/* =========================
-   LISTAR COMPROBANTES (ADMIN)
-========================= */
 export async function getComprobantes(): Promise<any[]> {
   const res = await fetch(`${API_URL}/pagos/admin/lista`, {
     credentials: "include",
@@ -60,9 +51,6 @@ export async function getComprobantes(): Promise<any[]> {
   return data;
 }
 
-/* =========================
-   VALIDAR COMPROBANTE
-========================= */
 export async function validarComprobante(id: string): Promise<{ msg: string }> {
   const res = await fetch(`${API_URL}/pagos/admin/${id}/validar`, {
     method: "PUT",
@@ -78,9 +66,6 @@ export async function validarComprobante(id: string): Promise<{ msg: string }> {
   return data;
 }
 
-/* =========================
-   RECHAZAR COMPROBANTE
-========================= */
 export async function rechazarComprobante(
   id: string,
 ): Promise<{ msg: string }> {
@@ -98,9 +83,6 @@ export async function rechazarComprobante(
   return data;
 }
 
-/* =========================
-   REVERTIR COMPROBANTE
-========================= */
 export async function revertirComprobante(
   id: string,
 ): Promise<{ msg: string }> {

@@ -1,10 +1,5 @@
-// libs/api/pages.api.ts
+import { apiFetch } from "../../api/client";
 
-const API_URL = "http://localhost:3000";
-
-/* =========================
-   TIPOS
-========================= */
 type Pagina = {
   id_pagina: number;
   titulo: string;
@@ -22,74 +17,23 @@ type PaginaResponse = {
   msg?: string;
 };
 
-/* =========================
-   LISTAR PÁGINAS (PUBLICO)
-========================= */
-export async function getPaginas(): Promise<PaginaPublica[]> {
-  const res = await fetch(`${API_URL}/paginas`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al listar páginas");
-  }
-
-  return data;
+export function getPaginas(): Promise<PaginaPublica[]> {
+  return apiFetch("/paginas");
 }
 
-/* =========================
-   OBTENER PÁGINA POR SLUG
-========================= */
-export async function getPaginaBySlug(slug: string): Promise<Pagina> {
-  const res = await fetch(`${API_URL}/paginas/${slug}`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Página no encontrada");
-  }
-
-  return data;
+export function getPaginaBySlug(slug: string): Promise<Pagina> {
+  return apiFetch(`/paginas/${slug}`);
 }
 
-/* =========================
-   ADMIN: LISTAR TODAS
-========================= */
-export async function getPaginasAdmin(): Promise<Pagina[]> {
-  const res = await fetch(`${API_URL}/paginas/admin/lista`, {
-    credentials: "include",
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al listar páginas admin");
-  }
-
-  return data;
+export function getPaginasAdmin(): Promise<Pagina[]> {
+  return apiFetch("/paginas/admin/lista");
 }
 
-/* =========================
-   ADMIN: OBTENER POR ID
-========================= */
-export async function getPaginaAdminById(id: string): Promise<Pagina> {
-  const res = await fetch(`${API_URL}/paginas/admin/${id}`, {
-    credentials: "include",
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al obtener página");
-  }
-
-  return data;
+export function getPaginaAdminById(id: string): Promise<Pagina> {
+  return apiFetch(`/paginas/admin/${id}`);
 }
 
-/* =========================
-   ADMIN: CREAR
-========================= */
-export async function crearPagina(data: {
+export function crearPagina(data: {
   titulo: string;
   slug: string;
   contenido: string;
@@ -97,57 +41,24 @@ export async function crearPagina(data: {
   meta_description?: string;
   meta_keywords?: string;
 }): Promise<Pagina> {
-  const res = await fetch(`${API_URL}/paginas/admin`, {
+  return apiFetch("/paginas/admin", {
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    throw new Error(result.msg || "Error al crear página");
-  }
-
-  return result;
 }
 
-/* =========================
-   ADMIN: ACTUALIZAR
-========================= */
-export async function actualizarPagina(
+export function actualizarPagina(
   id: string,
   data: Partial<Pagina>,
 ): Promise<PaginaResponse> {
-  const res = await fetch(`${API_URL}/paginas/admin/${id}`, {
+  return apiFetch(`/paginas/admin/${id}`, {
     method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    throw new Error(result.msg || "Error al actualizar página");
-  }
-
-  return result;
 }
 
-/* =========================
-   ADMIN: ELIMINAR
-========================= */
-export async function eliminarPagina(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/paginas/admin/${id}`, {
+export function eliminarPagina(id: string): Promise<void> {
+  return apiFetch(`/paginas/admin/${id}`, {
     method: "DELETE",
-    credentials: "include",
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al eliminar página");
-  }
 }

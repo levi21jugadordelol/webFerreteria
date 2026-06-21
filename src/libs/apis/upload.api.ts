@@ -1,14 +1,9 @@
-// libs/api/upload.api.ts
+// src/libs/apis/upload.api.ts
 
-const API_URL = "http://localhost:3000";
+import { API_URL } from "../../config/api";
 
-/* =========================
-   SUBIR IMAGEN EDITOR
-========================= */
 export async function subirImagenEditor(file: File) {
   const formData = new FormData();
-
-  // 🔥 IMPORTANTE: el nombre debe coincidir con multer
   formData.append("imagen", file);
 
   const res = await fetch(`${API_URL}/upload/editor`, {
@@ -23,5 +18,5 @@ export async function subirImagenEditor(file: File) {
     throw new Error(data.msg || "Error al subir imagen");
   }
 
-  return data; // { url }
+  return data;
 }

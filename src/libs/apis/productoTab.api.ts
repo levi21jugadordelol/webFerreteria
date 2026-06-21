@@ -1,6 +1,4 @@
-// libs/api/productoTab.api.ts
-
-const API_URL = "http://localhost:3000";
+import { apiFetch } from "../../api/client";
 
 /* =========================
    TIPOS
@@ -21,46 +19,28 @@ type TabResponse = {
 /* =========================
    LISTAR (PUBLICO)
 ========================= */
-export async function getTabs(): Promise<ProductoTab[]> {
-  const res = await fetch(`${API_URL}/producto-tabs`);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al obtener tabs");
-  }
-
-  return data;
+export function getTabs(): Promise<ProductoTab[]> {
+  return apiFetch("/producto-tabs");
 }
 
 /* =========================
    CREAR TAB
 ========================= */
-export async function crearTab(data: {
+export function crearTab(data: {
   nombre: string;
   slug?: string;
   orden?: number;
 }): Promise<TabResponse> {
-  const res = await fetch(`${API_URL}/producto-tabs`, {
+  return apiFetch("/producto-tabs", {
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    throw new Error(result.msg || "Error al crear tab");
-  }
-
-  return result;
 }
 
 /* =========================
    ACTUALIZAR TAB
 ========================= */
-export async function actualizarTab(
+export function actualizarTab(
   id: string,
   data: {
     nombre?: string;
@@ -68,52 +48,26 @@ export async function actualizarTab(
     orden?: number;
   },
 ): Promise<TabResponse> {
-  const res = await fetch(`${API_URL}/producto-tabs/${id}`, {
+  return apiFetch(`/producto-tabs/${id}`, {
     method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    throw new Error(result.msg || "Error al actualizar tab");
-  }
-
-  return result;
 }
 
 /* =========================
    ACTIVAR / DESACTIVAR
 ========================= */
-export async function toggleTab(id: string): Promise<TabResponse> {
-  const res = await fetch(`${API_URL}/producto-tabs/${id}/toggle`, {
+export function toggleTab(id: string): Promise<TabResponse> {
+  return apiFetch(`/producto-tabs/${id}/toggle`, {
     method: "PATCH",
-    credentials: "include",
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al cambiar estado");
-  }
-
-  return data;
 }
 
 /* =========================
    ELIMINAR TAB
 ========================= */
-export async function eliminarTab(id: string): Promise<void> {
-  const res = await fetch(`${API_URL}/producto-tabs/${id}`, {
+export function eliminarTab(id: string): Promise<void> {
+  return apiFetch(`/producto-tabs/${id}`, {
     method: "DELETE",
-    credentials: "include",
   });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al eliminar tab");
-  }
 }

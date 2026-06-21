@@ -1,10 +1,5 @@
-// libs/api/price.api.ts
+import { apiFetch } from "../../api/client";
 
-const API_URL = "http://localhost:3000";
-
-/* =========================
-   TIPOS
-========================= */
 type Producto = {
   id_producto: number;
   nombre_producto: string;
@@ -14,31 +9,16 @@ type Producto = {
   stock: number;
 };
 
-/* =========================
-   FILTRAR POR PRECIO
-========================= */
-export async function filtrarPorPrecio(
+export function filtrarPorPrecio(
   min?: number,
   max?: number,
 ): Promise<Producto[]> {
-  let url = `${API_URL}/productos/precio`;
-
   const params = new URLSearchParams();
 
   if (min !== undefined) params.append("min", String(min));
   if (max !== undefined) params.append("max", String(max));
 
-  if (params.toString()) {
-    url += `?${params.toString()}`;
-  }
+  const query = params.toString();
 
-  const res = await fetch(url);
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.msg || "Error al filtrar productos");
-  }
-
-  return data;
+  return apiFetch(`/productos/precio${query ? `?${query}` : ""}`);
 }
