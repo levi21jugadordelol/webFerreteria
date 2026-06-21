@@ -1,8 +1,14 @@
 ---
 import ModalEditMarca from "../../ui/marca/ModalEditMarca.astro";
+import { API_URL, UPLOADS_URL } from "../../../config/api";
 ---
 
-<div class="container my-4">
+<div
+  class="container my-4"
+  id="marcas-root"
+  data-api-url={API_URL}
+  data-uploads-url={UPLOADS_URL}
+>
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="fw-bold mb-0">Lista de Marcas</h3>
 
@@ -21,8 +27,13 @@ import ModalEditMarca from "../../ui/marca/ModalEditMarca.astro";
 <ModalEditMarca id="modal-editar-marca" />
 
 <script is:client>
-  const apiUrl = "http://localhost:3000/api/v1";
-  const uploadsUrl = "http://localhost:3000/uploads";
+ const root = document.getElementById("marcas-root");
+const apiUrl = root?.dataset.apiUrl;
+const uploadsUrl = root?.dataset.uploadsUrl;
+
+if (!apiUrl || !uploadsUrl) {
+  console.error("No se encontró configuración de marcas");
+}
 
   async function fetchJSON(url, options = {}) {
     const res = await fetch(url, {

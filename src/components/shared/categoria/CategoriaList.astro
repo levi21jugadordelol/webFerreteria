@@ -1,8 +1,14 @@
 ---
 import ModalEditCategoria from "../../ui/categoria/ModalEditCategoria.astro";
+import { API_URL, UPLOADS_URL } from "../../../config/api";
 ---
 
-<div class="container my-4">
+<div
+  class="container my-4"
+  id="categorias-root"
+  data-api-url={API_URL}
+  data-uploads-url={UPLOADS_URL}
+>
   <div class="d-flex justify-content-between align-items-center mb-3">
     <a href="/admin/categoria-nueva" class="btn btn-primary">
       ➕ Nueva Categoría
@@ -19,8 +25,13 @@ import ModalEditCategoria from "../../ui/categoria/ModalEditCategoria.astro";
 <ModalEditCategoria id="modal-editar-categoria" />
 
 <script is:client>
-  const apiUrl = "http://localhost:3000/api/v1";
-  const uploadsUrl = "http://localhost:3000/uploads";
+  const root = document.getElementById("categorias-root");
+const apiUrl = root?.dataset.apiUrl;
+const uploadsUrl = root?.dataset.uploadsUrl;
+
+if (!apiUrl || !uploadsUrl) {
+  console.error("No se encontró configuración de categorías");
+}
 
   async function fetchJSON(url, options = {}) {
     const res = await fetch(url, {

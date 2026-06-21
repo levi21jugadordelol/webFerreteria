@@ -1,12 +1,17 @@
 ---
+import { API_URL, UPLOADS_URL } from "../../config/api";
+
 const { producto } = Astro.props;
-const apiUrl = "http://localhost:3000";
 const imagenUrl = producto.url_imagen
-  ? `${apiUrl}/uploads/${producto.url_imagen}`
+? `${UPLOADS_URL}/${producto.url_imagen}`
   : "https://via.placeholder.com/150?text=Sin+imagen";
 ---
 
-<div class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3" data-id={producto.id_producto}>
+<div
+  class="card p-3 shadow-sm d-flex flex-row align-items-center gap-3"
+  data-id={producto.id_producto}
+  data-api-url={API_URL}
+>
   <img src={imagenUrl} alt="Imagen del producto" width="100" height="100" class="rounded" />
 
   <div class="flex-grow-1">
@@ -26,6 +31,8 @@ const imagenUrl = producto.url_imagen
     const card = document.currentScript.closest(".card");
     const id = card.dataset.id;
 
+    const API_URL = card.dataset.apiUrl;
+
     card.querySelector(".btn-editar").addEventListener("click", () => {
       window.location.href = `/admin/editar-producto/${id}`;
     });
@@ -33,7 +40,10 @@ const imagenUrl = producto.url_imagen
     card.querySelector(".btn-eliminar").addEventListener("click", async () => {
       if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
       try {
-        const res = await fetch(`http://localhost:3000/productos/${id}`, { method: "DELETE" });
+        const res = await fetch(`${API_URL}/productos/admin/${id}`, {
+  method: "DELETE",
+  credentials: "include",
+});
         if (!res.ok) throw new Error("Error al eliminar producto");
         alert("✅ Producto eliminado correctamente");
         location.reload();

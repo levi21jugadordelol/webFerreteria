@@ -3,6 +3,7 @@ import Title from "./Title.astro";
 import Subtitulo from "./Subtitulo.astro";
 import TarjetaProducto from "../ui/tarjetaProducto.astro";
 import Button from "../ui/Button.astro";
+import { API_URL, UPLOADS_URL } from "../../config/api";
 
 interface Props {
   title?: string;
@@ -20,11 +21,6 @@ const {
   showButton = true,
 } = Astro.props;
 
-const API_URL =
-  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
-
-const UPLOADS_URL =
-  import.meta.env.PUBLIC_UPLOADS_URL || "http://localhost:3000/uploads";
 
 let productos: any[] = [];
 

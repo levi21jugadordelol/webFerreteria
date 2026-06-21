@@ -1,8 +1,14 @@
 ---
 import ModalEditProducto from "../ui/productos/ModalEditProducto.astro";
+import { API_URL, UPLOADS_URL } from "../../config/api";
 ---
 
-<div class="container my-4">
+<div
+  class="container my-4"
+  id="productos-root"
+  data-api-url={API_URL}
+  data-uploads-url={UPLOADS_URL}
+>
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-semibold">Lista de Productos</h4>
 
@@ -21,8 +27,13 @@ import ModalEditProducto from "../ui/productos/ModalEditProducto.astro";
 <ModalEditProducto id="modal-editar" />
 
 <script is:client>
-  const apiUrl = "http://localhost:3000/api/v1";
-  const uploadsUrl = "http://localhost:3000/uploads";
+  const root = document.getElementById("productos-root");
+const apiUrl = root?.dataset.apiUrl;
+const uploadsUrl = root?.dataset.uploadsUrl;
+
+if (!apiUrl || !uploadsUrl) {
+  console.error("No se encontró configuración de productos");
+}
 
   function safeUploadUrl(path) {
     const cleanPath = String(path || "").replace(/^\/+/, "");

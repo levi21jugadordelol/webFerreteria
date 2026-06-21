@@ -1,5 +1,5 @@
 ---
-const apiUrl = "http://localhost:3000";
+import { BACKEND_URL } from "../../../config/api";
 ---
 
 <div class="container my-4">
@@ -46,8 +46,8 @@ const apiUrl = "http://localhost:3000";
 </div>
 
 <!-- 🔥 IMPORTANTE: pasar API al JS -->
-<script is:inline>
-  window.API_URL = "http://localhost:3000";
+<script is:inline define:vars={{ BACKEND_URL }}>
+  window.API_URL = BACKEND_URL;
 </script>
 
 <!-- FilePond -->

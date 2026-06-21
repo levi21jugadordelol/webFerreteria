@@ -1,8 +1,10 @@
 ---
+import { API_URL } from "../../../config/api";
+
 const { id } = Astro.props;
 ---
 
-<div id="producto-detalle" data-id={id}>
+<div id="producto-detalle" data-id={id} data-api-url={API_URL}>
   <section class="bg-white p-4 shadow rounded mb-4">
     <h3 class="fw-semibold mb-3">Imágenes adicionales</h3>
 
@@ -63,7 +65,12 @@ const { id } = Astro.props;
   </section>
 
   <script is:client>
-    const apiUrl = "http://localhost:3000/api/v1";
+    const root = document.getElementById("producto-detalle");
+const apiUrl = root?.dataset.apiUrl;
+
+if (!apiUrl) {
+  console.error("No se encontró apiUrl en ProductoDetalleAdmin");
+}
 
     let tabsCache = [];
 
