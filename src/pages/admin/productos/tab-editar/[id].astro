@@ -1,8 +1,7 @@
 ---
 import AdminLayout from "../../../../layouts/AdminLayout.astro";
 
-const API_URL =
-  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+import { API_URL } from "../../../../config/api";
 
 interface Tab {
   id_tab: number;
@@ -71,6 +70,10 @@ Actualizar
 
 </form>
 
+<script is:inline define:vars={{ API_URL }}>
+  window.API_URL = API_URL;
+</script>
+
 <script is:inline>
 
 const id = "{id}";
@@ -81,7 +84,7 @@ e.preventDefault();
 
 const data = Object.fromEntries(new FormData(e.target));
 
-await fetch(`http://localhost:3000/api/v1/producto-tabs/${id}`,{
+await fetch(`${window.API_URL}/producto-tabs/${id}`, {
 method:"PUT",
 credentials:"include",
 headers:{

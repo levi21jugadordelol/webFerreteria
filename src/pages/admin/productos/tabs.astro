@@ -1,8 +1,7 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 
-const API_URL =
-  import.meta.env.PUBLIC_API_URL || "http://localhost:3000/api/v1";
+import { API_URL } from "../../../config/api";
 
 const res = await fetch(`${API_URL}/producto-tabs`, {
   credentials: "include",
@@ -90,8 +89,12 @@ const tabs = result.data ?? [];
     </table>
   </div>
 
+  <script is:inline define:vars={{ API_URL }}>
+  window.API_URL = API_URL;
+</script>
+
   <script is:inline>
-    const API_URL = "http://localhost:3000/api/v1";
+    const API_URL = window.API_URL;
 
     document.querySelectorAll(".delete-tab").forEach((btn) => {
       btn.addEventListener("click", async () => {

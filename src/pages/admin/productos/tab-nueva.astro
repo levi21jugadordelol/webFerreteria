@@ -1,7 +1,7 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 
-const API_URL="http://localhost:3000";
+import { API_URL } from "../../../config/api";
 ---
 
 <AdminLayout title="Nueva Tab">
@@ -36,8 +36,8 @@ Guardar
 </form>
 
 <!-- 🔥 PASAR API -->
-<script is:inline>
-  window.API_URL = "http://localhost:3000";
+<script is:inline define:vars={{ API_URL }}>
+  window.API_URL = API_URL;
 </script>
 
 <script is:inline>
@@ -75,7 +75,7 @@ orden: Number(form.get("orden"))
 };
 
 try {
-  const res = await fetch(`${API_URL}/api/producto-tabs`, {
+  const res = await fetch(`${API_URL}/producto-tabs`, {
     method:"POST",
     credentials:"include",
     headers:{
