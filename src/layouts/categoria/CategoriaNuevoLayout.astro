@@ -1,7 +1,7 @@
 ---
 import CategoriaForm from "../../components/shared/categoria/CategoriaForm.astro";
 
-const API_URL = "http://localhost:3000";
+import { API_URL, BACKEND_URL } from "../../config/api";
 
 let siteContent = {
   title: "Nueva Categoría",
@@ -9,7 +9,7 @@ let siteContent = {
 };
 
 try {
-  const res = await fetch(`${API_URL}/api/site-settings`);
+  const res = await fetch(`${API_URL}/site-settings`);
   if (res.ok) {
     const settings = await res.json();
     if (settings.site_content) {
@@ -32,8 +32,8 @@ const title = siteContent.title;
 </div>
 
 <!-- 🔥 PASAR API -->
-<script is:inline>
-  window.API_URL = "http://localhost:3000";
+<script is:inline define:vars={{ BACKEND_URL }}>
+  window.API_URL = BACKEND_URL;
 </script>
 
 <!-- 🔥 FILEPOND (IMPORTANTE COMPLETO) -->

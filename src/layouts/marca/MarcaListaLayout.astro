@@ -1,5 +1,6 @@
 ---
 import MarcaList from "../../components/shared/marca/MarcaList.astro";
+import { BACKEND_URL } from "../../config/api";
 ---
 
 <div class="container my-5">
@@ -7,6 +8,6 @@ import MarcaList from "../../components/shared/marca/MarcaList.astro";
   <MarcaList />
 </div>
 
-<script is:inline>
-  window.API_URL = "http://localhost:3000";
+<script is:inline define:vars={{ BACKEND_URL }}>
+  window.API_URL = BACKEND_URL;
 </script>

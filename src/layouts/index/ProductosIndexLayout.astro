@@ -1,6 +1,8 @@
 ---
 import ProductoCard from "../../components/ui/tarjetaProducto.astro";
 
+import { BACKEND_URL } from "../../config/api";
+
 // 🧩 Definir el tipo de producto (interfaz)
 interface Producto {
   id_producto: number;
@@ -8,9 +10,11 @@ interface Producto {
   descripcion: string;
   precio: number;
   url_imagen: string | null;
+  stock?: number;
+  stock_disponible?: number;
 }
 
-const apiUrl = "http://localhost:3000"; // Backend
+const apiUrl = BACKEND_URL; // Backend
 
 // Inicializamos el arreglo tipado
 let productos: Producto[] = [];
@@ -38,16 +42,18 @@ try {
     <div class="productos-grid">
       {productos.map((p) => {
         const imagen = p.url_imagen
-          ? `${apiUrl}/uploads/${p.url_imagen}`
-          : "https://via.placeholder.com/300x300?text=Sin+imagen";
+  ? `${BACKEND_URL}/uploads/${p.url_imagen}`
+  : "https://via.placeholder.com/300x300?text=Sin+imagen";
 
         return (
-          <ProductoCard
-            titulo={p.nombre_producto}
-            precio={`S/ ${p.precio}`}
-            descripcion={p.descripcion}
-            imagen={{ src: imagen }}
-          />
+         <ProductoCard
+  id={p.id_producto}
+  titulo={p.nombre_producto}
+  precio={`S/ ${p.precio}`}
+  descripcion={p.descripcion}
+  stock={p.stock_disponible ?? p.stock ?? 0}
+  imagen={{ src: imagen }}
+/>
         );
       })}
     </div>

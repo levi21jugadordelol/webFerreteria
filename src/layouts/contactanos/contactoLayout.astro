@@ -3,7 +3,7 @@
 import "../../styles/theme.css";
 
 // 🔗 Backend
-const API_URL = "http://localhost:3000";
+import { API_URL } from "../../config/api";
 
 // 🧠 Defaults seguros
 let siteContent = {
@@ -21,7 +21,7 @@ let image = undefined;
 
 // 🌐 Fetch settings
 try {
-  const res = await fetch(`${API_URL}/api/site-settings`);
+  const res = await fetch(`${API_URL}/site-settings`);
   if (res.ok) {
     const settings = await res.json();
 

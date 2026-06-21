@@ -1,13 +1,14 @@
 ---
 import MarcaForm from "../../components/shared/marca/MarcaForm.astro";
+import { BACKEND_URL } from "../../config/api";
 ---
 
 <div class="container my-5">
   <MarcaForm />
 </div>
 
-<script is:inline>
-  window.API_URL = "http://localhost:3000";
+<script is:inline define:vars={{ BACKEND_URL }}>
+  window.API_URL = BACKEND_URL;
 </script>
 
 <!-- FilePond (obligatorio) -->
