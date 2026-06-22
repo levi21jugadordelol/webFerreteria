@@ -1,5 +1,6 @@
 ---
 const title = "Login de Administrador";
+const API_URL = import.meta.env.PUBLIC_API_URL;
 let error = "";
 ---
 
@@ -45,7 +46,7 @@ let error = "";
 
 
 
-   <script type="module" define:vars={{ apiUrl: import.meta.env.PUBLIC_API_URL }}>
+   <script define:vars={{ API_URL }}>
   const form = document.getElementById("loginForm");
   const correoInput = document.getElementById("correo");
   const passwordInput = document.getElementById("password");
@@ -55,14 +56,14 @@ let error = "";
       e.preventDefault();
 
       try {
-        const response = await fetch(`${apiUrl}/auth/login`, {
+        const response = await fetch(`${API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             correo: correoInput.value,
             password: passwordInput.value,
           }),
-          credentials: "include",
         });
 
         const data = await response.json();
@@ -73,8 +74,7 @@ let error = "";
 
         window.location.replace("/admin/panel-admin");
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Error inesperado en login";
-        alert(message);
+        alert(error instanceof Error ? error.message : "Error inesperado en login");
       }
     });
   }
