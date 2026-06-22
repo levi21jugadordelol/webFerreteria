@@ -43,14 +43,6 @@ export const env = Object.freeze({
     PORT: Number(process.env.BD_PORT) || 3306,
   },
 
-  // email
-  EMAIL: {
-    HOST: required(process.env.EMAIL_HOST, "EMAIL_HOST"),
-    PORT: Number(process.env.EMAIL_PORT) || 2525,
-    USER: required(process.env.EMAIL_USER, "EMAIL_USER"),
-    PASS: required(process.env.EMAIL_PASS, "EMAIL_PASS"),
-  },
-
   // auth
   JWT_SECRET: required(process.env.JWT_SECRET, "JWT_SECRET"),
 
