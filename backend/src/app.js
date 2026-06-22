@@ -43,7 +43,7 @@ if (isProd) {
 }
 
 // 📂 Archivos estáticos
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+// app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use(express.static("public"));
 
 // 🌐 CORS (BIEN CONFIGURADO)
