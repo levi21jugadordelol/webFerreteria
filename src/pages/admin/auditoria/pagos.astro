@@ -1,5 +1,7 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { API_URL } from "../../../config/api";
+const API = `${API_URL}/auditoria/pagos`;
 ---
 
 <AdminLayout title="Auditoría de Pagos">
@@ -8,10 +10,7 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 
 </AdminLayout>
 
-<script is:client>
-import { API_URL } from "../../../config/api";
-const API = `${API_URL}/auditoria/pagos`;
-
+<script define:vars={{ API }}>
 const cont = document.getElementById("tabla-auditoria");
 
 function crearCelda(texto) {
@@ -142,7 +141,8 @@ async function cargar() {
 
     const alert = document.createElement("div");
     alert.className = "alert alert-danger";
-    alert.textContent = error.message || "Error cargando auditoría";
+    alert.textContent =
+  error instanceof Error ? error.message : "Error cargando auditoría";
 
     cont.appendChild(alert);
   }
