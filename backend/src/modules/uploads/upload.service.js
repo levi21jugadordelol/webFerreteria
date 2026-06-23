@@ -47,12 +47,17 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
       public_id: result.public_id,
     };
   } catch (error) {
+    console.error("CLOUDINARY_UPLOAD_ERROR_FULL", {
+      message: error?.message,
+      name: error?.name,
+      http_code: error?.http_code,
+    });
+
     logger.error({
       message: "Error subiendo imagen a Cloudinary",
       errorMessage: error?.message,
       errorName: error?.name,
       httpCode: error?.http_code,
-      cloudinaryError: error,
       folder,
     });
 
