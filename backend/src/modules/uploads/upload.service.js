@@ -21,12 +21,7 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
       cloudinary.uploader
         .upload_stream(
           {
-            folder,
-            transformation: [
-              { quality: "auto" },
-              { fetch_format: "auto" },
-              { width: 1200, crop: "limit" },
-            ],
+            resource_type: "image",
           },
           (error, result) => {
             if (error) reject(error);
