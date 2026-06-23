@@ -58,19 +58,10 @@
 
 </style>
 
-<script is:client>
+<script>
+  import carritoStore from "../../../store/carritoStore.js";
   const contenedor = document.getElementById("lista-carrito");
 
-  // Esperar hasta que window.carritoStore exista
-  function waitForStore() {
-    return new Promise((resolve) => {
-      const check = () => {
-        if (window.carritoStore) resolve();
-        else setTimeout(check, 50);
-      };
-      check();
-    });
-  }
 
   function render() {
     const store = window.carritoStore;
@@ -121,7 +112,7 @@
     const row = e.target.closest(".product-row");
     if (!row) return;
 
-    const store = window.carritoStore;
+    const store = carritoStore;
     if (!store) return;
 
     const id = row.dataset.id;
@@ -141,11 +132,8 @@
     store.save(carrito);
   });
 
-  // Ejecutar cuando el store esté listo
-  waitForStore().then(() => {
-    console.log("✔ carritoStore listo");
-    render();
-  });
+ console.log("✔ carritoStore listo");
+render();
 
   document.addEventListener("carrito-actualizado", render);
 </script>
