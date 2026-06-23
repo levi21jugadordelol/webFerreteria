@@ -17,6 +17,13 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
   }
 
   try {
+    console.log("FILE DEBUG", {
+      exists: !!file,
+      mimetype: file?.mimetype,
+      size: file?.size,
+      bufferLength: file?.buffer?.length,
+    });
+
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
