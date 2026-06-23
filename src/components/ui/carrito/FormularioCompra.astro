@@ -1,6 +1,5 @@
 ---
 import qrImage from "../../../assets/qrlenin.jpeg";
-import carritoStore from "../../../store/carritoStore";
 import { API_URL } from "../../../config/api";
 ---
 
@@ -286,7 +285,8 @@ import { API_URL } from "../../../config/api";
 
 </style>
 
-<script is:client>
+<script type="module">
+  import carritoStore from "/js/store/carritoStore.js";
 const form = document.getElementById("form-compra");
 const btn = document.getElementById("btn-submit");
 const estado = document.getElementById("estado-envio");
