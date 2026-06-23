@@ -42,10 +42,16 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
       public_id: result.public_id,
     };
   } catch (error) {
-    console.error("CLOUDINARY_UPLOAD_ERROR_FULL", {
+    console.error("CLOUDINARY_RAW_ERROR", error);
+
+    console.error("CLOUDINARY_ERROR_DETAILS", {
       message: error?.message,
       name: error?.name,
       http_code: error?.http_code,
+      code: error?.code,
+      statusCode: error?.statusCode,
+      response: error?.response,
+      error,
     });
 
     logger.error({
@@ -53,6 +59,8 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
       errorMessage: error?.message,
       errorName: error?.name,
       httpCode: error?.http_code,
+      code: error?.code,
+      statusCode: error?.statusCode,
       folder,
     });
 
