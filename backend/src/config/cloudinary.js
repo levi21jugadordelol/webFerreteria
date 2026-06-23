@@ -14,4 +14,17 @@ cloudinary.config({
   secure: true,
 });
 
+cloudinary.api
+  .ping()
+  .then((res) => {
+    console.log("CLOUDINARY PING OK", res);
+  })
+  .catch((error) => {
+    console.error("CLOUDINARY PING ERROR", {
+      message: error?.message,
+      name: error?.name,
+      http_code: error?.http_code,
+    });
+  });
+
 export default cloudinary;
