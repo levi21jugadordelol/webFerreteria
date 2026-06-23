@@ -1,7 +1,7 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 
-import { BACKEND_URL } from "../../../config/api";
+import { API_URL } from "../../../config/api";
 
 type SiteContent = {
   whatsapp?: string;
@@ -15,7 +15,7 @@ type SiteSettings = {
 let config: SiteSettings = {};
 
 try {
-  const res = await fetch(`${BACKEND_URL}/api/site-settings`);
+  const res = await fetch(`${API_URL}/site-settings`);
   if (res.ok) {
     config = await res.json();
   }
@@ -92,7 +92,7 @@ const logo = config.site_content?.logo ?? "";
 </div>
 
 
-<script is:inline define:vars={{ API_URL: BACKEND_URL }}>
+<script is:inline define:vars={{ API_URL }}>
   window.API_URL = API_URL;
 </script>
 
@@ -134,7 +134,7 @@ form.addEventListener("submit", async (e) => {
   const logo = form.logo.value;
 
   try {
-    const res = await fetch(`${API_URL}/api/site-settings`, {
+    const res = await fetch(`${API_URL}/site-settings`, {
       method: "PUT",
       credentials: "include",
       headers: {
@@ -178,7 +178,7 @@ logoFile.addEventListener("change", async () => {
   formData.append("imagen", file);
 
   try {
-    const res = await fetch(`${API_URL}/api/uploads/editor`, {
+    const res = await fetch(`${API_URL}/uploads/editor`, {
       method: "POST",
       body: formData,
       credentials: "include"
