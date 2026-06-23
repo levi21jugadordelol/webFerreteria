@@ -5,11 +5,6 @@ import AdminLayout from "../../../layouts/AdminLayout.astro";
 import ProductoForm from "../../../components/shared/ProductoForm.astro";
 import { BACKEND_URL } from "../../../config/api";
 
-const token = Astro.cookies.get("_token");
-
-if (!token) {
-  return Astro.redirect("/admin/login");
-}
 ---
 
 <AdminLayout title="Nuevo Producto">
