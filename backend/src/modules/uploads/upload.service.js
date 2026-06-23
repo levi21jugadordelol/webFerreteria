@@ -24,18 +24,24 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
       bufferLength: file?.buffer?.length,
     });
 
-    const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          {
-            resource_type: "image",
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          },
-        )
-        .end(file.buffer);
+    // const result = await new Promise((resolve, reject) => {
+    //   cloudinary.uploader
+    //     .upload_stream(
+    //       {
+    //         resource_type: "image",
+    //       },
+    //       (error, result) => {
+    //         if (error) reject(error);
+    //         else resolve(result);
+    //       },
+    //     )
+    //     .end(file.buffer);
+    // });
+
+    const base64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+
+    const result = await cloudinary.uploader.upload(base64, {
+      resource_type: "image",
     });
 
     logger.info({
