@@ -1,11 +1,9 @@
 export const getApiUrl = () => {
-  if (typeof window === "undefined") {
-    // 🔥 SSR (Astro server)
-    return "http://localhost:3000/api/v1";
+  if (typeof window !== "undefined" && window.API_URL) {
+    return `${window.API_URL}/api/v1`;
   }
 
-  // 🔥 navegador (usa proxy de Astro)
-  return "/api";
+  return "http://localhost:3000/api/v1";
 };
 
 export const safeJson = async (res) => {
