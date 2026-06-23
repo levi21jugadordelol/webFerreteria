@@ -1,6 +1,5 @@
 ---
 import { API_URL } from "../../../config/api";
-import carritoStore from "../../../store/carritoStore.js";
 ---
 
 <div class="resumen-container" data-api-url={API_URL}>
@@ -91,7 +90,9 @@ import carritoStore from "../../../store/carritoStore.js";
 
 </style>
 
-<script is:client type="module">
+<script type="module">
+   import carritoStore from "../../../store/carritoStore.js";
+
   const root = document.querySelector(".resumen-container");
 const API_URL = root?.dataset.apiUrl;
 
