@@ -34,7 +34,6 @@ router.get("/:id", validarId, validateResult, obtenerCategoria);
 router.post(
   "/",
   protegerRuta,
-  uploadCategoria,
   validarCrearCategoria,
   validateResult,
   crearCategoria,
