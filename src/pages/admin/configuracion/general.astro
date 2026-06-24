@@ -150,12 +150,18 @@ form.addEventListener("submit", async (e) => {
 
     const data = await res.json();
 
-    if (!res.ok) {
-      mostrarMensaje("alert-danger", data.msg);
-      return;
-    }
+if (!res.ok) {
+  mostrarMensaje(
+    "alert-danger",
+    data.message || "No se pudo guardar la configuración"
+  );
+  return;
+}
 
-    mostrarMensaje("alert-success", data.msg);
+mostrarMensaje(
+  "alert-success",
+  data.message || "Configuración guardada correctamente"
+);
   } catch (error) {
     mostrarMensaje("alert-danger", "Error de conexión");
   }
@@ -186,10 +192,10 @@ logoFile.addEventListener("change", async () => {
 
     const data = await res.json();
 
-    const logoUrl = safeImageUrl(data.url);
+    const logoUrl = safeImageUrl(data?.data?.url);
 
     if (!res.ok || !logoUrl) {
-      mostrarMensaje("alert-danger", data.msg || "No se pudo subir el logo");
+      mostrarMensaje("alert-danger", data.message || "No se pudo subir el logo");
       return;
     }
 
