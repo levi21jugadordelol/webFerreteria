@@ -38,11 +38,18 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
     //     .end(file.buffer);
     // });
 
-    const base64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
-
-    const result = await cloudinary.uploader.upload(base64, {
-      resource_type: "image",
+    console.log("CLOUDINARY CONFIG DEBUG", {
+      cloud_name: cloudinary.config().cloud_name,
+      api_key: cloudinary.config().api_key,
+      api_secret_exists: !!cloudinary.config().api_secret,
     });
+
+    const result = await cloudinary.uploader.upload(
+      "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+      {
+        resource_type: "image",
+      },
+    );
 
     logger.info({
       message: "Imagen subida a Cloudinary",
