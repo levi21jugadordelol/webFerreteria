@@ -1,9 +1,7 @@
 ---
 import ProductoCard from "../../components/ui/tarjetaProducto.astro";
-
 import { BACKEND_URL } from "../../config/api";
 
-// 🧩 Definir el tipo de producto (interfaz)
 interface Producto {
   id_producto: number;
   nombre_producto: string;
@@ -14,13 +12,27 @@ interface Producto {
   stock_disponible?: number;
 }
 
-const apiUrl = BACKEND_URL; // Backend
+const apiUrl = BACKEND_URL;
 
-// Inicializamos el arreglo tipado
 let productos: Producto[] = [];
+
+const getProductImage = (url: string | null) => {
+  const value = String(url || "").trim();
+
+  if (!value || value.includes("..")) {
+    return "https://via.placeholder.com/300x300?text=Sin+imagen";
+  }
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  return `${BACKEND_URL}/uploads/${value}`;
+};
 
 try {
   const res = await fetch(`${apiUrl}/productos`, { cache: "no-store" });
+
   if (res.ok) {
     productos = await res.json();
   } else {
@@ -32,7 +44,9 @@ try {
 ---
 
 <section class="productos-section container my-5">
-  <h2 class="text-center mb-4 fw-bold text-primary">Nuestros Productos</h2>
+  <h2 class="text-center mb-4 fw-bold text-primary">
+    Nuestros Productos
+  </h2>
 
   {productos.length === 0 ? (
     <p class="text-center text-muted">
@@ -41,35 +55,19 @@ try {
   ) : (
     <div class="productos-grid">
       {productos.map((p) => {
-        const imagen = p.url_imagen
-  ? `${BACKEND_URL}/uploads/${p.url_imagen}`
-  : "https://via.placeholder.com/300x300?text=Sin+imagen";
+        const imagen = getProductImage(p.url_imagen);
 
         return (
-         <ProductoCard
-  id={p.id_producto}
-  titulo={p.nombre_producto}
-  precio={`S/ ${p.precio}`}
-  descripcion={p.descripcion}
-  stock={p.stock_disponible ?? p.stock ?? 0}
-  imagen={{ src: imagen }}
-/>
+          <ProductoCard
+            id={p.id_producto}
+            titulo={p.nombre_producto}
+            precio={`S/ ${p.precio}`}
+            descripcion={p.descripcion}
+            stock={p.stock_disponible ?? p.stock ?? 0}
+            imagen={{ src: imagen }}
+          />
         );
       })}
     </div>
   )}
 </section>
-
-<style>
-.productos-section {
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-}
-
-.productos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-</style>
-
