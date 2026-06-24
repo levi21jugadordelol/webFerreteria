@@ -12,6 +12,21 @@ interface Categoria {
 
 let categorias: Categoria[] = [];
 
+
+const getCollectionImage = (url: string | null | undefined) => {
+  const value = String(url || "").trim();
+
+  if (!value || value.includes("..")) {
+    return "https://via.placeholder.com/300x260?text=Sin+imagen";
+  }
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  return `${UPLOADS_URL}/${value.replace(/^\/+/, "")}`;
+};
+
 try {
   const res = await fetch(`${API_URL}/categorias`, {
     cache: "no-store",
@@ -40,11 +55,7 @@ try {
           <a href={`/productos?categoria=${c.id_categoria}`} class="categoria-link">
             <TarjetaCollection
               title={c.nombre_categoria}
-              imageUrl={
-                c.url_imagen
-                  ? `${UPLOADS_URL}/${c.url_imagen}`
-                  : "https://via.placeholder.com/300x260?text=Sin+imagen"
-              }
+             imageUrl={getCollectionImage(c.url_imagen)}
             />
           </a>
         </div>
