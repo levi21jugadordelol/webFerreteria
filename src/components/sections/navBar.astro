@@ -32,7 +32,7 @@ const logoSeguro = (url = "") => {
 try {
   const { menu, settings } = await loadNavbarData();
 
-  logo = settings?.site_content?.logo || logo;
+  logo = settings?.logo || settings?.site_content?.logo || logo;
   links = Array.isArray(menu) ? (menu as MenuItem[]) : [];
 
 } catch (error) {
