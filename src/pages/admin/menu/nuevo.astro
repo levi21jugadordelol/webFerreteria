@@ -79,9 +79,10 @@ const rutaInput = document.getElementById("rutaInput")
 async function cargarPaginas(){
   try{
     const res = await fetch(`${API_URL}/paginas`)
-    const paginas = await res.json()
+    const result = await res.json()
+const paginas = Array.isArray(result?.data) ? result.data : []
 
-    paginas.forEach(p=>{
+paginas.forEach(p => {
       const option = document.createElement("option")
       option.value = p.slug
       option.textContent = p.titulo
@@ -223,9 +224,10 @@ async function cargarPadres(){
       credentials:"include"
     })
 
-    const menus = await res.json()
+    const result = await res.json()
+const menus = Array.isArray(result?.data) ? result.data : []
 
-    menus.forEach(m=>{
+menus.forEach(m => {
       const option = document.createElement("option")
       option.value = m.id_menu
       option.textContent = m.titulo
