@@ -39,6 +39,10 @@ export const getImageUrl = (apiUrl, img) => {
   const cleanPath = value.replace(/^\/+/, "");
   const cleanApiUrl = String(apiUrl || "").replace(/\/+$/, "");
 
+  if (cleanPath.startsWith("http://") || cleanPath.startsWith("https://")) {
+    return cleanPath;
+  }
+
   return `${cleanApiUrl}/uploads/${encodeURIComponent(cleanPath)}`;
 };
 
