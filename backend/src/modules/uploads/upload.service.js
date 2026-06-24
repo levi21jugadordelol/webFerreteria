@@ -30,6 +30,8 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
       api_secret_exists: !!cloudinary.config().api_secret,
     });
 
+    console.log("UPLOAD URL", cloudinary.utils.api_url("upload"));
+
     // TEST TEMPORAL: descarta Multer, buffer, PNG y frontend
     const result = await cloudinary.uploader.upload(
       "https://res.cloudinary.com/demo/image/upload/sample.jpg",
