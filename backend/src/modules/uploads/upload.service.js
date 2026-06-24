@@ -30,15 +30,36 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
       api_secret_exists: !!cloudinary.config().api_secret,
     });
 
-    console.log("UPLOAD URL", cloudinary.utils.api_url("upload"));
+    const formData = new FormData();
 
-    // TEST TEMPORAL: descarta Multer, buffer, PNG y frontend
-    const result = await cloudinary.uploader.upload(
+    formData.append(
+      "file",
       "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+    );
+
+    formData.append("api_key", cloudinary.config().api_key);
+
+    const response = await fetch(
+      "https://api.cloudinary.com/v1_1/dqvo4gtsq/image/upload",
       {
-        resource_type: "image",
+        method: "POST",
+        body: formData,
       },
     );
+
+    const text = await response.text();
+
+    console.log("CLOUDINARY REST DEBUG", {
+      status: response.status,
+      statusText: response.statusText,
+      body: text,
+    });
+
+    if (!response.ok) {
+      throw new AppError("Cloudinary REST upload failed", 500);
+    }
+
+    const result = JSON.parse(text);
 
     logger.info({
       message: "Imagen subida a Cloudinary",
@@ -53,18 +74,6 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
     };
   } catch (error) {
     console.error("CLOUDINARY_RAW_ERROR", error);
-
-    console.error("FULL ERROR", JSON.stringify(error, null, 2));
-
-    console.error("CLOUDINARY_ERROR_DETAILS", {
-      message: error?.message,
-      name: error?.name,
-      http_code: error?.http_code,
-      code: error?.code,
-      statusCode: error?.statusCode,
-      response: error?.response,
-      error,
-    });
 
     logger.error({
       message: "Error subiendo imagen a Cloudinary",
