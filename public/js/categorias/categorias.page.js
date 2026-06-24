@@ -60,8 +60,10 @@ document.addEventListener("DOMContentLoaded", () => {
         descripcion,
       });
 
-      const categoriaId =
-        data.categoria?.id_categoria || data.id_categoria || data.categoria?.id;
+      const categoria =
+        data?.data?.categoria || data?.data || data?.categoria || data;
+
+      const categoriaId = categoria?.id_categoria || categoria?.id;
 
       if (!categoriaId) throw new Error("No se obtuvo ID");
 

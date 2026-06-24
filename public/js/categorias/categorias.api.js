@@ -20,7 +20,7 @@ export async function crearCategoria(apiUrl, payload) {
 
   const data = await safeJson(res);
 
-  if (!res.ok) throw new Error(data.msg || "Error");
+  if (!res.ok) throw new Error(data.message || data.msg || "Error");
 
   return data;
 }
