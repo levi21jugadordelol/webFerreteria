@@ -24,26 +24,13 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
       bufferLength: file?.buffer?.length,
     });
 
-    // const result = await new Promise((resolve, reject) => {
-    //   cloudinary.uploader
-    //     .upload_stream(
-    //       {
-    //         resource_type: "image",
-    //       },
-    //       (error, result) => {
-    //         if (error) reject(error);
-    //         else resolve(result);
-    //       },
-    //     )
-    //     .end(file.buffer);
-    // });
-
     console.log("CLOUDINARY CONFIG DEBUG", {
       cloud_name: cloudinary.config().cloud_name,
       api_key: cloudinary.config().api_key,
       api_secret_exists: !!cloudinary.config().api_secret,
     });
 
+    // TEST TEMPORAL: descarta Multer, buffer, PNG y frontend
     const result = await cloudinary.uploader.upload(
       "https://res.cloudinary.com/demo/image/upload/sample.jpg",
       {
@@ -54,6 +41,7 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
     logger.info({
       message: "Imagen subida a Cloudinary",
       publicId: result.public_id,
+      secureUrl: result.secure_url,
       folder,
     });
 
@@ -63,6 +51,8 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
     };
   } catch (error) {
     console.error("CLOUDINARY_RAW_ERROR", error);
+
+    console.error("FULL ERROR", JSON.stringify(error, null, 2));
 
     console.error("CLOUDINARY_ERROR_DETAILS", {
       message: error?.message,
