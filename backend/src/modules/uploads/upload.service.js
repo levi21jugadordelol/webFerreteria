@@ -17,22 +17,56 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
   }
 
   try {
+    logger.info({
+      step: "UPLOAD_BEFORE",
+      message: "Antes de llamar a Cloudinary",
+      hasFile: !!file,
+      mimetype: file?.mimetype,
+      size: file?.size,
+      bufferLength: file?.buffer?.length,
+      folder,
+    });
+
     const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          {
-            resource_type: "image",
-            folder,
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          },
-        )
-        .end(file.buffer);
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "image",
+          folder,
+        },
+        (error, result) => {
+          if (error) {
+            console.error("UPLOAD_DURING_ERROR", {
+              message: error?.message,
+              name: error?.name,
+              http_code: error?.http_code,
+              code: error?.code,
+              statusCode: error?.statusCode,
+            });
+
+            return reject(error);
+          }
+
+          logger.info({
+            step: "UPLOAD_DURING_SUCCESS",
+            message: "Cloudinary respondió correctamente",
+            publicId: result?.public_id,
+            secureUrl: result?.secure_url,
+          });
+
+          resolve(result);
+        },
+      );
+
+      logger.info({
+        step: "UPLOAD_DURING",
+        message: "Stream creado, enviando buffer a Cloudinary",
+      });
+
+      stream.end(file.buffer);
     });
 
     logger.info({
+      step: "UPLOAD_AFTER",
       message: "Imagen subida a Cloudinary",
       publicId: result.public_id,
       secureUrl: result.secure_url,
@@ -44,6 +78,15 @@ export const subirImagenEditorService = async (file, folder = "editor") => {
       public_id: result.public_id,
     };
   } catch (error) {
+    console.error("UPLOAD_AFTER_ERROR", {
+      message: error?.message,
+      name: error?.name,
+      http_code: error?.http_code,
+      code: error?.code,
+      statusCode: error?.statusCode,
+      folder,
+    });
+
     logger.error({
       message: "Error subiendo imagen a Cloudinary",
       errorMessage: error?.message,
