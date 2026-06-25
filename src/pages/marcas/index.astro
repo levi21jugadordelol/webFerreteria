@@ -8,25 +8,41 @@ interface Marca {
   url_logo: string | null;
 }
 
-import {
-  API_URL,
-  UPLOADS_URL
-} from "../../config/api";
+import { API_URL, UPLOADS_URL } from "../../config/api";
+
+const getMarcaLogoUrl = (urlLogo: string | null) => {
+  const value = String(urlLogo || "").trim();
+
+  if (!value) return "/img/no-image.png";
+
+  if (
+    value.includes("..") ||
+    value.includes("<") ||
+    value.includes(">") ||
+    value.includes('"') ||
+    value.includes("'")
+  ) {
+    return "/img/no-image.png";
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const clean = value.replace(/^\/?uploads\//, "").replace(/^\/+/, "");
+
+  if (!clean) return "/img/no-image.png";
+
+  return `${UPLOADS_URL}/${encodeURIComponent(clean)}`;
+};
 
 let marcas: Marca[] = [];
 
 try {
-  const res = await fetch(
-    `${API_URL}/marcas`,
-    { cache: "no-store" }
-  );
+  const res = await fetch(`${API_URL}/marcas`, { cache: "no-store" });
 
   if (!res.ok) {
-    console.error(
-      "Error cargando marcas:",
-      res.status,
-      res.statusText
-    );
+    console.error("Error cargando marcas:", res.status, res.statusText);
   } else {
     const result = await res.json();
     marcas = result.data ?? [];
@@ -37,45 +53,25 @@ try {
 ---
 
 <BaseLayout title="Marcas">
-
   <div class="container py-5">
-
     <h2 class="mb-4 fw-bold text-center section-title">
       Nuestras Marcas
     </h2>
 
-   <div class="row g-4">
+    <div class="row g-4">
+      {marcas.map((m) => (
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href={`/productos?marca=${m.id_marca}`} class="ui-card text-decoration-none">
+            <div class="ui-card-img is-contain">
+              <img src={getMarcaLogoUrl(m.url_logo)} alt={m.nombre_marca} />
+            </div>
 
-  {marcas.map((m) => (
-    <div class="col-6 col-md-4 col-lg-3">
-      <a 
-        href={`/productos?marca=${m.id_marca}`}
-        class="ui-card text-decoration-none"
-      >
-
-        <div class="ui-card-img is-contain">
-          <img 
-          src={m.url_logo
- ? `${UPLOADS_URL}/${m.url_logo}`
- : "/img/no-image.png"}
-            alt={m.nombre_marca}
-          />
+            <div class="ui-card-body">
+              <h5>{m.nombre_marca}</h5>
+            </div>
+          </a>
         </div>
-
-        <div class="ui-card-body">
-          <h5>{m.nombre_marca}</h5>
-        </div>
-
-      </a>
+      ))}
     </div>
-  ))}
-
-</div>
-
-
-
   </div>
-
 </BaseLayout>
-
-
