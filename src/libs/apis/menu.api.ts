@@ -10,6 +10,7 @@ type MenuItem = {
   tipo: string;
   orden: number;
   activo: boolean;
+  parent_id?: number | null;
 };
 
 type MenuResponse = {
@@ -69,4 +70,8 @@ export function eliminarMenu(id: string): Promise<void> {
     // 🔥 CAMBIO
     method: "DELETE",
   });
+}
+
+export function getMenuAdminById(id: string): Promise<MenuItem> {
+  return apiFetch(`/menu/admin/${id}`);
 }

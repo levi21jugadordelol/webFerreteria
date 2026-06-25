@@ -1,129 +1,95 @@
 ---
 import AdminLayout from "../../../../layouts/AdminLayout.astro";
-
-const { id } = Astro.params;
 ---
 
 <AdminLayout title="Editar menú">
+  <form id="formMenu">
+    <div class="mb-3">
+      <label>Título</label>
+      <input class="form-control" name="titulo" id="titulo" />
+    </div>
 
-<form id="formMenu">
+    <div class="mb-3">
+      <label>URL</label>
+      <input class="form-control" name="url" id="url" />
+    </div>
 
-  <!-- Título -->
-  <div class="mb-3">
-    <label>Título</label>
-    <input class="form-control" name="titulo" id="titulo">
-  </div>
+    <div class="mb-3">
+      <label>Menú padre</label>
+      <select id="parentSelect" class="form-control">
+        <option value="">Sin padre (nivel principal)</option>
+      </select>
+    </div>
 
-  <!-- URL -->
-  <div class="mb-3">
-    <label>URL</label>
-    <input class="form-control" name="url" id="url">
-  </div>
+    <div class="form-check mb-3">
+      <input type="checkbox" class="form-check-input" id="activo" />
+      <label class="form-check-label">Activo</label>
+    </div>
 
-  <!-- 🔥 MENÚ PADRE -->
-  <div class="mb-3">
-    <label>Menú padre</label>
-    <select id="parentSelect" class="form-control">
-      <option value="">Sin padre (nivel principal)</option>
-    </select>
-  </div>
-
-  <!-- Activo -->
-  <div class="form-check mb-3">
-    <input type="checkbox" class="form-check-input" id="activo">
-    <label class="form-check-label">Activo</label>
-  </div>
-
-  <button class="btn btn-success">
-    Guardar cambios
-  </button>
-
-</form>
-
+    <button class="btn btn-success">
+      Guardar cambios
+    </button>
+  </form>
 </AdminLayout>
 
-<script is:client>
+<script>
+import {
+  getMenuAdmin,
+  getMenuAdminById,
+  actualizarMenu,
+} from "../../../../libs/apis/menu.api";
 
+const id = window.location.pathname.split("/").pop();
 
-const id = window.location.pathname.split("/").pop()
+const formMenu = document.getElementById("formMenu");
+const parentSelect = document.getElementById("parentSelect");
+const tituloInput = document.getElementById("titulo");
+const urlInput = document.getElementById("url");
+const activoInput = document.getElementById("activo");
 
-const parentSelect = document.getElementById("parentSelect")
+async function cargarPadres() {
+  const menus = await getMenuAdmin();
 
-/* --------------------------
-   CARGAR PADRES
----------------------------*/
-async function cargarPadres(){
-  const res = await fetch("/api/menu/admin/lista", {
-  credentials:"include"
-})
+  menus.forEach((m) => {
+    if (String(m.id_menu) === String(id)) return;
 
-  const menus = await res.json()
+    const option = document.createElement("option");
+    option.value = String(m.id_menu);
+    option.textContent = m.titulo;
 
-  menus.forEach(m=>{
-    if(m.id_menu == id) return // evitar auto padre
-
-    const option = document.createElement("option")
-    option.value = m.id_menu
-    option.textContent = m.titulo
-    parentSelect.appendChild(option)
-  })
+    parentSelect.appendChild(option);
+  });
 }
 
-/* --------------------------
-   CARGAR MENU
----------------------------*/
-async function cargar(){
+async function cargar() {
+  const m = await getMenuAdminById(id);
 
- const res = await fetch("/api/menu/admin/" + id, {
-  credentials:"include"
-})
+  tituloInput.value = m.titulo;
+  urlInput.value = m.url;
+  activoInput.checked = Boolean(m.activo);
 
- const m = await res.json()
-
- document.getElementById("titulo").value = m.titulo
- document.getElementById("url").value = m.url
- document.getElementById("activo").checked = m.activo
-
- // 🔥 setear padre
- parentSelect.value = m.parent_id || ""
-
+  parentSelect.value = m.parent_id ? String(m.parent_id) : "";
 }
 
-/* --------------------------
-   SUBMIT
----------------------------*/
-document
-.getElementById("formMenu")
-.addEventListener("submit", async (e)=>{
+formMenu.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
- e.preventDefault()
+  const data = {
+    titulo: tituloInput.value,
+    url: urlInput.value,
+    activo: activoInput.checked,
+    parent_id: parentSelect.value || null,
+  };
 
- const data = {
-  titulo:document.getElementById("titulo").value,
-  url:document.getElementById("url").value,
-  activo:document.getElementById("activo").checked,
-  parent_id: parentSelect.value || null
- }
+  await actualizarMenu(id, data);
 
-await fetch("/api/menu/admin/" + id, {
-  method:"PUT",
-  headers:{ "Content-Type":"application/json" },
-  body:JSON.stringify(data),
-  credentials:"include"
-})
+  window.location.href = "/admin/menu/lista";
+});
 
- window.location="/admin/menu/lista"
-
-})
-
-/* --------------------------
-   INIT
----------------------------*/
-async function init(){
-  await cargarPadres()
-  await cargar()
+async function init() {
+  await cargarPadres();
+  await cargar();
 }
 
-init()
-
+init();
 </script>
