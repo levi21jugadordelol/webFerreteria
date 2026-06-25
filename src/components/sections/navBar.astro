@@ -61,8 +61,8 @@ try {
           <a
             href={urlSegura(item.url)}
             class={`nav-link 
-            ${item.titulo === "categoria" ? "nav-link-categorias" : ""}
-            ${item.titulo === "marcas" ? "nav-link-marcas" : ""}
+            ${item.url === "/categorias" ? "nav-link-categorias" : ""}
+${item.url === "/marcas" ? "nav-link-marcas" : ""}
             `}
           >
             {item.titulo}
@@ -80,14 +80,14 @@ try {
           )}
 
           {/* CATEGORÍAS DINÁMICAS */}
-          {item.titulo === "categoria" && (
+          {item.url === "/categorias" && (
             <div id="mega-categorias" class="mega-menu">
               <p>Cargando...</p>
             </div>
           )}
 
           {/* MARCAS DINÁMICAS */}
-          {item.titulo === "marcas" && (
+          {item.url === "/marcas" && (
             <div id="mega-marcas" class="mega-menu">
               <p>Cargando...</p>
             </div>
