@@ -61,19 +61,27 @@ if (!apiUrl || !uploadsUrl) {
 }
 
 function safeUploadUrl(fileName) {
-  if (!fileName) return "/img/no-image.png";
+  const value = String(fileName || "").trim();
 
-  const clean = String(fileName).replace(/^\/?uploads\//, "");
+  if (!value) return "/img/no-image.png";
 
   if (
-    clean.includes("..") ||
-    clean.includes("<") ||
-    clean.includes(">") ||
-    clean.includes('"') ||
-    clean.includes("'")
+    value.includes("..") ||
+    value.includes("<") ||
+    value.includes(">") ||
+    value.includes('"') ||
+    value.includes("'")
   ) {
     return "/img/no-image.png";
   }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const clean = value.replace(/^\/?uploads\//, "").replace(/^\/+/, "");
+
+  if (!clean) return "/img/no-image.png";
 
   return `${uploadsUrl}/${encodeURIComponent(clean)}`;
 }
