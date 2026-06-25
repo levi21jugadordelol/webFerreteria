@@ -1,5 +1,4 @@
 ---
-
 import { API_URL, UPLOADS_URL } from "../../config/api";
 
 interface HeroSlide {
@@ -10,7 +9,7 @@ interface HeroSlide {
   mostrar_boton?: boolean;
   boton_texto?: string;
   boton_url?: string;
-   link_url?: string; 
+  link_url?: string;
   orden?: number;
   activo?: boolean;
   imagen?: string;
@@ -48,74 +47,56 @@ const getHeroImageUrl = (image = "") => {
 ---
 
 <div class="hero-editor">
-
   <div class="editor-form card shadow-sm p-4">
-
-  <form
-  id="heroForm"
-  enctype="multipart/form-data"
-  data-id={slide?.id_hero ?? ""}
-  data-api-url={API_URL}
->
-
-      <!-- Layout -->
+    <form
+      id="heroForm"
+      enctype="multipart/form-data"
+      data-id={slide?.id_hero ?? ""}
+      data-api-url={API_URL}
+    >
       <div class="mb-4">
         <label class="form-label fw-bold">Tipo de Layout</label>
 
         <div class="layout-options">
-
           <label>
-            <input type="radio" name="tipo_layout" value="banner" checked={slide?.tipo_layout === "banner" || !slide}>
+            <input type="radio" name="tipo_layout" value="banner" checked={slide?.tipo_layout === "banner" || !slide} />
             Solo imagen
           </label>
 
           <label>
-            <input type="radio" name="tipo_layout" value="text-left" checked={slide?.tipo_layout === "text-left"}>
+            <input type="radio" name="tipo_layout" value="text-left" checked={slide?.tipo_layout === "text-left"} />
             Texto izquierda
           </label>
 
           <label>
-            <input type="radio" name="tipo_layout" value="text-right" checked={slide?.tipo_layout === "text-right"}>
+            <input type="radio" name="tipo_layout" value="text-right" checked={slide?.tipo_layout === "text-right"} />
             Texto derecha
           </label>
 
           <label>
-            <input type="radio" name="tipo_layout" value="centered" checked={slide?.tipo_layout === "centered"}>
+            <input type="radio" name="tipo_layout" value="centered" checked={slide?.tipo_layout === "centered"} />
             Texto centrado
           </label>
 
           <label>
-            <input type="radio" name="tipo_layout" value="triple" checked={slide?.tipo_layout === "triple"}>
+            <input type="radio" name="tipo_layout" value="triple" checked={slide?.tipo_layout === "triple"} />
             Banner triple promocional
           </label>
-
         </div>
       </div>
 
-      <!-- TEXTOS -->
       <div id="textFields">
-
         <div class="mb-3">
           <label class="form-label">Título 1</label>
-          <input
-            type="text"
-            name="titulo1"
-            class="form-control"
-            value={slide?.titulo1 ?? ""}
-          >
+          <input type="text" name="titulo1" class="form-control" value={slide?.titulo1 ?? ""} />
         </div>
 
         <div class="mb-3">
           <label class="form-label">Título 2</label>
-          <textarea
-            name="titulo2"
-            class="form-control"
-          >{slide?.titulo2 ?? ""}</textarea>
+          <textarea name="titulo2" class="form-control">{slide?.titulo2 ?? ""}</textarea>
         </div>
-
       </div>
 
-      <!-- BOTON -->
       <div class="form-check mb-3">
         <input
           type="checkbox"
@@ -123,126 +104,68 @@ const getHeroImageUrl = (image = "") => {
           id="mostrar_boton"
           class="form-check-input"
           checked={slide?.mostrar_boton}
-        >
+        />
         <label class="form-check-label">Mostrar botón</label>
       </div>
 
       <div id="botonFields">
-
         <div class="mb-3">
           <label class="form-label">Texto botón</label>
-          <input
-            type="text"
-            name="boton_texto"
-            class="form-control"
-            value={slide?.boton_texto ?? ""}
-          >
+          <input type="text" name="boton_texto" class="form-control" value={slide?.boton_texto ?? ""} />
         </div>
 
         <div class="mb-3">
-
           <label class="form-label">Destino botón</label>
 
-         <select name="boton_url" class="form-select">
+          <select name="boton_url" class="form-select">
+            <option value="">Seleccionar destino</option>
 
-<option value="">Seleccionar destino</option>
+            <optgroup label="Páginas internas">
+              <option value="/productos" selected={slide?.boton_url === "/productos"}>Productos</option>
+              <option value="/contacto" selected={slide?.boton_url === "/contacto"}>Contacto</option>
+              <option value="/nosotros" selected={slide?.boton_url === "/nosotros"}>Nosotros</option>
+            </optgroup>
 
-<optgroup label="Páginas internas">
+            <optgroup label="Redes sociales">
+              <option value="https://facebook.com" selected={slide?.boton_url === "https://facebook.com"}>Facebook</option>
+              <option value="https://instagram.com" selected={slide?.boton_url === "https://instagram.com"}>Instagram</option>
+            </optgroup>
 
-<option
-value="/productos"
-selected={slide?.boton_url === "/productos"}>
-Productos
-</option>
-
-<option
-value="/contacto"
-selected={slide?.boton_url === "/contacto"}>
-Contacto
-</option>
-
-<option
-value="/nosotros"
-selected={slide?.boton_url === "/nosotros"}>
-Nosotros
-</option>
-
-</optgroup>
-
-<optgroup label="Redes sociales">
-
-<option
-value="https://facebook.com"
-selected={slide?.boton_url === "https://facebook.com"}>
-Facebook
-</option>
-
-<option
-value="https://instagram.com"
-selected={slide?.boton_url === "https://instagram.com"}>
-Instagram
-</option>
-
-</optgroup>
-
-<optgroup label="Mensajería">
-
-<option
-value="https://wa.me/51999999999"
-selected={slide?.boton_url === "https://wa.me/51999999999"}>
-WhatsApp
-</option>
-
-</optgroup>
-
-</select>
-
+            <optgroup label="Mensajería">
+              <option value="https://wa.me/51999999999" selected={slide?.boton_url === "https://wa.me/51999999999"}>WhatsApp</option>
+            </optgroup>
+          </select>
         </div>
-
       </div>
 
-      <!-- LINK TRIPLE -->
-   <!-- LINK TRIPLE -->
-<div id="linkFields" class="mb-3">
+      <div id="linkFields" class="mb-3">
+        <label class="form-label fw-bold">Destino del banner</label>
 
-<label class="form-label fw-bold">Destino del banner</label>
+        <select id="linkSelector" class="form-select mb-2">
+          <option value="">Escribir link personalizado</option>
+          <option value="/productos">Productos</option>
+          <option value="/contacto">Contacto</option>
+          <option value="/nosotros">Nosotros</option>
+          <option value="https://facebook.com">Facebook</option>
+          <option value="https://instagram.com">Instagram</option>
+          <option value="https://wa.me/51999999999">WhatsApp</option>
+        </select>
 
-<select id="linkSelector" class="form-select mb-2">
+        <input
+          type="text"
+          name="link_url"
+          class="form-control"
+          placeholder="https://tu-link.com"
+          value={slide?.link_url ?? ""}
+        />
 
-<option value="">Escribir link personalizado</option>
+        <small class="text-muted">
+          Puedes elegir un destino rápido o escribir cualquier URL.
+        </small>
+      </div>
 
-<option value="/productos">Productos</option>
-
-<option value="/contacto">Contacto</option>
-
-<option value="/nosotros">Nosotros</option>
-
-<option value="https://facebook.com">Facebook</option>
-
-<option value="https://instagram.com">Instagram</option>
-
-<option value="https://wa.me/51999999999">WhatsApp</option>
-
-</select>
-
-<input
-type="text"
-name="link_url"
-class="form-control"
-placeholder="https://tu-link.com"
-value={slide?.link_url ?? ""}
-/>
-
-<small class="text-muted">
-Puedes elegir un destino rápido o escribir cualquier URL.
-</small>
-
-</div>
-
-      <!-- IMAGEN ACTUAL -->
       {slide?.imagen && (
         <div class="mb-3">
-
           <label class="form-label">Imagen actual</label>
 
           <img
@@ -250,13 +173,10 @@ Puedes elegir un destino rápido o escribir cualquier URL.
             class="img-fluid rounded"
             style="max-height:200px"
           />
-
         </div>
       )}
 
-      <!-- SUBIR IMAGEN -->
       <div class="mb-3">
-
         <label class="form-label fw-bold">Nueva imagen</label>
 
         <input
@@ -265,62 +185,50 @@ Puedes elegir un destino rápido o escribir cualquier URL.
           class="form-control"
           accept="image/*"
           {...(!isEdit ? { required: true } : {})}
-        >
-
+        />
       </div>
 
-      <!-- ACTIVO -->
-   <div class="mb-3">
+      <div class="mb-3">
+        <label class="form-label fw-bold">Estado del slide</label>
 
-  <label class="form-label fw-bold">Estado del slide</label>
+        <div class="form-check form-switch">
+          <input
+            type="checkbox"
+            name="activo"
+            class="form-check-input"
+            role="switch"
+            id="switchActivo"
+            checked={slide?.activo ?? true}
+          />
 
-  <div class="form-check form-switch">
-
-    <input
-      type="checkbox"
-      name="activo"
-      class="form-check-input"
-      role="switch"
-      id="switchActivo"
-      checked={slide?.activo ?? true}
-    >
-
-    <label class="form-check-label" for="switchActivo">
-      Visible en el sitio
-    </label>
-
-  </div>
-
-</div>
+          <label class="form-check-label" for="switchActivo">
+            Visible en el sitio
+          </label>
+        </div>
+      </div>
 
       <button type="submit" class="btn btn-primary w-100">
         {isEdit ? "Actualizar Slide" : "Guardar Slide"}
       </button>
 
       <div id="mensaje" class="mt-3"></div>
-
     </form>
-
   </div>
 
-  <!-- PREVIEW -->
   <div class="editor-preview card shadow-sm p-4">
-
     <h6 class="fw-bold mb-3">Vista previa</h6>
 
     <div id="previewContainer">
       Vista previa aparecerá aquí
     </div>
-
   </div>
-
 </div>
 
 <script is:inline>
-
 document.addEventListener("DOMContentLoaded", () => {
-
   const form = document.getElementById("heroForm");
+
+  if (!form) return;
 
   const preview = document.getElementById("previewContainer");
   const textFields = document.getElementById("textFields");
@@ -331,207 +239,191 @@ document.addEventListener("DOMContentLoaded", () => {
   const layoutRadios = form.querySelectorAll('[name="tipo_layout"]');
   const inputImagen = form.querySelector('[name="imagen"]');
   const linkInput = form.querySelector('[name="link_url"]');
- const linkSelector = document.getElementById("linkSelector");
+  const linkSelector = document.getElementById("linkSelector");
 
-if (linkSelector && linkInput) {
+  if (!preview || !textFields || !botonFields || !linkFields || !mostrarBoton || !inputImagen) {
+    return;
+  }
 
-  linkSelector.addEventListener("change", () => {
+  if (linkSelector && linkInput) {
+    linkSelector.addEventListener("change", () => {
+      if (linkSelector.value !== "") {
+        linkInput.value = linkSelector.value;
+      }
 
-    if (linkSelector.value !== "") {
-      linkInput.value = linkSelector.value;
-    }
-
-    updatePreview();
-
-  });
-
-}
-
-  /* CONFIGURACIÓN CENTRAL DE LAYOUT */
+      updatePreview();
+    });
+  }
 
   const layouts = {
-
-    banner: { text:false, button:false, link:false },
+    banner: { text: false, button: false, link: false },
 
     "text-left": {
-      text:true,
-      button:true,
-      link:false,
-      align:"flex-start",
-      textAlign:"left"
+      text: true,
+      button: true,
+      link: false,
+      align: "flex-start",
+      textAlign: "left",
     },
 
     "text-right": {
-      text:true,
-      button:true,
-      link:false,
-      align:"flex-end",
-      textAlign:"right"
+      text: true,
+      button: true,
+      link: false,
+      align: "flex-end",
+      textAlign: "right",
     },
 
     centered: {
-      text:true,
-      button:true,
-      link:false,
-      align:"center",
-      textAlign:"center"
+      text: true,
+      button: true,
+      link: false,
+      align: "center",
+      textAlign: "center",
     },
 
-    triple: { text:false, button:false, link:true }
-
+    triple: { text: false, button: false, link: true },
   };
 
-  function getLayout(){
-    return [...layoutRadios].find(r => r.checked).value;
+  function getLayout() {
+    return [...layoutRadios].find((radio) => radio.checked)?.value || "banner";
   }
 
-  function getConfig(){
-    return layouts[getLayout()];
+  function getConfig() {
+    return layouts[getLayout()] || layouts.banner;
   }
 
-  /* ---------- VISIBILIDAD CAMPOS ---------- */
-
-  function updateLayout(){
-
+  function updateLayout() {
     const config = getConfig();
 
     textFields.style.display = config.text ? "block" : "none";
 
-    mostrarBoton.parentElement.style.display =
-      config.button ? "block" : "none";
+    mostrarBoton.parentElement.style.display = config.button ? "block" : "none";
 
     botonFields.style.display =
       config.button && mostrarBoton.checked ? "block" : "none";
 
-    linkFields.style.display =
-      config.link ? "block" : "none";
-
+    linkFields.style.display = config.link ? "block" : "none";
   }
 
+  function safeUrl(url) {
+    const value = String(url || "").trim();
 
+    if (!value) return "#";
 
-
-function safeUrl(url) {
-  const value = String(url || "").trim();
-
-  if (!value) return "#";
-
-  if (value.startsWith("/")) {
-    return value;
-  }
-
-  try {
-    const parsed = new URL(value);
-
-    if (
-      parsed.protocol === "https:" ||
-      parsed.protocol === "http:"
-    ) {
+    if (value.startsWith("/")) {
       return value;
     }
-  } catch {}
 
-  return "#";
-}
+    try {
+      const parsed = new URL(value);
 
-function mostrarMensaje(tipo, texto) {
-  const mensaje = document.getElementById("mensaje");
+      if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+        return value;
+      }
+    } catch {}
 
-  const div = document.createElement("div");
-  div.className = `alert ${tipo}`;
-  div.textContent = texto || "Operación procesada";
-
-  mensaje.replaceChildren(div);
-}
-
-  /* ---------- PREVIEW ---------- */
-
-
-
-
- function updatePreview(imageUrl = null) {
-  const config = getConfig();
-
-  const titulo1 = form.titulo1.value || "Título ejemplo";
-  const titulo2 = form.titulo2.value || "Subtítulo ejemplo";
-  const botonTexto = form.boton_texto.value || "Botón";
-
-  const link = safeUrl(linkInput?.value);
-
-  const img =
-    imageUrl ||
-    preview.querySelector("img")?.src ||
-    "https://via.placeholder.com/1200x500?text=Preview";
-
-  const wrapper = document.createElement("div");
-  wrapper.style.position = "relative";
-  wrapper.style.width = "100%";
-  wrapper.style.height = "320px";
-  wrapper.style.overflow = "hidden";
-  wrapper.style.borderRadius = "8px";
-  wrapper.style.background = "#000";
-
-  const image = document.createElement("img");
-  image.src = img;
-  image.style.width = "100%";
-  image.style.height = "100%";
-  image.style.objectFit = "cover";
-  image.style.opacity = config.text ? "0.85" : "1";
-
-  if (config.link) {
-    const linkEl = document.createElement("a");
-    linkEl.href = link;
-    linkEl.target = "_blank";
-    linkEl.rel = "noopener noreferrer";
-    linkEl.style.display = "block";
-    linkEl.style.height = "100%";
-    linkEl.appendChild(image);
-    wrapper.appendChild(linkEl);
-  } else {
-    wrapper.appendChild(image);
+    return "#";
   }
 
-  if (config.text) {
-    const overlay = document.createElement("div");
-    overlay.style.position = "absolute";
-    overlay.style.inset = "0";
-    overlay.style.display = "flex";
-    overlay.style.flexDirection = "column";
-    overlay.style.justifyContent = "center";
-    overlay.style.alignItems = config.align;
-    overlay.style.padding = "40px";
-    overlay.style.color = "white";
-    overlay.style.textAlign = config.textAlign;
+  function mostrarMensaje(tipo, texto) {
+    const mensaje = document.getElementById("mensaje");
 
-    const h2 = document.createElement("h2");
-    h2.style.marginBottom = "10px";
-    h2.textContent = titulo1;
+    if (!mensaje) return;
 
-    const p = document.createElement("p");
-    p.style.marginBottom = "20px";
-    p.textContent = titulo2;
+    const div = document.createElement("div");
+    div.className = `alert ${tipo}`;
+    div.textContent = texto || "Operación procesada";
 
-    overlay.append(h2, p);
+    mensaje.replaceChildren(div);
+  }
 
-    if (config.button && mostrarBoton.checked) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "btn btn-primary";
-      button.style.width = "max-content";
-      button.textContent = botonTexto;
-      overlay.appendChild(button);
+  function updatePreview(imageUrl = null) {
+    const safeImageUrl =
+      typeof imageUrl === "string" && imageUrl.trim()
+        ? imageUrl
+        : null;
+
+    const config = getConfig();
+
+    const titulo1 = form.titulo1?.value || "Título ejemplo";
+    const titulo2 = form.titulo2?.value || "Subtítulo ejemplo";
+    const botonTexto = form.boton_texto?.value || "Botón";
+
+    const link = safeUrl(linkInput?.value);
+
+    const img =
+      safeImageUrl ||
+      preview.querySelector("img")?.src ||
+      "/img/no-image.png";
+
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.width = "100%";
+    wrapper.style.height = "320px";
+    wrapper.style.overflow = "hidden";
+    wrapper.style.borderRadius = "8px";
+    wrapper.style.background = "#000";
+
+    const image = document.createElement("img");
+    image.src = img;
+    image.style.width = "100%";
+    image.style.height = "100%";
+    image.style.objectFit = "cover";
+    image.style.opacity = config.text ? "0.85" : "1";
+
+    if (config.link) {
+      const linkEl = document.createElement("a");
+      linkEl.href = link;
+      linkEl.target = "_blank";
+      linkEl.rel = "noopener noreferrer";
+      linkEl.style.display = "block";
+      linkEl.style.height = "100%";
+      linkEl.appendChild(image);
+      wrapper.appendChild(linkEl);
+    } else {
+      wrapper.appendChild(image);
     }
 
-    wrapper.appendChild(overlay);
+    if (config.text) {
+      const overlay = document.createElement("div");
+      overlay.style.position = "absolute";
+      overlay.style.inset = "0";
+      overlay.style.display = "flex";
+      overlay.style.flexDirection = "column";
+      overlay.style.justifyContent = "center";
+      overlay.style.alignItems = config.align || "center";
+      overlay.style.padding = "40px";
+      overlay.style.color = "white";
+      overlay.style.textAlign = config.textAlign || "center";
+
+      const h2 = document.createElement("h2");
+      h2.style.marginBottom = "10px";
+      h2.textContent = titulo1;
+
+      const p = document.createElement("p");
+      p.style.marginBottom = "20px";
+      p.textContent = titulo2;
+
+      overlay.append(h2, p);
+
+      if (config.button && mostrarBoton.checked) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-primary";
+        button.style.width = "max-content";
+        button.textContent = botonTexto;
+        overlay.appendChild(button);
+      }
+
+      wrapper.appendChild(overlay);
+    }
+
+    preview.replaceChildren(wrapper);
   }
 
-  preview.replaceChildren(wrapper);
-}
-
-  /* ---------- EVENTOS ---------- */
-
-  layoutRadios.forEach(r =>
-    r.addEventListener("change", () => {
+  layoutRadios.forEach((radio) =>
+    radio.addEventListener("change", () => {
       updateLayout();
       updatePreview();
     })
@@ -542,77 +434,56 @@ function mostrarMensaje(tipo, texto) {
     updatePreview();
   });
 
-  form.titulo1.addEventListener("input", updatePreview);
-  form.titulo2.addEventListener("input", updatePreview);
-  form.boton_texto.addEventListener("input", updatePreview);
+  form.titulo1?.addEventListener("input", () => updatePreview());
+  form.titulo2?.addEventListener("input", () => updatePreview());
+  form.boton_texto?.addEventListener("input", () => updatePreview());
 
-  linkInput?.addEventListener("change", updatePreview);
+  linkInput?.addEventListener("input", () => updatePreview());
 
-  inputImagen.addEventListener("change", e => {
+  inputImagen.addEventListener("change", (event) => {
+    const file = event.target.files?.[0];
 
-    const file = e.target.files[0];
-    if(!file) return;
+    if (!file) return;
 
     const url = URL.createObjectURL(file);
 
     updatePreview(url);
-
   });
 
-  /* ---------- SUBMIT ---------- */
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-  form.addEventListener("submit", async (e) => {
-
-    e.preventDefault();
-
-    const mensaje = document.getElementById("mensaje");
     const formData = new FormData(form);
-
     const id = form.dataset.id;
+    const API_URL = form.dataset.apiUrl;
 
-   const API_URL = form.dataset.apiUrl;
+    if (!API_URL) {
+      mostrarMensaje("alert-danger", "No se encontró API_URL");
+      return;
+    }
 
-if (!API_URL) {
-  mostrarMensaje("alert-danger", "No se encontró API_URL");
-  return;
-}
-
-const url = id
-  ? `${API_URL}/hero/${id}`
-  : `${API_URL}/hero`;
-
+    const url = id ? `${API_URL}/hero/${id}` : `${API_URL}/hero`;
     const method = id ? "PUT" : "POST";
 
     try {
-
-      const res = await fetch(url,{
+      const res = await fetch(url, {
         method,
         body: formData,
-        credentials:"include"
+        credentials: "include",
       });
 
-      const result = await res.json();
-const data = result.data ?? result;
+      const result = await res.json().catch(() => ({}));
 
       mostrarMensaje(
-  res.ok ? "alert-success" : "alert-danger",
-  data.msg
-);
-
+        res.ok ? "alert-success" : "alert-danger",
+        result?.message || result?.msg || "Operación procesada"
+      );
     } catch {
-
-     mostrarMensaje("alert-danger", "Error de conexión");
-
+      mostrarMensaje("alert-danger", "Error de conexión");
     }
-
   });
-
-  /* ---------- INIT ---------- */
 
   updateLayout();
   updatePreview();
-
 });
-
 </script>
-
