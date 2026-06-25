@@ -47,6 +47,8 @@ const tituloInput = document.getElementById("titulo");
 const urlInput = document.getElementById("url");
 const activoInput = document.getElementById("activo");
 
+let menuActual = null;
+
 async function cargarPadres() {
   const menus = await getMenuAdmin();
 
@@ -64,6 +66,8 @@ async function cargarPadres() {
 async function cargar() {
   const m = await getMenuAdminById(id);
 
+  menuActual = m;
+
   tituloInput.value = m.titulo;
   urlInput.value = m.url;
   activoInput.checked = Boolean(m.activo);
@@ -74,9 +78,15 @@ async function cargar() {
 formMenu.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  if (!menuActual) {
+    throw new Error("No se pudo cargar el menú actual");
+  }
+
   const data = {
     titulo: tituloInput.value,
     url: urlInput.value,
+    tipo: menuActual.tipo,
+    orden: menuActual.orden,
     activo: activoInput.checked,
     parent_id: parentSelect.value || null,
   };
