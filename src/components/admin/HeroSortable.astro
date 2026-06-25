@@ -1,6 +1,32 @@
 ---
 import { API_URL, UPLOADS_URL } from "../../config/api";
 
+const getHeroImageUrl = (image = "") => {
+  const value = String(image || "").trim();
+
+  if (!value) return "/img/no-image.png";
+
+  if (
+    value.includes("..") ||
+    value.includes("<") ||
+    value.includes(">") ||
+    value.includes('"') ||
+    value.includes("'")
+  ) {
+    return "/img/no-image.png";
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const clean = value.replace(/^\/?uploads\//, "").replace(/^\/+/, "");
+
+  if (!clean) return "/img/no-image.png";
+
+  return `${UPLOADS_URL}/${encodeURIComponent(clean)}`;
+};
+
 interface Slide {
   id_hero: number;
   titulo1: string | null;
@@ -23,7 +49,7 @@ const { slides } = Astro.props as { slides: Slide[] };
       <!-- 🔵 IMAGEN DEL SLIDE -->
       {slide.imagen && (
         <img
-          src={`${UPLOADS_URL}/${slide.imagen}`}
+          src={getHeroImageUrl(slide.imagen)}
           class="hero-thumb"
         />
       )}
