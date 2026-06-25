@@ -22,14 +22,26 @@ export const safeJson = async (res) => {
 };
 
 export const getImageUrl = (apiUrl, img) => {
-  const value = String(img || "").trim();
+  const rawValue = String(img || "").trim();
 
-  if (!value) {
-    return "https://via.placeholder.com/150";
+  if (!rawValue) {
+    return "/img/no-image.png";
   }
 
-  if (value.includes("..")) {
-    return "https://via.placeholder.com/150";
+  if (rawValue.includes("..")) {
+    return "/img/no-image.png";
+  }
+
+  let value = rawValue;
+
+  try {
+    const decoded = decodeURIComponent(rawValue);
+
+    if (/^https?:\/\//i.test(decoded)) {
+      value = decoded;
+    }
+  } catch {
+    value = rawValue;
   }
 
   if (/^https?:\/\//i.test(value)) {
@@ -39,11 +51,11 @@ export const getImageUrl = (apiUrl, img) => {
   const cleanPath = value.replace(/^\/+/, "");
   const cleanApiUrl = String(apiUrl || "").replace(/\/+$/, "");
 
-  if (cleanPath.startsWith("http://") || cleanPath.startsWith("https://")) {
-    return cleanPath;
+  if (!cleanPath) {
+    return "/img/no-image.png";
   }
 
-  return `${cleanApiUrl}/uploads/${encodeURIComponent(cleanPath)}`;
+  return `${cleanApiUrl}/uploads/${cleanPath}`;
 };
 
 export const escapeHTML = (str = "") => {
