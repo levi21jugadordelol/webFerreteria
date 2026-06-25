@@ -80,7 +80,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("🟢 [4] Respuesta crearMarca:", data);
 
-        const marcaId = data.marca?.id_marca || data.id_marca || data.marca?.id;
+        const marcaId =
+          data.data?.id_marca ||
+          data.marca?.id_marca ||
+          data.id_marca ||
+          data.marca?.id;
 
         console.log("🟡 [5] ID obtenido:", marcaId);
 
