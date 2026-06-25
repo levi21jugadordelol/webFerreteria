@@ -6,13 +6,30 @@ export const prerender = false;
 
 import { API_URL, UPLOADS_URL } from "../../config/api";
 
-  const imagenHeroSegura = (path = "") => {
-  const cleanPath = String(path || "").replace(/^\/+/, "");
+const imagenHeroSegura = (path = "") => {
+  const value = String(path || "").trim();
 
-  if (!cleanPath) return "/img/no-image.png";
-  if (cleanPath.includes("..")) return "/img/no-image.png";
+  if (!value) return "/img/no-image.png";
 
-  return `${UPLOADS_URL}/${encodeURIComponent(cleanPath)}`;
+  if (
+    value.includes("..") ||
+    value.includes("<") ||
+    value.includes(">") ||
+    value.includes('"') ||
+    value.includes("'")
+  ) {
+    return "/img/no-image.png";
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const clean = value.replace(/^\/?uploads\//, "").replace(/^\/+/, "");
+
+  if (!clean) return "/img/no-image.png";
+
+  return `${UPLOADS_URL}/${encodeURIComponent(clean)}`;
 };
 
 const urlInternaSegura = (url = "") => {
