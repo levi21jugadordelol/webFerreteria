@@ -43,14 +43,16 @@ try {
             class="ui-card text-decoration-none"
           >
             <div class="ui-card-img is-cover">
-              <img
-                src={
-                  c.url_imagen
-                    ? `${UPLOADS_URL}/${c.url_imagen}`
-                    : "/img/no-image.png"
-                }
-                alt={c.nombre_categoria}
-              />
+             <img
+  src={
+    c.url_imagen
+      ? /^https?:\/\//i.test(c.url_imagen)
+        ? c.url_imagen
+        : `${UPLOADS_URL}/${c.url_imagen}`
+      : "/img/no-image.png"
+  }
+  alt={c.nombre_categoria}
+/>
             </div>
 
             <div class="ui-card-body">
