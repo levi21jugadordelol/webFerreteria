@@ -4,59 +4,63 @@ import { API_URL } from "../../../config/api";
 ---
 
 <AdminLayout title="Nuevo enlace de menú">
+  <form id="formMenu">
+    <div class="mb-3">
+      <label>Título</label>
+      <input class="form-control" name="titulo" id="tituloInput" required />
+    </div>
 
-<form id="formMenu">
+    <div class="mb-3">
+      <label>Menú padre</label>
+      <select id="parentSelect" class="form-control">
+        <option value="">Sin padre (nivel principal)</option>
+      </select>
+    </div>
 
-  <!-- Título -->
-  <div class="mb-3">
-    <label>Título</label>
-    <input class="form-control" name="titulo" required>
-  </div>
+    <div class="mb-3">
+      <label>Tipo de enlace</label>
+      <select id="tipoSelect" class="form-control">
+        <option value="pagina">Página CMS</option>
+        <option value="sistema">Ruta del sistema</option>
+        <option value="ruta">Ruta manual</option>
+      </select>
+    </div>
 
-  <div class="mb-3">
-  <label>Menú padre</label>
-  <select id="parentSelect" class="form-control">
-    <option value="">Sin padre (nivel principal)</option>
-  </select>
-</div>
+    <div class="mb-3" id="grupoPagina">
+      <label>Página</label>
+      <select id="paginaSelect" class="form-control">
+        <option value="">Seleccionar página</option>
+      </select>
+    </div>
 
-  <!-- Tipo -->
-  <div class="mb-3">
-    <label>Tipo de enlace</label>
-    <select id="tipoSelect" class="form-control">
-      <option value="pagina">Página CMS</option>
-      <option value="ruta">Ruta manual</option>
-    </select>
-  </div>
+    <div class="mb-3 d-none" id="grupoSistema">
+      <label>Ruta del sistema</label>
+      <select id="sistemaSelect" class="form-control">
+        <option value="">Seleccionar ruta</option>
+        <option value="/">Inicio</option>
+        <option value="/productos">Productos</option>
+        <option value="/categorias">Categorías</option>
+        <option value="/marcas">Marcas</option>
+        <option value="/contacto">Contacto</option>
+      </select>
+    </div>
 
-  <!-- Página -->
-  <div class="mb-3" id="grupoPagina">
-    <label>Página</label>
-    <select id="paginaSelect" class="form-control">
-      <option value="">Seleccionar página</option>
-    </select>
-  </div>
+    <div class="mb-3 d-none" id="grupoRuta">
+      <label>Ruta manual</label>
+      <input id="rutaInput" class="form-control" placeholder="/productos" />
+    </div>
 
-  <!-- Ruta -->
-  <div class="mb-3 d-none" id="grupoRuta">
-    <label>Ruta</label>
-    <input id="rutaInput" class="form-control" placeholder="/productos">
-  </div>
+    <div class="form-check mb-3">
+      <input type="checkbox" class="form-check-input" name="activo" checked />
+      <label class="form-check-label">Activo</label>
+    </div>
 
-  <!-- Activo -->
-  <div class="form-check mb-3">
-    <input type="checkbox" class="form-check-input" name="activo" checked>
-    <label class="form-check-label">Activo</label>
-  </div>
+    <button class="btn btn-success">
+      Guardar
+    </button>
+  </form>
 
-  <button class="btn btn-success">
-    Guardar
-  </button>
-
-</form>
-
-<div id="mensaje" class="mt-3"></div>
-
+  <div id="mensaje" class="mt-3"></div>
 </AdminLayout>
 
 <script is:inline define:vars={{ API_URL }}>
@@ -64,181 +68,180 @@ import { API_URL } from "../../../config/api";
 </script>
 
 <script is:client>
-
 const API_URL = window.API_URL;
 
-const select = document.getElementById("paginaSelect")
-const tipoSelect = document.getElementById("tipoSelect")
-const grupoPagina = document.getElementById("grupoPagina")
-const grupoRuta = document.getElementById("grupoRuta")
-const rutaInput = document.getElementById("rutaInput")
+const formMenu = document.getElementById("formMenu");
+const tituloInput = document.getElementById("tituloInput");
+const parentSelect = document.getElementById("parentSelect");
+const tipoSelect = document.getElementById("tipoSelect");
+const grupoPagina = document.getElementById("grupoPagina");
+const grupoSistema = document.getElementById("grupoSistema");
+const grupoRuta = document.getElementById("grupoRuta");
+const paginaSelect = document.getElementById("paginaSelect");
+const sistemaSelect = document.getElementById("sistemaSelect");
+const rutaInput = document.getElementById("rutaInput");
 
-/* --------------------------
-   CARGAR PAGINAS
----------------------------*/
-async function cargarPaginas(){
-  try{
-    const res = await fetch(`${API_URL}/paginas`)
-    const result = await res.json()
-const paginas = Array.isArray(result?.data) ? result.data : []
+function mostrarMensaje(tipo, texto) {
+  const msg = document.getElementById("mensaje");
 
-paginas.forEach(p => {
-      const option = document.createElement("option")
-      option.value = p.slug
-      option.textContent = p.titulo
-      select.appendChild(option)
-    })
-
-  }catch(err){
-    console.error("Error cargando páginas",err)
-  }
-}
-
-cargarPaginas()
-
-/* --------------------------
-   CAMBIO DE TIPO
----------------------------*/
-tipoSelect.addEventListener("change", () => {
-
-  if(tipoSelect.value === "pagina"){
-    grupoPagina.classList.remove("d-none")
-    grupoRuta.classList.add("d-none")
-  }else{
-    grupoPagina.classList.add("d-none")
-    grupoRuta.classList.remove("d-none")
-  }
-
-})
-
-/* --------------------------
-   MENSAJES
----------------------------*/
-function mostrarMensaje(tipo, texto){
-  const msg = document.getElementById("mensaje")
-
-  if(!msg) return
+  if (!msg) return;
 
   msg.innerHTML = `
     <div class="alert alert-${tipo}">
       ${texto}
     </div>
-  `
+  `;
 }
 
-/* --------------------------
-   FORMULARIO
----------------------------*/
-document
-.getElementById("formMenu")
-.addEventListener("submit", async (e) => {
+function actualizarVistaTipo() {
+  grupoPagina.classList.add("d-none");
+  grupoSistema.classList.add("d-none");
+  grupoRuta.classList.add("d-none");
 
-  e.preventDefault()
-
-  const btn = e.target.querySelector("button")
-  btn.disabled = true
-  btn.innerText = "Guardando..."
-
-  const form = new FormData(e.target)
-  const data = Object.fromEntries(form)
-
-  /* --------------------------
-     DATA
-  ---------------------------*/
-
-  if(tipoSelect.value === "pagina"){
-    data.url = select.value
-  }else{
-    data.url = rutaInput.value.trim()
+  if (tipoSelect.value === "pagina") {
+    grupoPagina.classList.remove("d-none");
   }
 
-  data.tipo = tipoSelect.value
-data.activo = form.get("activo") ? 1 : 0
-data.parent_id = parentSelect.value || null
-
-  /* --------------------------
-     VALIDACIONES
-  ---------------------------*/
-
-  if(!data.url){
-    mostrarMensaje("danger","Debe seleccionar una página o ingresar una ruta")
-
-    btn.disabled = false
-    btn.innerText = "Guardar"
-    return
+  if (tipoSelect.value === "sistema") {
+    grupoSistema.classList.remove("d-none");
   }
 
-  if(data.tipo === "ruta" && !data.url.startsWith("/")){
-    mostrarMensaje("danger","La ruta debe empezar con '/'")
+  if (tipoSelect.value === "ruta") {
+    grupoRuta.classList.remove("d-none");
+  }
+}
 
-    btn.disabled = false
-    btn.innerText = "Guardar"
-    return
+function normalizarRutaManual(ruta) {
+  const value = String(ruta || "").trim();
+
+  if (!value) return "";
+
+  return value.startsWith("/") ? value : `/${value}`;
+}
+
+function obtenerUrlSeleccionada() {
+  if (tipoSelect.value === "pagina") {
+    const slug = paginaSelect.value.trim().replace(/^\/+/, "");
+    return slug ? `/${slug}` : "";
   }
 
-  /* --------------------------
-     REQUEST
-  ---------------------------*/
-  try{
+  if (tipoSelect.value === "sistema") {
+    return sistemaSelect.value.trim();
+  }
 
+  return normalizarRutaManual(rutaInput.value);
+}
+
+async function cargarPaginas() {
+  try {
+    const res = await fetch(`${API_URL}/paginas`);
+    const result = await res.json();
+    const paginas = Array.isArray(result?.data) ? result.data : [];
+
+    paginas.forEach((p) => {
+      const option = document.createElement("option");
+      option.value = p.slug;
+      option.textContent = p.titulo;
+      paginaSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Error cargando páginas", err);
+  }
+}
+
+async function cargarPadres() {
+  try {
+    const res = await fetch(`${API_URL}/menu/admin/lista`, {
+      credentials: "include",
+    });
+
+    const result = await res.json();
+    const menus = Array.isArray(result?.data) ? result.data : [];
+
+    menus.forEach((m) => {
+      const option = document.createElement("option");
+      option.value = m.id_menu;
+      option.textContent = m.titulo;
+      parentSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Error cargando padres", err);
+  }
+}
+
+tipoSelect.addEventListener("change", actualizarVistaTipo);
+
+formMenu.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const btn = e.target.querySelector("button");
+  btn.disabled = true;
+  btn.innerText = "Guardando...";
+
+  const form = new FormData(e.target);
+  const data = Object.fromEntries(form);
+
+  data.url = obtenerUrlSeleccionada();
+  data.tipo = tipoSelect.value === "pagina" ? "pagina" : "ruta";
+  data.activo = form.get("activo") ? 1 : 0;
+  data.parent_id = parentSelect.value || null;
+
+  if (!data.titulo?.trim()) {
+    mostrarMensaje("danger", "Debe ingresar un título");
+
+    btn.disabled = false;
+    btn.innerText = "Guardar";
+    return;
+  }
+
+  if (!data.url) {
+    mostrarMensaje("danger", "Debe seleccionar una página o ingresar una ruta");
+
+    btn.disabled = false;
+    btn.innerText = "Guardar";
+    return;
+  }
+
+  if (!data.url.startsWith("/")) {
+    mostrarMensaje("danger", "La ruta debe empezar con '/'");
+
+    btn.disabled = false;
+    btn.innerText = "Guardar";
+    return;
+  }
+
+  try {
     const res = await fetch(`${API_URL}/menu/admin`, {
-      method:"POST",
-      body:JSON.stringify(data),
-      headers:{ "Content-Type":"application/json" },
-      credentials:"include"
-    })
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
 
-    if(!res.ok){
-      mostrarMensaje("danger","No se pudo crear el enlace")
+    if (!res.ok) {
+      mostrarMensaje("danger", "No se pudo crear el enlace");
 
-      btn.disabled = false
-      btn.innerText = "Guardar"
-      return
+      btn.disabled = false;
+      btn.innerText = "Guardar";
+      return;
     }
 
-    mostrarMensaje("success","Enlace creado correctamente")
+    mostrarMensaje("success", "Enlace creado correctamente");
 
-    setTimeout(()=>{
-      window.location="/admin/menu/lista"
-    },1200)
+    setTimeout(() => {
+      window.location = "/admin/menu/lista";
+    }, 1200);
+  } catch (err) {
+    console.error(err);
 
-  }catch(err){
+    mostrarMensaje("danger", "Error de conexión");
 
-    console.error(err)
-
-    mostrarMensaje("danger","Error de conexión")
-
-    btn.disabled = false
-    btn.innerText = "Guardar"
-
+    btn.disabled = false;
+    btn.innerText = "Guardar";
   }
+});
 
-})
-
-
-const parentSelect = document.getElementById("parentSelect")
-
-async function cargarPadres(){
-  try{
-    const res = await fetch(`${API_URL}/menu/admin/lista`, {
-      credentials:"include"
-    })
-
-    const result = await res.json()
-const menus = Array.isArray(result?.data) ? result.data : []
-
-menus.forEach(m => {
-      const option = document.createElement("option")
-      option.value = m.id_menu
-      option.textContent = m.titulo
-      parentSelect.appendChild(option)
-    })
-
-  }catch(err){
-    console.error("Error cargando padres", err)
-  }
-}
-
-cargarPadres()
-
+actualizarVistaTipo();
+cargarPaginas();
+cargarPadres();
 </script>
