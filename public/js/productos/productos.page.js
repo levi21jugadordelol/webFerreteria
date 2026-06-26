@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Producto creado correctamente", "success");
 
       setTimeout(() => {
-        window.location.href = `/admin/productos/editar/${data.producto.id_producto}`;
+        window.location.href = `/admin/productos/editar/${data.data.id_producto}`;
       }, 1200);
     } catch (error) {
       showToast(error.message, "error");

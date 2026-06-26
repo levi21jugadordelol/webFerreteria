@@ -24,6 +24,25 @@ const {
 
 let productos: any[] = [];
 
+
+const getProductImageUrl = (image = "") => {
+  const value = String(image || "").trim();
+
+  if (!value) return "/img/no-image.png";
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const clean = value.replace(/^\/?uploads\//, "").replace(/^\/+/, "");
+
+  if (!clean || clean.includes("..")) {
+    return "/img/no-image.png";
+  }
+
+  return `${UPLOADS_URL}/${encodeURIComponent(clean)}`;
+};
+
 try {
   const res = await fetch(
     `${API_URL}/productos/home?tipo=${tipo}&limit=${limit}`,
@@ -61,11 +80,9 @@ try {
   precio={`${p.precio}`}
   descripcion={p.descripcion}
   stock={p.stock_disponible}
-  imagen={{
-    src: p.url_imagen
-      ? `${UPLOADS_URL}/${p.url_imagen}`
-      : "/img/no-image.png",
-  }}
+ imagen={{
+  src: getProductImageUrl(p.url_imagen),
+}}
   agotado={p.agotado}
 />
         ))}
