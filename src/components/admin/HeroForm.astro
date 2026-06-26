@@ -78,10 +78,7 @@ const getHeroImageUrl = (image = "") => {
             Texto centrado
           </label>
 
-          <label>
-            <input type="radio" name="tipo_layout" value="triple" checked={slide?.tipo_layout === "triple"} />
-            Banner triple promocional
-          </label>
+        
         </div>
       </div>
 
@@ -138,7 +135,7 @@ const getHeroImageUrl = (image = "") => {
         </div>
       </div>
 
-      <div id="linkFields" class="mb-3">
+      <!-- <div id="linkFields" class="mb-3">
         <label class="form-label fw-bold">Destino del banner</label>
 
         <select id="linkSelector" class="form-select mb-2">
@@ -162,7 +159,7 @@ const getHeroImageUrl = (image = "") => {
         <small class="text-muted">
           Puedes elegir un destino rápido o escribir cualquier URL.
         </small>
-      </div>
+      </div> -->
 
       {slide?.imagen && (
         <div class="mb-3">
@@ -233,57 +230,52 @@ document.addEventListener("DOMContentLoaded", () => {
   const preview = document.getElementById("previewContainer");
   const textFields = document.getElementById("textFields");
   const botonFields = document.getElementById("botonFields");
-  const linkFields = document.getElementById("linkFields");
+  //const linkFields = document.getElementById("linkFields");
 
   const mostrarBoton = document.getElementById("mostrar_boton");
   const layoutRadios = form.querySelectorAll('[name="tipo_layout"]');
   const inputImagen = form.querySelector('[name="imagen"]');
-  const linkInput = form.querySelector('[name="link_url"]');
-  const linkSelector = document.getElementById("linkSelector");
+  //const linkInput = form.querySelector('[name="link_url"]');
+ // const linkSelector = document.getElementById("linkSelector");
 
-  if (!preview || !textFields || !botonFields || !linkFields || !mostrarBoton || !inputImagen) {
-    return;
-  }
+  if (!preview || !textFields || !botonFields || !mostrarBoton || !inputImagen) {
+  return;
+}
 
-  if (linkSelector && linkInput) {
-    linkSelector.addEventListener("change", () => {
-      if (linkSelector.value !== "") {
-        linkInput.value = linkSelector.value;
-      }
+  // if (linkSelector && linkInput) {
+  //   linkSelector.addEventListener("change", () => {
+  //     if (linkSelector.value !== "") {
+  //       linkInput.value = linkSelector.value;
+  //     }
 
-      updatePreview();
-    });
-  }
+  //     updatePreview();
+  //   });
+  // }
 
-  const layouts = {
-    banner: { text: false, button: false, link: false },
+ const layouts = {
+  banner: { text: false, button: false },
 
-    "text-left": {
-      text: true,
-      button: true,
-      link: false,
-      align: "flex-start",
-      textAlign: "left",
-    },
+  "text-left": {
+    text: true,
+    button: true,
+    align: "flex-start",
+    textAlign: "left",
+  },
 
-    "text-right": {
-      text: true,
-      button: true,
-      link: false,
-      align: "flex-end",
-      textAlign: "right",
-    },
+  "text-right": {
+    text: true,
+    button: true,
+    align: "flex-end",
+    textAlign: "right",
+  },
 
-    centered: {
-      text: true,
-      button: true,
-      link: false,
-      align: "center",
-      textAlign: "center",
-    },
-
-    triple: { text: false, button: false, link: true },
-  };
+  centered: {
+    text: true,
+    button: true,
+    align: "center",
+    textAlign: "center",
+  },
+};
 
   function getLayout() {
     return [...layoutRadios].find((radio) => radio.checked)?.value || "banner";
@@ -303,28 +295,28 @@ document.addEventListener("DOMContentLoaded", () => {
     botonFields.style.display =
       config.button && mostrarBoton.checked ? "block" : "none";
 
-    linkFields.style.display = config.link ? "block" : "none";
+   // linkFields.style.display = config.link ? "block" : "none";
   }
 
-  function safeUrl(url) {
-    const value = String(url || "").trim();
+  // function safeUrl(url) {
+  //   const value = String(url || "").trim();
 
-    if (!value) return "#";
+  //   if (!value) return "#";
 
-    if (value.startsWith("/")) {
-      return value;
-    }
+  //   if (value.startsWith("/")) {
+  //     return value;
+  //   }
 
-    try {
-      const parsed = new URL(value);
+  //   try {
+  //     const parsed = new URL(value);
 
-      if (parsed.protocol === "https:" || parsed.protocol === "http:") {
-        return value;
-      }
-    } catch {}
+  //     if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+  //       return value;
+  //     }
+  //   } catch {}
 
-    return "#";
-  }
+  //   return "#";
+  // }
 
   function mostrarMensaje(tipo, texto) {
     const mensaje = document.getElementById("mensaje");
@@ -350,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const titulo2 = form.titulo2?.value || "Subtítulo ejemplo";
     const botonTexto = form.boton_texto?.value || "Botón";
 
-    const link = safeUrl(linkInput?.value);
+    //const link = safeUrl(linkInput?.value);
 
     const img =
       safeImageUrl ||
@@ -372,18 +364,20 @@ document.addEventListener("DOMContentLoaded", () => {
     image.style.objectFit = "cover";
     image.style.opacity = config.text ? "0.85" : "1";
 
-    if (config.link) {
-      const linkEl = document.createElement("a");
-      linkEl.href = link;
-      linkEl.target = "_blank";
-      linkEl.rel = "noopener noreferrer";
-      linkEl.style.display = "block";
-      linkEl.style.height = "100%";
-      linkEl.appendChild(image);
-      wrapper.appendChild(linkEl);
-    } else {
-      wrapper.appendChild(image);
-    }
+    // if (config.link) {
+    //   const linkEl = document.createElement("a");
+    //   linkEl.href = link;
+    //   linkEl.target = "_blank";
+    //   linkEl.rel = "noopener noreferrer";
+    //   linkEl.style.display = "block";
+    //   linkEl.style.height = "100%";
+    //   linkEl.appendChild(image);
+    //   wrapper.appendChild(linkEl);
+    // } else {
+    //   wrapper.appendChild(image);
+    // }
+
+    wrapper.appendChild(image);
 
     if (config.text) {
       const overlay = document.createElement("div");
@@ -438,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
   form.titulo2?.addEventListener("input", () => updatePreview());
   form.boton_texto?.addEventListener("input", () => updatePreview());
 
-  linkInput?.addEventListener("input", () => updatePreview());
+//  linkInput?.addEventListener("input", () => updatePreview());
 
   inputImagen.addEventListener("change", (event) => {
     const file = event.target.files?.[0];

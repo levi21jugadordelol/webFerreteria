@@ -1,0 +1,32 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+import HeroTripleForm from "../../../../components/admin/HeroTripleForm.astro";
+import { API_URL } from "../../../../config/api";
+
+const { id } = Astro.params;
+
+let slide = null;
+
+try {
+  const res = await fetch(`${API_URL}/hero/${id}`, {
+    cache: "no-store",
+  });
+
+  if (res.ok) {
+    const result = await res.json();
+    slide = result.data ?? null;
+  }
+} catch (error) {
+  console.error("Error cargando banner triple:", error);
+}
+
+if (!slide || slide.tipo_layout !== "triple") {
+  return Astro.redirect("/admin/hero-triple");
+}
+---
+
+<AdminLayout title="Editar Banner Triple">
+  <HeroTripleForm slide={slide} />
+</AdminLayout>

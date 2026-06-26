@@ -1,0 +1,171 @@
+---
+import { API_URL, UPLOADS_URL } from "../../config/api";
+
+interface HeroSlide {
+  id_hero?: number;
+  imagen?: string;
+  link_url?: string;
+  activo?: boolean;
+  orden?: number;
+}
+
+const { slide } = Astro.props as { slide?: HeroSlide };
+const isEdit = !!slide;
+
+const getHeroImageUrl = (image = "") => {
+  const value = String(image || "").trim();
+
+  if (!value) return "/img/no-image.png";
+
+  if (
+    value.includes("..") ||
+    value.includes("<") ||
+    value.includes(">") ||
+    value.includes('"') ||
+    value.includes("'")
+  ) {
+    return "/img/no-image.png";
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const clean = value.replace(/^\/?uploads\//, "").replace(/^\/+/, "");
+
+  if (!clean) return "/img/no-image.png";
+
+  return `${UPLOADS_URL}/${encodeURIComponent(clean)}`;
+};
+---
+
+<div class="card shadow-sm p-4">
+  <form
+    id="heroTripleForm"
+    enctype="multipart/form-data"
+    data-id={slide?.id_hero ?? ""}
+    data-api-url={API_URL}
+  >
+    <input type="hidden" name="tipo_layout" value="triple" />
+
+    {slide?.imagen && (
+      <div class="mb-3">
+        <label class="form-label fw-bold">Imagen actual</label>
+        <img
+          src={getHeroImageUrl(slide.imagen)}
+          class="img-fluid rounded"
+          style="max-height:180px"
+        />
+      </div>
+    )}
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Imagen del banner</label>
+      <input
+        type="file"
+        name="imagen"
+        class="form-control"
+        accept="image/*"
+        {...(!isEdit ? { required: true } : {})}
+      />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Destino del banner</label>
+      <input
+        type="text"
+        name="link_url"
+        class="form-control"
+        placeholder="/productos o https://..."
+        value={slide?.link_url ?? ""}
+      />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Orden</label>
+      <input
+        type="number"
+        name="orden"
+        class="form-control"
+        value={slide?.orden ?? 0}
+      />
+    </div>
+
+    <div class="form-check form-switch mb-3">
+      <input
+        type="checkbox"
+        name="activo"
+        class="form-check-input"
+        checked={slide?.activo ?? true}
+      />
+      <label class="form-check-label">Visible en el sitio</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">
+      {isEdit ? "Actualizar Banner Triple" : "Guardar Banner Triple"}
+    </button>
+
+    <div id="mensajeTriple" class="mt-3"></div>
+  </form>
+</div>
+
+<script is:inline>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("heroTripleForm");
+  if (!form) return;
+
+  const mensaje = document.getElementById("mensajeTriple");
+
+  function mostrarMensaje(tipo, texto) {
+    if (!mensaje) return;
+
+    const div = document.createElement("div");
+    div.className = `alert ${tipo}`;
+    div.textContent = texto || "Operación procesada";
+
+    mensaje.replaceChildren(div);
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+    formData.set("tipo_layout", "triple");
+
+    const id = form.dataset.id;
+    const API_URL = form.dataset.apiUrl;
+
+    const url = id ? `${API_URL}/hero/${id}` : `${API_URL}/hero`;
+    const method = id ? "PUT" : "POST";
+
+    try {
+      const res = await fetch(url, {
+        method,
+        body: formData,
+        credentials: "include",
+      });
+
+      const result = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        mostrarMensaje(
+          "alert-danger",
+          result?.message || result?.msg || "Error al guardar"
+        );
+        return;
+      }
+
+      mostrarMensaje(
+        "alert-success",
+        result?.message || "Banner triple guardado correctamente"
+      );
+
+      setTimeout(() => {
+        window.location.href = "/admin/hero-triple";
+      }, 900);
+    } catch {
+      mostrarMensaje("alert-danger", "Error de conexión");
+    }
+  });
+});
+</script>

@@ -1,0 +1,88 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { API_URL, UPLOADS_URL } from "../../../config/api";
+
+interface HeroSlide {
+  id_hero: number;
+  imagen: string;
+  link_url: string | null;
+  activo: boolean;
+  orden: number;
+}
+
+const getHeroImageUrl = (image = "") => {
+  const value = String(image || "").trim();
+
+  if (!value) return "/img/no-image.png";
+
+  if (/^https?:\/\//i.test(value)) return value;
+
+  const clean = value.replace(/^\/?uploads\//, "").replace(/^\/+/, "");
+
+  if (!clean || clean.includes("..")) return "/img/no-image.png";
+
+  return `${UPLOADS_URL}/${encodeURIComponent(clean)}`;
+};
+
+let slides: HeroSlide[] = [];
+
+try {
+  const res = await fetch(`${API_URL}/hero?type=triple`, {
+    cache: "no-store",
+  });
+
+  if (res.ok) {
+    const result = await res.json();
+    slides = result.data ?? [];
+  }
+} catch (error) {
+  console.error("Error cargando hero triple:", error);
+}
+---
+
+<AdminLayout title="Hero Triple">
+  <div class="mb-3">
+    <a href="/admin/hero-triple/nuevo" class="btn btn-primary">
+      Nuevo banner triple
+    </a>
+  </div>
+
+  {slides.length === 0 ? (
+    <p class="text-muted">No hay banners triples registrados.</p>
+  ) : (
+    <div class="row g-3">
+      {slides.map((slide) => (
+        <div class="col-md-4">
+          <div class="card shadow-sm p-3">
+            <img
+              src={getHeroImageUrl(slide.imagen)}
+              class="img-fluid rounded mb-2"
+              style="height:160px; object-fit:cover;"
+            />
+
+            <p class="mb-1">
+              <strong>Orden:</strong> {slide.orden}
+            </p>
+
+            <p class="mb-1">
+              <strong>Estado:</strong> {slide.activo ? "Activo" : "Inactivo"}
+            </p>
+
+            <p class="small text-muted">
+              {slide.link_url || "Sin link"}
+            </p>
+
+            <a
+              href={`/admin/hero-triple/editar/${slide.id_hero}`}
+              class="btn btn-warning btn-sm"
+            >
+              Editar
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</AdminLayout>
