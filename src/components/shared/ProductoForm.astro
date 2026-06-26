@@ -1,7 +1,3 @@
----
-
----
-
 <form id="formProducto" class="bg-white p-4 shadow rounded">
   <div class="mb-3">
     <label class="form-label fw-semibold">Nombre del producto</label>
@@ -20,16 +16,16 @@
 
   <div class="mb-3">
     <label class="form-label fw-semibold">Stock</label>
-    <input
-    type="number"
-    name="stock_total"
-    class="form-control"
-    required
-/>
+    <input type="number" name="stock_total" class="form-control" required />
   </div>
 
   <div class="form-check mb-2">
-    <input class="form-check-input" type="checkbox" name="es_destacado" />
+    <input
+      class="form-check-input"
+      type="checkbox"
+      name="es_destacado"
+      value="true"
+    />
     <label class="form-check-label">Producto destacado</label>
   </div>
 
@@ -50,15 +46,3 @@
 
   <button type="submit" class="btn btn-primary w-100">Guardar Producto</button>
 </form>
-
-
-
-
-
-
-
-
-
-
-
-
