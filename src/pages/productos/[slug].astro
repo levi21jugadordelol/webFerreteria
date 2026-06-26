@@ -11,6 +11,24 @@ import {
   UPLOADS_URL
 } from "../../config/api";
 
+const getProductImageUrl = (image: string | null | undefined = "") => {
+  const value = String(image || "").trim();
+
+  if (!value) return "/img/no-image.png";
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const clean = value.replace(/^\/?uploads\//, "").replace(/^\/+/, "");
+
+  if (!clean || clean.includes("..")) {
+    return "/img/no-image.png";
+  }
+
+  return `${UPLOADS_URL}/${encodeURIComponent(clean)}`;
+};
+
 const { slug } = Astro.params;
 
 // PRODUCTO
@@ -69,16 +87,8 @@ const tiposTabs = Object.keys(tabs).sort(
         <img
           id="img-principal"
           class="img-fluid"
-          src={
-            producto.url_imagen
-              ? `${UPLOADS_URL}/${producto.url_imagen}`
-              : "/img/no-image.png"
-          }
-          data-zoom={
-            producto.url_imagen
-              ? `${UPLOADS_URL}/${producto.url_imagen}`
-              : "/img/no-image.png"
-          }
+         src={getProductImageUrl(producto.url_imagen)}
+data-zoom={getProductImageUrl(producto.url_imagen)}
           alt={producto.nombre_producto}
         />
         <div class="zoom-pane"></div>
@@ -86,27 +96,19 @@ const tiposTabs = Object.keys(tabs).sort(
 
       <div class="d-flex gap-2 flex-wrap">
         <img
-          src={
-            producto.url_imagen
-              ? `${UPLOADS_URL}/${producto.url_imagen}`
-              : "/img/no-image.png"
-          }
+         src={getProductImageUrl(producto.url_imagen)}
           width="80"
           class="border rounded miniatura"
-          data-src={
-            producto.url_imagen
-              ? `${UPLOADS_URL}/${producto.url_imagen}`
-              : "/img/no-image.png"
-          }
+          data-src={getProductImageUrl(producto.url_imagen)}
           alt="Imagen principal"
         />
 
         {producto.imagenes?.map((img: ImagenExtra) => (
           <img
-            src={`${UPLOADS_URL}/${img.url}`}
+            src={getProductImageUrl(img.url)}
             width="80"
             class="border rounded miniatura"
-            data-src={`${UPLOADS_URL}/${img.url}`}
+            data-src={getProductImageUrl(img.url)}
             alt="Miniatura"
           />
         ))}
@@ -131,11 +133,7 @@ const tiposTabs = Object.keys(tabs).sort(
         data-nombre={producto.nombre_producto}
         data-precio={producto.precio}
         data-stock={producto.stock_disponible ?? producto.stock_total ?? 0}
-        data-imagen={
-          producto.url_imagen
-            ? `${UPLOADS_URL}/${producto.url_imagen}`
-            : "/img/no-image.png"
-        }
+       data-imagen={getProductImageUrl(producto.url_imagen)}
       >
         <button class="btn-add btn btn-primary btn-lg mb-4">
           Agregar al carrito
@@ -206,11 +204,7 @@ const tiposTabs = Object.keys(tabs).sort(
       <a href={`/productos/${p.slug}`} class="relacionado-card">
         <div class="card h-100">
           <img
-            src={
-              p.url_imagen
-                ? `${UPLOADS_URL}/${p.url_imagen}`
-                : "/img/no-image.png"
-            }
+           src={getProductImageUrl(p.url_imagen)}
             class="card-img-top"
             style="height:180px;object-fit:contain"
           />

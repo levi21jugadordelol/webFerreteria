@@ -1,10 +1,31 @@
 ---
 import BuscadorLayout from "../../layouts/buscador/BuscadorLayout.astro";
 
+
+
 import {
   API_URL,
   UPLOADS_URL
 } from "../../config/api";
+
+
+const getProductImageUrl = (image = "") => {
+  const value = String(image || "").trim();
+
+  if (!value) return "/img/no-image.png";
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const clean = value.replace(/^\/?uploads\//, "").replace(/^\/+/, "");
+
+  if (!clean || clean.includes("..")) {
+    return "/img/no-image.png";
+  }
+
+  return `${UPLOADS_URL}/${encodeURIComponent(clean)}`;
+};
 
 const q = Astro.url.searchParams.get("q") || "";
 
@@ -40,11 +61,7 @@ if (q) {
     {productos.map((p: any) => (
       <a href={`/producto/${p.id_producto}`} class="producto-card">
         <img
-          src={
-            p.url_imagen
-              ? `${UPLOADS_URL}/${p.url_imagen}`
-              : "/img/no-image.png"
-          }
+         src={getProductImageUrl(p.url_imagen)}
           alt={p.nombre_producto}
         />
 
