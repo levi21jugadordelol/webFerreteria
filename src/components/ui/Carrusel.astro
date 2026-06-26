@@ -93,7 +93,7 @@ try {
             )}
 
             {/* 🎨 IMAGEN + TEXTO */}
-        {slide.tipo_layout !== "banner" && (
+        {["text-left", "text-right"].includes(slide.tipo_layout) && (
   <div class="container h-100">
     <div class={`row align-items-center h-100 ${
       slide.tipo_layout === "text-right" ? "flex-row-reverse" : ""
@@ -137,6 +137,36 @@ try {
                 </div>
               </div>
             )}
+
+            {slide.tipo_layout === "centered" && (
+  <div class="hero-centered">
+    <img
+      src={imagenHeroSegura(slide.imagen)}
+      alt=""
+      class="hero-centered-img"
+    />
+
+    <div class="hero-centered-content">
+      {slide.titulo1 && (
+        <p class="hero-subtitle mb-2">
+          {slide.titulo1}
+        </p>
+      )}
+
+      {slide.titulo2 && (
+        <h1 class="fw-bold mb-3">
+          {slide.titulo2}
+        </h1>
+      )}
+
+      {slide.mostrar_boton && slide.boton_texto && (
+        <Button href={urlInternaSegura(slide.boton_url ?? "")}>
+          {slide.boton_texto}
+        </Button>
+      )}
+    </div>
+  </div>
+)}
 
           </div>
 
@@ -205,6 +235,9 @@ try {
 
 
 
+
+
+
 /* Dots */
 .indicators {
   position: absolute;
@@ -246,6 +279,42 @@ try {
   opacity: 1;
   background-color: #7a0c23;
   transform: scale(1.2);
+}
+
+
+.hero-centered {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-centered-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-centered::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 1;
+}
+
+.hero-centered-content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+  padding: 40px;
 }
 </style>
 
