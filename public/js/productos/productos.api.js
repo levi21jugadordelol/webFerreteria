@@ -41,7 +41,13 @@ export async function crearProducto(apiUrl, formData) {
   const data = await safeJson(res);
 
   if (!res.ok) {
-    throw new Error(data.msg || "Error al crear producto");
+    const detalle = Array.isArray(data.errores)
+      ? data.errores.map((e) => `${e.campo}: ${e.mensaje}`).join(" | ")
+      : null;
+
+    throw new Error(
+      detalle || data.message || data.msg || "Error al crear producto",
+    );
   }
 
   return data;
