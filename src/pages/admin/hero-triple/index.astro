@@ -43,43 +43,58 @@ try {
 ---
 
 <AdminLayout title="Hero Triple">
-  <div class="mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Hero Triple Promocional</h2>
+      <p class="text-muted mb-0">
+        Administra los banners promocionales triples del inicio.
+      </p>
+    </div>
+
     <a href="/admin/hero-triple/nuevo" class="btn btn-primary">
-      Nuevo banner triple
+      ➕ Nuevo Banner
     </a>
   </div>
 
   {slides.length === 0 ? (
-    <p class="text-muted">No hay banners triples registrados.</p>
+    <div class="alert alert-info">
+      No hay banners triples registrados.
+    </div>
   ) : (
     <div class="row g-3">
       {slides.map((slide) => (
         <div class="col-md-4">
-          <div class="card shadow-sm p-3">
+          <div class="card shadow-sm h-100">
             <img
               src={getHeroImageUrl(slide.imagen)}
-              class="img-fluid rounded mb-2"
-              style="height:160px; object-fit:cover;"
+              class="card-img-top"
+              alt="Banner triple promocional"
+              style="height:160px; object-fit:cover; object-position:center;"
             />
 
-            <p class="mb-1">
-              <strong>Orden:</strong> {slide.orden}
-            </p>
+            <div class="card-body">
+              <p class="mb-1">
+                <strong>Orden:</strong> {slide.orden}
+              </p>
 
-            <p class="mb-1">
-              <strong>Estado:</strong> {slide.activo ? "Activo" : "Inactivo"}
-            </p>
+              <p class="mb-1">
+                <strong>Estado:</strong>{" "}
+                <span class={slide.activo ? "badge bg-success" : "badge bg-danger"}>
+                  {slide.activo ? "Activo" : "Inactivo"}
+                </span>
+              </p>
 
-            <p class="small text-muted">
-              {slide.link_url || "Sin link"}
-            </p>
+              <p class="small text-muted mb-3">
+                {slide.link_url || "Sin link"}
+              </p>
 
-            <a
-              href={`/admin/hero-triple/editar/${slide.id_hero}`}
-              class="btn btn-warning btn-sm"
-            >
-              Editar
-            </a>
+              <a
+                href={`/admin/hero-triple/editar/${slide.id_hero}`}
+                class="btn btn-warning btn-sm"
+              >
+                ✏️ Editar
+              </a>
+            </div>
           </div>
         </div>
       ))}
