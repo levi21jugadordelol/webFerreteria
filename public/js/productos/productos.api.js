@@ -40,6 +40,8 @@ export async function crearProducto(apiUrl, formData) {
 
   const data = await safeJson(res);
 
+  console.log("RESPUESTA CREAR PRODUCTO:", data);
+
   if (!res.ok) {
     const detalle = Array.isArray(data.errores)
       ? data.errores.map((e) => `${e.campo}: ${e.mensaje}`).join(" | ")
