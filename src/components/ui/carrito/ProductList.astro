@@ -60,18 +60,15 @@
 
 <script>
   import carritoStore from "../../../store/carritoStore.js";
-  const contenedor = document.getElementById("lista-carrito");
 
+  const contenedor = document.getElementById("lista-carrito") as HTMLElement;
+
+  
 
   function render() {
-    const store = window.carritoStore;
-
-    if (!store) {
-      console.warn("⚠ store aún no está listo");
-      return;
-    }
-
+    const store = carritoStore;
     const carrito = store.get();
+
     console.log("Carrito:", carrito);
 
     if (!carrito.length) {
@@ -81,7 +78,7 @@
 
     contenedor.innerHTML = carrito
       .map(
-        (p) => `
+        (p : any) => `
       <div class="product-row" data-id="${p.id}">
         <img src="${p.imagen}" />
         
@@ -107,33 +104,37 @@
       .join("");
   }
 
-  // Delegación de eventos para botones
   contenedor.addEventListener("click", (e) => {
-    const row = e.target.closest(".product-row");
+const target = e.target as HTMLElement;
+const row = target.closest(".product-row") as HTMLElement;
     if (!row) return;
 
     const store = carritoStore;
-    if (!store) return;
-
     const id = row.dataset.id;
+
     let carrito = store.get();
-    let producto = carrito.find((p) => p.id == id);
+    let producto = carrito.find((p : any) => p.id == id);
     if (!producto) return;
 
-    if (e.target.classList.contains("mas")) producto.cantidad++;
-    if (e.target.classList.contains("menos"))
-      producto.cantidad > 1
-        ? producto.cantidad--
-        : (carrito = carrito.filter((p) => p.id != id));
+   
 
-    if (e.target.closest(".eliminar"))
-      carrito = carrito.filter((p) => p.id != id);
+if (target.classList.contains("mas")) producto.cantidad++;
+
+if (target.classList.contains("menos")) {
+  producto.cantidad > 1
+    ? producto.cantidad--
+    : (carrito = carrito.filter((p : any) => p.id != id));
+}
+
+if (target.closest(".eliminar")) {
+  carrito = carrito.filter((p : any) => p.id != id);
+}
 
     store.save(carrito);
   });
 
- console.log("✔ carritoStore listo");
-render();
+  console.log("✔ carritoStore listo");
+  render();
 
   document.addEventListener("carrito-actualizado", render);
 </script>
