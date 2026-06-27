@@ -35,15 +35,28 @@ if (!apiUrl || !uploadsUrl) {
   console.error("No se encontró configuración de productos");
 }
 
-  function safeUploadUrl(path) {
-    const cleanPath = String(path || "").replace(/^\/+/, "");
+function safeUploadUrl(path) {
+  const value = String(path || "").trim();
 
-    if (!cleanPath) return "/img/no-image.png";
-
-    if (cleanPath.includes("..")) return "/img/no-image.png";
-
-    return `${uploadsUrl}/${encodeURIComponent(cleanPath)}`;
+  if (!value) {
+    return "/img/no-image.png";
   }
+
+  // Cloudinary o cualquier URL absoluta
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const clean = value
+    .replace(/^\/?uploads\//, "")
+    .replace(/^\/+/, "");
+
+  if (!clean || clean.includes("..")) {
+    return "/img/no-image.png";
+  }
+
+  return `${uploadsUrl}/${encodeURIComponent(clean)}`;
+}
 
   function crearMensaje(texto, clase = "text-muted") {
     const p = document.createElement("p");
