@@ -1,0 +1,290 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { API_URL } from "../../../config/api";
+
+type HomePromo = {
+  titulo?: string;
+  subtitulo?: string;
+  imagen?: string;
+  boton_texto?: string;
+  boton_url?: string;
+  activo?: boolean;
+};
+
+type SiteSettings = {
+  home_promo?: HomePromo;
+};
+
+let config: SiteSettings = {};
+
+try {
+  const res = await fetch(`${API_URL}/site-settings`);
+
+  if (res.ok) {
+    config = await res.json();
+  }
+} catch (error) {
+  console.error("Error cargando configuración");
+}
+
+const titulo = config.home_promo?.titulo ?? "";
+const subtitulo = config.home_promo?.subtitulo ?? "";
+const imagen = config.home_promo?.imagen ?? "";
+const botonTexto = config.home_promo?.boton_texto ?? "";
+const botonUrl = config.home_promo?.boton_url ?? "";
+const activo = config.home_promo?.activo ?? true;
+---
+
+
+<AdminLayout title="Promoción Home">
+
+<div class="container-fluid" style="max-width:700px">
+
+<div class="card shadow-sm">
+
+<div class="card-header bg-light fw-bold">
+Promoción Home
+</div>
+
+<div class="card-body">
+
+<form id="promoForm">
+
+<div class="mb-3">
+<label class="form-label">Título</label>
+<input
+type="text"
+class="form-control"
+name="titulo"
+value={titulo}
+/>
+</div>
+
+<div class="mb-3">
+<label class="form-label">Subtítulo</label>
+<textarea
+class="form-control"
+name="subtitulo"
+rows="4"
+>{subtitulo}</textarea>
+</div>
+
+<div class="mb-3">
+<label class="form-label">Imagen</label>
+
+<input
+type="file"
+id="imagenFile"
+class="form-control"
+/>
+
+<input
+type="hidden"
+id="imagen"
+name="imagen"
+value={imagen}
+/>
+
+<div id="previewImagen" class="mt-3">
+{
+imagen &&
+<img
+src={imagen}
+style="max-width:180px;border-radius:10px"
+/>
+}
+</div>
+
+</div>
+
+<div class="mb-3">
+<label class="form-label">
+Texto botón
+</label>
+
+<input
+class="form-control"
+name="boton_texto"
+value={botonTexto}
+/>
+</div>
+
+<div class="mb-3">
+<label class="form-label">
+URL botón
+</label>
+
+<input
+class="form-control"
+name="boton_url"
+value={botonUrl}
+/>
+</div>
+
+<div class="form-check mb-4">
+
+<input
+id="activo"
+name="activo"
+class="form-check-input"
+type="checkbox"
+checked={activo}
+/>
+
+<label
+for="activo"
+class="form-check-label">
+Mostrar promoción
+</label>
+
+</div>
+
+<button class="btn btn-primary">
+Guardar
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+<div id="mensaje" class="mt-3"></div>
+
+</div>
+
+<script is:inline define:vars={{ API_URL }}>
+window.API_URL = API_URL;
+</script>
+
+<script is:inline>
+const API_URL = window.API_URL;
+
+const form = document.getElementById("promoForm");
+const mensaje = document.getElementById("mensaje");
+
+const imagenFile = document.getElementById("imagenFile");
+const imagenInput = document.getElementById("imagen");
+const previewImagen = document.getElementById("previewImagen");
+
+function mostrarMensaje(tipo, texto) {
+  const div = document.createElement("div");
+  div.className = `alert ${tipo}`;
+  div.textContent = texto;
+  mensaje.replaceChildren(div);
+}
+
+function safeImageUrl(url) {
+  const value = String(url || "").trim();
+
+  if (!value) return "";
+
+  if (value.includes("..")) return "";
+
+  if (
+    value.startsWith("/") ||
+    value.startsWith("http://") ||
+    value.startsWith("https://")
+  ) {
+    return value;
+  }
+
+  return "";
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch(`${API_URL}/site-settings`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        home_promo: {
+          titulo: form.titulo.value.trim(),
+          subtitulo: form.subtitulo.value.trim(),
+          imagen: imagenInput.value,
+          boton_texto: form.boton_texto.value.trim(),
+          boton_url: form.boton_url.value.trim(),
+          activo: form.activo.checked,
+        },
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      mostrarMensaje(
+        "alert-danger",
+        data.message || "No se pudo guardar"
+      );
+      return;
+    }
+
+    mostrarMensaje(
+      "alert-success",
+      data.message || "Promoción guardada correctamente"
+    );
+  } catch (error) {
+    console.error(error);
+    mostrarMensaje("alert-danger", "Error de conexión");
+  }
+});
+
+imagenFile.addEventListener("change", async () => {
+  const file = imagenFile.files[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    mostrarMensaje("alert-danger", "Solo se permiten imágenes");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("imagen", file);
+
+  try {
+    const res = await fetch(`${API_URL}/uploads/editor`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    const imageUrl = safeImageUrl(data?.data?.url);
+
+    if (!res.ok || !imageUrl) {
+      mostrarMensaje(
+        "alert-danger",
+        data.message || "No se pudo subir la imagen"
+      );
+      return;
+    }
+
+    imagenInput.value = imageUrl;
+
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    img.style.maxWidth = "180px";
+    img.style.borderRadius = "10px";
+
+    previewImagen.replaceChildren(img);
+
+    mostrarMensaje(
+      "alert-success",
+      "Imagen subida correctamente"
+    );
+  } catch (error) {
+    console.error(error);
+    mostrarMensaje(
+      "alert-danger",
+      "Error subiendo la imagen"
+    );
+  }
+});
+</script>

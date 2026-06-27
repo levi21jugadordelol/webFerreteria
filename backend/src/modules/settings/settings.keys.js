@@ -7,4 +7,5 @@ export const SETTINGS_KEYS_PERMITIDAS = [
   "footer",
   "logo",
   "theme",
+  "home_promo",
 ];

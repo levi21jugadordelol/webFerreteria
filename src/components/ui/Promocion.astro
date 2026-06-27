@@ -1,111 +1,154 @@
 ---
-import Hero from "../ui/Hero.astro"
-import Title from "../shared/Title.astro"
-import { Image } from "astro:assets"
-import Button from "../ui/Button.astro"
+import Hero from "../ui/Hero.astro";
+import Button from "../ui/Button.astro";
 
-import testimonio1 from "../../assets/testimonio1.jpg"
-import testimonio2 from "../../assets/testimonio2.jpg"
-import testimonio3 from "../../assets/testimonio3.jpg"
+import { API_URL } from "../../config/api";
 
-const clientes = [
-  {
-    titulo1: "Herramientas de calidad garantizada",
-    titulo2: "Todo lo que necesitas para tus proyectos de construcción y reparación",
-    imagen: testimonio1,
-    refImg: "herramientas"
-  },
-  {
-    titulo1: "Soluciones para tu negocio",
-    titulo2: "Equipos industriales, eléctricos y de ferretería en un solo lugar",
-    imagen: testimonio2,
-    refImg: "equipos industriales"
-  },
-  {
-    titulo1: "Ferretería confiable y cercana",
-    titulo2: "Más de 10 años ayudando a maestros y profesionales a construir sus sueños",
-    imagen: testimonio3,
-    refImg: "clientes satisfechos"
+type HomePromo = {
+  titulo?: string;
+  subtitulo?: string;
+  imagen?: string;
+  boton_texto?: string;
+  boton_url?: string;
+  activo?: boolean;
+};
+
+type SiteSettings = {
+  home_promo?: HomePromo;
+};
+
+let config: SiteSettings = {};
+
+try {
+  const res = await fetch(`${API_URL}/site-settings`, {
+    cache: "no-store",
+  });
+
+  if (res.ok) {
+    const result = await res.json();
+    config = result.data ?? {};
   }
-]
+} catch (error) {
+  console.error("Error cargando promoción:", error);
+}
+
+const promo = config.home_promo;
+
+function safeImageUrl(url: string = "") {
+  const value = String(url || "").trim();
+
+  if (!value) return "/img/no-image.png";
+
+  if (value.includes("..")) return "/img/no-image.png";
+
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("/")
+  ) {
+    return value;
+  }
+
+  return "/img/no-image.png";
+}
 ---
 
+{
+promo?.activo && (
 <Hero bg="rgba(91,12,34,0.35)" height="500px">
+
   <div class="testimonio-carousel">
+
     <div class="slides-wrapper">
-      {clientes.map(({ imagen, titulo1, titulo2, refImg }) => (
-    <div class="slide row h-100 w-100">
-  <div class="container col-6 d-flex align-items-center justify-content-center img-col">
-    <Image
-      src={imagen}
-      alt={`Foto de ${refImg}`}
-      class="hero-img"
-      format="webp"
-      widths={[400, 800, 1200]}
-      sizes="100vw"
-    />
+
+      <div class="slide row h-100 w-100">
+
+        <div class="container col-6 d-flex align-items-center justify-content-center img-col">
+
+          <img
+            src={safeImageUrl(promo.imagen)}
+            alt={promo.titulo ?? "Promoción"}
+            class="hero-img"
+          />
+
+        </div>
+
+        <div class="col-6 d-flex flex-column align-items-center justify-content-center text-center">
+
+          <div class="div_texto text-white px-3">
+
+            <p class="titulo1 mb-2">
+              {promo.titulo}
+            </p>
+
+            <h2 class="titulo2 fw-bold">
+              {promo.subtitulo}
+            </h2>
+
+          </div>
+
+          <div class="mt-5">
+
+            <Button href={promo?.boton_url || "#"}>
+  {promo?.boton_texto || "Ver más"}
+</Button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 
-  <div class="col-6 d-flex flex-column align-items-center justify-content-center text-center">
-    <div class="div_texto text-white px-3">
-      <p class="titulo1 mb-2">{titulo1}</p>
-      <h2 class="titulo2 fw-bold">{titulo2}</h2>
-    </div>
-    <div class="mt-5"><Button label="comprar ahora" /></div>
-  </div>
-</div>
-
-      ))}
-    </div>
-  </div>
 </Hero>
+)
+}
 
 <style>
-  .testimonio-carousel {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
+.testimonio-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
 
-  .slides-wrapper {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    transition: transform 1s ease-in-out;
-  }
+.slides-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
 
-  .slide {
-    flex: 0 0 100%;
-  }
+.slide {
+  flex: 0 0 100%;
+}
 
-  .img-col {
-    height: 100%;
-    overflow: hidden;
-  }
+.img-col {
+  height: 100%;
+  overflow: hidden;
+}
 
-  .hero-img {
-    width: 80%;
-    height: 70%;
-    object-fit: cover;
-    border-radius: 12px;
-  }
+.hero-img {
+  width: 80%;
+  height: 70%;
+  object-fit: cover;
+  border-radius: 12px;
+}
 
-  /* --- Texto sin fondo --- */
-  .div_texto {
-    max-width: 600px;
-    color: white;
-  }
+.div_texto {
+  max-width: 600px;
+  color: white;
+}
 
-  /* Subtítulo pequeño */
-  .titulo1 {
-    font-size: 1.1rem;
-    opacity: 0.9;
-  }
+.titulo1 {
+  font-size: 1.1rem;
+  opacity: .9;
+}
 
-  /* Título principal grande */
-  .titulo2 {
-    font-size: 2rem;
-    line-height: 1.3;
-  }
+.titulo2 {
+  font-size: 2rem;
+  line-height: 1.3;
+}
 </style>
