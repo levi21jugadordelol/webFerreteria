@@ -1,3 +1,5 @@
+import { carritoStore } from "./store/carritoStore.js";
+
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".btn-add");
   if (!btn || btn.disabled) return;
