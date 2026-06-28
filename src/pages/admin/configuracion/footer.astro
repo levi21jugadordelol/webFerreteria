@@ -1,7 +1,7 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 
-import { BACKEND_URL } from "../../../config/api";
+import { API_URL } from "../../../config/api";
 
 type Footer = {
   titulo?: string;
@@ -15,7 +15,7 @@ type Footer = {
 let footer: Footer = {};
 
 try {
-  const res = await fetch(`${BACKEND_URL}/api/site-settings?key=footer`);
+  const res = await fetch(`${API_URL}/site-settings?key=footer`);
 
   if (res.ok) {
     footer = await res.json();
@@ -124,7 +124,7 @@ try {
   </div>
 </AdminLayout>
 
-<script is:inline define:vars={{ API_URL: BACKEND_URL }}>
+<script is:inline define:vars={{ API_URL }}>
   window.API_URL = API_URL;
 </script>
 
@@ -216,7 +216,7 @@ form.addEventListener("submit", async (e) => {
   };
 
   try {
-    const res = await fetch(`${API_URL}/api/site-settings`, {
+    const res = await fetch(`${API_URL}/site-settings`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
