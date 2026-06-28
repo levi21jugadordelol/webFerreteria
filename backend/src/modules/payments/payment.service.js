@@ -356,9 +356,6 @@ class PagoService {
         where(col("pedido.id_pedido"), {
           [Op.eq]: Number(q) || 0,
         }),
-        where(col("pedido->detalles->producto.nombre_producto"), {
-          [Op.like]: `%${q}%`,
-        }),
       ];
     }
 
